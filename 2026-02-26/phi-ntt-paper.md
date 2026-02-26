@@ -1,6 +1,6 @@
 # φ-NTT: A Carry-Free Transform on Z₁₀^B with Hierarchical Wavelet Structure
 
-<!-- Reference implementation (frozen): https://github.com/morcb13-bit/Artemis-B13-Archive/tree/main/tutorial @ [commit SHA here] -->
+<!-- Reference implementation (frozen): https://github.com/morcb13-bit/Artemis-B13-Archive/tree/main/tutorial @ f6b524615fb129781ac45c4e396182105fab38ff -->
 <!-- Source: 引継書 v2〜v12 (2026-02-25) -->
 <!-- 禁止: HTML作成・B=4,5再計算・新実験・可視化追加 -->
 <!-- 次タスク: .tex 化（arXiv向け最小テンプレ） -->
