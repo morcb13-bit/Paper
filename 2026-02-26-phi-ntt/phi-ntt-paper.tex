@@ -1,295 +1,706 @@
-\documentclass[11pt]{article}
+% phi-NTT paper — arXiv minimal template
+% Source: phi-ntt-paper.md (引継書 v2〜v12, 2026-02-25)
+% Reference impl: https://github.com/morcb13-bit/Artemis-B13-Archive/tree/main/tutorial
+% Commit SHA: [PAPER_COMMIT_SHA]  (fill in before submission)
 
-% ====== minimal arXiv-friendly packages ======
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath, amssymb, amsthm}
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage{amsmath,amssymb,amsthm}
 \usepackage{mathtools}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage{geometry}
-\geometry{margin=1in}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
 
-% ====== theorem environments (lightweight) ======
-\newtheorem{theorem}{Theorem}
-\newtheorem{definition}{Definition}
+% ── Theorem environments ───────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}[theorem]{Remark}
 
-% ====== handy macros ======
-\newcommand{\Z}{\mathbb{Z}}
-\newcommand{\cfsub}{\mathrm{cf\_sub}}
-\newcommand{\cfneg}{\mathrm{cf\_neg}}
+% ── Notation shorthands ────────────────────────────────────────────────────────
+\newcommand{\ZB}{\mathbb{Z}_{10}^{B}}
+\newcommand{\Zte}{\mathbb{Z}_{10}}
+\newcommand{\Zphi}{\mathbb{Z}[\varphi]}
+\newcommand{\cfadd}{\oplus}
+\newcommand{\cfsub}{\ominus}
+\newcommand{\cfneg}{\ominus}
+\newcommand{\phiNTT}{\varphi\text{-NTT}}
 
-\title{$\varphi$-NTT: A Carry-Free Transform on $\Z_{10}^{B}$ with Hierarchical Wavelet Structure}
-\author{morcb13-bit}
-\date{}
+% ── Title block ───────────────────────────────────────────────────────────────
+\title{$\varphi$-NTT: A Carry-Free Transform on $\mathbb{Z}_{10}^{B}$
+       with Hierarchical Wavelet Structure}
 
+\author{%
+  % Author name(s) — fill in before submission
+  [Author]\\
+  \small [Affiliation]\\
+  \small \texttt{[email]}
+}
+
+\date{\today}
+
+% ══════════════════════════════════════════════════════════════════════════════
 \begin{document}
 \maketitle
 
-% Reference header as a footnote (keeps paper clean)
-\begingroup
-\renewcommand\thefootnote{}\footnote{
-Reference implementation (frozen): \url{https://github.com/morcb13-bit/Artemis-B13-Archive/tree/main/tutorial} @ \texttt{[commit SHA here]}.
-Source: Handoff notes v2--v12 (2026-02-25).
-Policy: No HTML creation, no B=4/5 recomputation, no new experiments, no visualization additions.
-Next task: finalize \LaTeX\ for arXiv.
-}
-\addtocounter{footnote}{-1}
-\endgroup
-
+% ── Abstract ──────────────────────────────────────────────────────────────────
 \begin{abstract}
-We introduce $\varphi$-NTT (phi Number Theoretic Transform), a transform defined over the carry-free direct product group $\Z_{10}^{B}$ with coefficients in the golden-ratio integer ring $\Z[\varphi] = \Z[\sqrt{5}]$. The transform achieves exact integer arithmetic with no floating-point error and no inter-stage twiddle factors. The $B$-stage construction yields a $2^{B}$ channel filterbank with a hierarchical wavelet structure analogous to Haar MRA. We establish a Spectral Concentration Quasi-Theorem: for signals with dominant period $P \approx 2\cdot 10^{b}$, the detail channel at level $b$ captures energy fraction $\alpha_b \ge C(1-\varepsilon)^{B-1}$. Empirically, the top 3 channels cover $\ge 97\%$ of total energy for $B=3..5$.
+We introduce $\varphi$-NTT (phi Number Theoretic Transform), a transform defined
+over the carry-free direct product group $\mathbb{Z}_{10}^{B}$ with coefficients
+in the golden-ratio integer ring $\Zphi = \mathbb{Z}[\sqrt{5}]$.
+The transform achieves exact integer arithmetic with no floating-point error and
+no inter-stage twiddle factors.
+The $B$-stage construction yields a $2^{B}$ channel filterbank with a hierarchical
+wavelet structure analogous to Haar MRA\@.
+We establish a \emph{Spectral Concentration Quasi-Theorem}: for signals with
+dominant period $P \approx 2 \cdot 10^{b}$, the detail channel at level $b$
+captures energy fraction $\alpha_{b} \ge C(1-\varepsilon)^{B-1}$.
+Empirically, the top~3 channels cover $\ge 97\%$ of total energy for
+$B = 3, 4, 5$.
 \end{abstract}
 
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Introduction}
-The Fast Fourier Transform (FFT) and its variants are among the most widely deployed algorithms in signal processing and communications. Standard FFT operates on cyclic groups $\Z/(N)$ and relies on complex-valued twiddle factors, which introduce floating-point error and prevent exact integer arithmetic.
+\label{sec:intro}
 
-In this paper, we introduce the $\varphi$-NTT (phi Number Theoretic Transform), a transform defined over the direct product group
-$\Z_{10}^{B} = \Z_{10}\times \cdots \times \Z_{10}$ --- the group of $B$-digit decimal representations with carry-free (digit-wise modular) arithmetic. The key structural features of $\varphi$-NTT are:
+The Fast Fourier Transform (FFT) and its variants are among the most widely
+deployed algorithms in signal processing and communications.
+Standard FFT operates on cyclic groups $\mathbb{Z}/(N)$ and relies on
+complex-valued twiddle factors, which introduce floating-point error and prevent
+exact integer arithmetic.
+
+In this paper, we introduce the \emph{$\varphi$-NTT} (phi Number Theoretic
+Transform), a transform defined over the direct product group
+$\mathbb{Z}_{10}^{B} = \Zte \times \cdots \times \Zte$
+(the group of $B$-digit decimal representations with carry-free,
+digit-wise modular arithmetic).
+The key structural features of $\varphi$-NTT are:
 \begin{itemize}
-\item \textbf{Exact integer arithmetic:} all coefficients lie in the ring $\Z[\varphi]=\Z[\sqrt{5}]$ (golden-ratio integer ring); no floating-point error.
-\item \textbf{Zero inter-stage twiddle factors:} the tensor-product theorem eliminates all cross-stage phase corrections over $B$ recursive stages.
-\item \textbf{$2^B$ channel filterbank:} the $B$-stage transform decomposes a length-$10^B$ signal into $2^B$ channels, labeled by strings over $\{T,U\}$, where $T$ denotes a $C_5$-twisted low-pass projection and $U$ denotes a $\Z_2$ high-pass (parity) projection.
+  \item \textbf{Exact integer arithmetic.}
+        All coefficients lie in the ring $\Zphi = \mathbb{Z}[\sqrt{5}]$
+        (golden-ratio integer ring); no floating-point error occurs.
+  \item \textbf{Zero inter-stage twiddle factors.}
+        The tensor-product theorem eliminates all cross-stage phase corrections
+        across all $B$ recursive stages.
+  \item \textbf{$2^{B}$ channel filterbank.}
+        The $B$-stage transform decomposes a length-$10^{B}$ signal into $2^{B}$
+        channels, labeled by binary strings over $\{T, U\}^{B}$, where $T$
+        denotes a $C_{5}$-twisted low-pass projection and $U$ denotes a $\mathbb{Z}_{2}$
+        high-pass (parity) projection.
 \end{itemize}
 
-The carry-free arithmetic setting --- where each decimal digit evolves independently --- naturally gives rise to a hierarchical wavelet structure analogous to the Haar multiresolution analysis (MRA), but defined over the ring $\Z[\varphi]$ and indexed by decimal digits rather than binary positions. We formalize this analogy and prove a Spectral Concentration Quasi-Theorem: for signals with dominant period $P \approx 2\cdot 10^{b}$, the detail channel at level $b$ captures a fraction $\alpha_b \ge C(1-\varepsilon)^{B-1}$ of total signal energy. Empirically, the top 3 channels cover $\ge 97\%$ of energy for $B=3..5$.
+The carry-free arithmetic setting---where each decimal digit evolves
+independently---naturally gives rise to a hierarchical wavelet structure
+analogous to Haar multiresolution analysis (MRA), but defined over the ring
+$\Zphi$ and indexed by decimal digits rather than binary positions.
+We formalize this analogy and prove a Spectral Concentration Quasi-Theorem:
+for signals with dominant period $P \approx 2 \cdot 10^{b}$, the detail channel
+at level $b$ captures a fraction $\alpha_{b} \ge C(1-\varepsilon)^{B-1}$ of
+total signal energy.
+Empirically, the top~3 channels cover $\ge 97\%$ of energy for $B = 3, 4, 5$.
 
-The remainder of this paper is organized as follows. Section~2 defines $\varphi$-NTT and the convolution theorem on $\Z_{10}^{B}$. Section~3 develops the hierarchical wavelet interpretation. Section~4 states and sketches the proof of the quasi-theorem. Section~5 presents numerical experiments for $B=1..5$. Section~6 discusses open problems, including the exact orthogonality of $T/U$ projections and the determination of constants $C$ and $\varepsilon$. Section~7 concludes.
+The remainder of this paper is organized as follows.
+Section~\ref{sec:transform} defines $\varphi$-NTT and the convolution theorem on
+$\ZB$.
+Section~\ref{sec:wavelet} develops the hierarchical wavelet interpretation.
+Section~\ref{sec:quasithm} states and sketches the proof of the quasi-theorem.
+Section~\ref{sec:experiments} presents numerical experiments for $B = 1, \ldots, 5$.
+Section~\ref{sec:discussion} discusses open problems, including the exact
+orthogonality of $T/U$ projections and the determination of constants $C$ and
+$\varepsilon$.
+Section~\ref{sec:conclusion} concludes.
 
-\section{$\varphi$-NTT on $\Z_{10}^{B}$}
+% ══════════════════════════════════════════════════════════════════════════════
+\section{$\varphi$-NTT on $\mathbb{Z}_{10}^{B}$}
+\label{sec:transform}
 
 \subsection{Carry-Free Group Structure}
-Let $B$ be a positive integer and $N = 10^B$. We represent each index $n \in \{0,\dots,N-1\}$ by its decimal digit expansion
-\[
-n = d_0(n) + 10d_1(n) + \cdots + 10^{B-1}d_{B-1}(n), \quad d_i(n)\in\{0,\dots,9\}.
-\]
-The carry-free group $\Z_{10}^{B}$ is the direct product $\Z_{10}\times\cdots\times\Z_{10}$ ($B$ copies), with addition defined digit-wise:
-\[
-(n \oplus m)_i = (d_i(n) + d_i(m)) \bmod 10.
-\]
-This differs fundamentally from ordinary modular arithmetic on $\Z/(10^B)\Z$, where addition carries across digit boundaries. The two groups coincide only at $B=1$; for $B\ge 2$ they are non-isomorphic, and the standard cyclic convolution theorem does not apply to $\Z_{10}^{B}$.
+
+Let $B$ be a positive integer and $N = 10^{B}$.
+We represent each index $n \in \{0, \ldots, N-1\}$ by its decimal digit expansion
+\begin{equation}
+  n = d_{0}(n) + 10\,d_{1}(n) + \cdots + 10^{B-1}\,d_{B-1}(n),
+  \qquad d_{i}(n) \in \{0,\ldots,9\}.
+\end{equation}
+The \emph{carry-free group} $\ZB$ is the direct product
+$\Zte \times \cdots \times \Zte$ ($B$ copies), with addition defined
+digit-wise:
+\begin{equation}
+  (n \cfadd m)_{i} = \bigl(d_{i}(n) + d_{i}(m)\bigr) \bmod 10.
+\end{equation}
+This differs fundamentally from ordinary modular arithmetic on
+$\mathbb{Z}/(10^{B})\mathbb{Z}$, where addition carries across digit boundaries.
+The two groups coincide only at $B = 1$; for $B \ge 2$ they are non-isomorphic,
+and the standard cyclic convolution theorem does not apply to $\ZB$.
 
 Carry-free subtraction and negation are defined analogously:
-\[
-\cfsub(n,m)_i = (d_i(n) - d_i(m)) \bmod 10,\qquad
-\cfneg(n)_i = (-d_i(n)) \bmod 10.
-\]
-All arithmetic in $\varphi$-NTT operates over the ring $\Z[\varphi]=\Z[\sqrt{5}]$, where $\varphi=(1+\sqrt5)/2$. Elements are pairs $(a,b)\in\Z^2$ representing $a+b\varphi$, with multiplication
-\[
-(a,b)\cdot(c,d) = (ac+bd,\ ad+bc+bd).
-\]
-This eliminates floating-point error entirely.
+\begin{align}
+  \mathrm{cf\_sub}(n,m)_{i} &= \bigl(d_{i}(n) - d_{i}(m)\bigr) \bmod 10, \\
+  \mathrm{cf\_neg}(n)_{i}   &= \bigl(-d_{i}(n)\bigr) \bmod 10.
+\end{align}
+All arithmetic in $\varphi$-NTT operates over the ring
+$\Zphi = \mathbb{Z}[\sqrt{5}]$, where $\varphi = (1+\sqrt{5})/2$.
+Elements are pairs $(a,b) \in \mathbb{Z}^{2}$ representing $a + b\varphi$, with
+multiplication
+\begin{equation}
+  (a,b)\cdot(c,d) = (ac+bd,\; ad+bc+bd).
+\end{equation}
+This representation eliminates floating-point error entirely.
 
 \subsection{Definition of $\varphi$-NTT}
-For $B=1$ (length $N=10$), the transform decomposes the input $x:\Z_{10}\to\Z[\varphi]$ into two channels via the isomorphism $\Z_{10}\cong \Z_2\times \Z_5$ (Chinese Remainder Theorem):
-\[
-\text{$T$-channel: } X_T[k] = n10\_T(x)[k]\quad (C_5\text{-twisted DFT projection}),\qquad
-\text{$U$-channel: } X_U[k] = n10\_U(x)[k]\quad (\Z_2\text{ parity projection}).
-\]
-The $C_5$-twisted DFT uses basis elements $\mathrm{cos5\_zphi}(m)\in\{(2,0),(-1,1),(0,-1)\}$ --- three distinct values in $\Z[\varphi]$, with no irrational twiddle factors at runtime. The $\Z_2$ projection uses the parity kernel $U_1[k]\in\{(0,0),(\pm1,0),(0,\pm1)\}$. Explicit tables are given in Appendix~A.
 
-For general $B$, the transform is defined by a $B$-stage tensor product. At each stage $b\in\{0,\dots,B-1\}$, the input is projected onto either the $T$-channel (low-pass, $C_5$ side) or the $U$-channel (high-pass, $\Z_2$ side). This yields $2^B$ output channels, each labeled by a string over $\{T,U\}^B$:
-\[
-bn\_forward\_flat(x,B) \to [ch_s : s\in\{T,U\}^B],\quad \text{each } ch_s:\Z_{10}^{B}\to\Z[\varphi].
-\]
-The inverse transform $bn\_inverse\_flat$ reconstructs $x$ exactly, with scale factor $40^B$ (no convolution) or $80^B=40^B\cdot 2^B$ (after channel-domain convolution). Both scale factors divide exactly in $\Z[\varphi]$, so reconstruction is lossless over the integers.
+For $B = 1$ (length $N = 10$), the transform decomposes the input
+$x : \Zte \to \Zphi$ into two channels via the isomorphism
+$\Zte \cong \mathbb{Z}_{2} \times \mathbb{Z}_{5}$ (Chinese Remainder Theorem):
+\begin{align}
+  T\text{-channel:} \quad
+    X_{T}[k] &= \mathrm{n10\_T}(x)[k]
+    \quad \text{($C_{5}$-twisted DFT projection)}, \label{eq:Tchannel}\\
+  U\text{-channel:} \quad
+    X_{U}[k] &= \mathrm{n10\_U}(x)[k]
+    \quad \text{($\mathbb{Z}_{2}$ parity projection)}.  \label{eq:Uchannel}
+\end{align}
+The $C_{5}$-twisted DFT uses the basis elements
+$\mathrm{cos5\_zphi}(m) \in \{(2,0),(-1,1),(0,-1)\}$---three distinct values in
+$\Zphi$, with no irrational twiddle factors at runtime.
+The $\mathbb{Z}_{2}$ projection uses the parity kernel
+$U_{1}[k] \in \{(0,0),(\pm 1,0),(0,\pm 1)\}$.
+Explicit tables are given in Appendix~\ref{app:basis}.
 
-A key structural property is that no inter-stage twiddle factors appear: the tensor-product theorem over $\Z_{10}^{B}$ guarantees that all cross-stage phase corrections vanish across all $B$ recursive stages.
+For general $B$, the transform is defined by a $B$-stage tensor product.
+At each stage $b \in \{0,\ldots,B-1\}$, the input is projected onto either the
+$T$-channel (low-pass, $C_{5}$ side) or the $U$-channel (high-pass,
+$\mathbb{Z}_{2}$ side), yielding $2^{B}$ output channels labeled by
+$s \in \{T,U\}^{B}$:
+\begin{equation}
+  \mathrm{bn\_forward\_flat}(x, B)
+  \;\longrightarrow\;
+  \bigl[\,\mathrm{ch}_{s} : s \in \{T,U\}^{B}\,\bigr],
+  \quad \mathrm{ch}_{s} : \ZB \to \Zphi.
+\end{equation}
+The inverse transform $\mathrm{bn\_inverse\_flat}$ reconstructs $x$ exactly, with
+scale factor $40^{B}$ (no convolution) or $80^{B} = 40^{B} \times 2^{B}$ (after
+channel-domain convolution).
+Both scale factors divide exactly in $\Zphi$, so reconstruction is lossless over
+the integers.
+
+A key structural property is that \emph{no inter-stage twiddle factors appear}:
+the tensor-product theorem over $\ZB$ guarantees that all cross-stage phase
+corrections vanish across all $B$ recursive stages.
 
 \subsection{Convolution Theorem (Carry-Free)}
-Define carry-free convolution of $x,h:\Z_{10}^{B}\to\Z[\varphi]$ as
-\[
-(x\star h)[n] = \sum_m h[m]\cdot x[\cfsub(n,m)],\quad n\in\Z_{10}^{B}.
-\]
+
+Define the carry-free convolution of $x, h : \ZB \to \Zphi$ as
+\begin{equation}
+  (x \star h)[n] = \sum_{m} h[m]\cdot x\bigl[\mathrm{cf\_sub}(n,m)\bigr],
+  \qquad n \in \ZB.
+\end{equation}
+
 \begin{theorem}[Carry-Free Convolution]
-Let $F_B$ denote the $\varphi$-NTT forward transform. Then $F_B$ diagonalizes carry-free convolution on $\Z_{10}^{B}$: the channel-domain product
+\label{thm:conv}
+Let $F_{B}$ denote the $\varphi$-NTT forward transform.
+Then $F_{B}$ diagonalizes carry-free convolution on $\ZB$: the channel-domain
+product
 \[
-Y_s[k] = X_s[k]\cdot H_s[k]\quad\text{(with the $T/U$ cross-coupling rule)}
+  Y_{s}[k] = X_{s}[k] \cdot H_{s}[k]
+  \quad \text{(with the $T/U$ cross-coupling rule)}
 \]
-recovers $x\star h$ upon inverse transform, up to the scale factor $80^B$. The $T/U$ cross-coupling at each stage is:
-\[
-2Y_T[k] = X_T[k]H_T[k] - \mathrm{SIN2}\, X_U[k]H_U[k],\qquad
-2Y_U[k] = X_T[k]H_U[k] + X_U[k]H_T[k],
-\]
-where $\mathrm{SIN2}=(3,-1)\in\Z[\varphi]\approx 1.382 = 4\sin^2(2\pi/10)$. This has been verified for $B=1..5$ against direct computation.
+recovers $x \star h$ upon inverse transform, up to scale factor $80^{B}$.
+The $T/U$ cross-coupling at each stage is:
+\begin{align}
+  2\,Y_{T}[k] &= X_{T}[k]\,H_{T}[k]
+               - \mathrm{SIN2} \cdot X_{U}[k]\,H_{U}[k], \\
+  2\,Y_{U}[k] &= X_{T}[k]\,H_{U}[k]
+               + X_{U}[k]\,H_{T}[k],
+\end{align}
+where $\mathrm{SIN2} = (3,-1) \in \Zphi \approx 1.382 = 4\sin^{2}(2\pi/10)$.
 \end{theorem}
 
-Similarly, carry-free cross-correlation reduces to convolution with the carry-free-reversed kernel $h_{\mathrm{rev}}[m] = h[\cfneg(m)]$.
+Theorem~\ref{thm:conv} has been verified for $B = 1, \ldots, 5$ against direct
+computation.
+Similarly, carry-free cross-correlation reduces to convolution with the
+carry-free-reversed kernel $h_{\mathrm{rev}}[m] = h[\mathrm{cf\_neg}(m)]$.
 
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Hierarchical Wavelet Interpretation}
-The recursive $T/U$ decomposition induces a hierarchical structure on $\Z_{10}^{B}$ that parallels multiresolution analysis (MRA).
+\label{sec:wavelet}
+
+The recursive $T/U$ decomposition induces a hierarchical structure on $\ZB$ that
+parallels multiresolution analysis (MRA).
 
 \subsection{$T/U$ as Projection-Like Operators}
-At each stage $b\in\{0,\dots,B-1\}$, the $\varphi$-NTT applies one of two projection-like operators to digit $d_b$:
-\[
-T_b:\ \text{low-pass side }(C_5\text{-twisted DFT projection})\ \text{extracts slowly-varying component across } d_b\in\{0,\dots,9\},
-\]
-\[
-U_b:\ \text{high-pass side }(\Z_2\text{ parity projection})\ \text{extracts alternating component } (-1)^{d_b}.
-\]
-Together, $T_b$ and $U_b$ partition the information in digit $b$ analogously to a two-channel filter bank. We use \emph{projection-like} deliberately: while numerical experiments confirm that energy is partitioned across channels without loss (exact reconstruction holds for $B=1..5$), strict algebraic orthogonality $T_b\perp U_b$ has not yet been proved and is left as an open problem (Section~6).
 
-The $B$-stage tensor product applies these operators independently at each digit position, yielding $2^B$ channels:
-\[
-ch_s = \left(\bigotimes_{b=0}^{B-1} P_b^{s_b}\right)(x),\quad s\in\{T,U\}^B,
-\]
-where $P_b^T=T_b$ and $P_b^U=U_b$. Full signal energy is distributed across all $2^B$ channels, and exact reconstruction is guaranteed by $bn\_inverse\_flat$.
+At each stage $b \in \{0,\ldots,B-1\}$, the $\varphi$-NTT applies one of two
+projection-like operators to digit $d_{b}$:
+\begin{align*}
+  T_{b} &: \text{low-pass side} \quad
+    \text{(extracts the slowly-varying component across $d_{b} \in \{0,\ldots,9\}$)}, \\
+  U_{b} &: \text{high-pass side} \quad
+    \text{(extracts the alternating component $(-1)^{d_{b}}$)}.
+\end{align*}
+Together, $T_{b}$ and $U_{b}$ partition the information in digit $b$ in a manner
+analogous to a two-channel filter bank.
+We use the term \emph{projection-like} deliberately: while numerical experiments
+confirm that energy is partitioned across channels without loss (exact
+reconstruction holds for all $B = 1, \ldots, 5$), the strict algebraic
+orthogonality $T_{b} \perp U_{b}$ has not yet been proved and is left as an open
+problem (Section~\ref{sec:discussion}).
+
+The $B$-stage tensor product applies these operators independently at each digit
+position, yielding $2^{B}$ channels:
+\begin{equation}
+  \mathrm{ch}_{s} = \Bigl(\bigotimes_{b=0}^{B-1} P_{b}^{s_{b}}\Bigr)(x),
+  \qquad s \in \{T,U\}^{B},
+\end{equation}
+where $P_{b}^{T} = T_{b}$ and $P_{b}^{U} = U_{b}$.
 
 \subsection{Binary Tree Interpretation}
-The label set $\{T,U\}^B$ is in natural bijection with the set of root-to-leaf paths in a complete binary tree of depth $B$. Reading the label from left (most significant digit, $b=B-1$) to right (least significant, $b=0$), each leaf corresponds to one channel. The channel $TT\cdots T$ (all $T$, leftmost leaf) captures the coarsest approximation; $UU\cdots U$ (all $U$, rightmost leaf) captures the finest detail --- a checkerboard pattern across all digit positions simultaneously.
 
-The structure is analogous to Haar MRA but not identical; key correspondences are summarized in Table~\ref{tab:haar}.
+The label set $\{T,U\}^{B}$ is in natural bijection with the set of
+root-to-leaf paths in a complete binary tree of depth $B$.
+Reading the label from left (most significant digit, $b = B-1$) to right
+(least significant, $b = 0$), the tree has the form:
+\begin{center}
+\begin{verbatim}
+          root
+        /       \
+   T(d_{B-1})  U(d_{B-1})
+     /   \       /   \
+    T     U    T     U
+   (d_{B-2})  ...
+\end{verbatim}
+\end{center}
+The channel $TT\cdots T$ (all $T$, leftmost leaf) captures the coarsest
+approximation; the channel $UU\cdots U$ (all $U$, rightmost leaf) captures the
+finest detail---the checkerboard pattern across all digit positions simultaneously.
+
+Table~\ref{tab:haar} contrasts the $\varphi$-NTT with Haar MRA\@.
 
 \begin{table}[h]
 \centering
-\caption{Correspondences between Haar MRA and $\varphi$-NTT.}
+\caption{Comparison of Haar MRA and $\varphi$-NTT.}
 \label{tab:haar}
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{lll}
 \toprule
 Property & Haar MRA & $\varphi$-NTT \\
 \midrule
-Signal length & $2^B$ & $10^B$ \\
-Channels & $2^B$ & $2^B$ \\
-Approximation coeff. & scaling function & $TT\cdots T$ channel \\
-Detail coeff. & wavelet function & $T\cdots TU_bT\cdots T$ channels \\
-Arithmetic & real ($\pm 1$ basis) & $\Z[\varphi]$ basis \\
-Orthogonality & exact & conjectured \\
+Signal length      & $2^{B}$           & $10^{B}$ \\
+Channels           & $2^{B}$           & $2^{B}$ \\
+Approximation coeff.& scaling function  & $TT\cdots T$ channel \\
+Detail coeff.      & wavelet function   & $T\cdots T U_{b} T\cdots T$ channels \\
+Arithmetic         & real ($\pm 1$ basis) & $\Zphi$ basis \\
+Orthogonality      & exact             & conjectured \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Energy Localization Mechanism}
-Smooth signals vary slowly across all digit positions. The $U_b$ operator measures parity alternation $(-1)^{d_b}$; if $x$ changes little between even and odd values of $d_b$, the $U_b$ inner product is small. Accumulating this across $B$ stages, the $UU\cdots U$ channel --- requiring large alternation at \emph{every} digit simultaneously --- is driven toward zero. This explains the empirical observation ($B=3..5$) that $UU\cdots U$ carries $<0.01\%$ of total energy for smooth signals.
 
-Signals with dominant period $P\approx 2\cdot 10^b$ exhibit strong alternation specifically at digit $b$, while other digits vary slowly. The $U_b$ projection captures the bulk of oscillatory energy, while $T$ projections at other stages pass the slowly varying envelope. Thus $T\cdots T[U_b]T\cdots T$ becomes dominant. For $\sin(2\pi n/100)$ with $P=100\approx 2\cdot 10^1$, this predicts $TUT\cdots T$ as dominant --- consistent with experiments for $B=3..5$ (86\%, 69\%, 68\%).
+Smooth signals vary slowly across all digit positions.
+The $U_{b}$ operator measures the parity alternation $(-1)^{d_{b}}$ at digit $b$;
+if $x$ changes little between even and odd values of $d_{b}$, the $U_{b}$ inner
+product is small.
+Accumulating this across $B$ stages, the $UU\cdots U$ channel is driven toward
+zero, explaining the empirical observation (B = 3, 4, 5) that $UU\cdots U$
+carries $<0.01\%$ of total energy for smooth signals.
 
-\section{Spectral Concentration}
-We formalize the observed concentration phenomenon as a quasi-theorem.
+Signals with a dominant period $P \approx 2\cdot 10^{b}$ exhibit strong
+alternation specifically at digit $b$, while other digits vary slowly.
+The $U_{b}$ projection then captures the bulk of the oscillatory energy, while
+$T$ projections at all other stages pass the slowly varying envelope.
+The result is that the channel $T\cdots T[U_{b}]T\cdots T$ (U only at position
+$b$) becomes dominant.
+For the test signal $\sin(2\pi n/100)$ with $P = 100 \approx 2\cdot 10^{1}$
+($b=1$), this predicts the $TUT\cdots T$ channel as dominant---consistent with
+all $B = 3, 4, 5$ experiments ($86\%$, $69\%$, $68\%$ of total energy,
+respectively).
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Spectral Concentration Quasi-Theorem}
+\label{sec:quasithm}
+
+We formalize the observed concentration phenomenon.
 
 \subsection{Statement}
-We work under two assumptions on the input signal $x:\Z_{10}^{B}\to\Z[\varphi]$ (real-valued, i.e., second component identically 0):
+
+We work under two assumptions on the input signal
+$x : \ZB \to \Zphi$ (real-valued, i.e., second component identically 0):
+
 \begin{itemize}
-\item \textbf{(A1) Digit-wise smoothness.} For each digit position $b'\ne b$, the variation of $x$ across $d_{b'}$ is small relative to the variation across $d_b$:
-\[
-|\mathrm{variation}(x,b')|\le \varepsilon\, |\mathrm{variation}(x,b)|,\quad b'\ne b,
-\]
-for some $0<\varepsilon<1$. Here $\mathrm{variation}(x,b)$ measures the mean absolute change in $x$ as digit $b$ steps through $\{0,\dots,9\}$.
-\item \textbf{(A2) Dominant period.} The signal has dominant period $P\approx 2\cdot 10^b$ for some $b\in\{0,\dots,B-1\}$, so that $d_b$ is the primary source of oscillation.
+\item[(A1)] \textbf{Digit-wise smoothness.}
+  For each digit position $b' \ne b$, the variation of $x$ across $d_{b'}$ is
+  small relative to the variation across $d_{b}$:
+  \[
+    |\mathrm{variation}(x, b')| \le \varepsilon \cdot |\mathrm{variation}(x, b)|,
+    \qquad b' \ne b,
+  \]
+  for some constant $0 < \varepsilon < 1$.
+
+\item[(A2)] \textbf{Dominant period.}
+  The signal has a dominant period $P \approx 2\cdot 10^{b}$ for some
+  $b \in \{0,\ldots,B-1\}$, so that $d_{b}$ is the primary source of oscillation.
 \end{itemize}
 
-\begin{theorem}[$\varphi$-NTT Spectral Concentration Quasi-Theorem]
-Under assumptions (A1) and (A2), there exist constants $C>0$ and $0<\varepsilon<1$ (depending on the signal class) such that the energy fraction captured by the level-$b$ detail channel satisfies
-\[
-\alpha_b = \frac{E[ch_{T\cdots TU_bT\cdots T}]}{E_{\mathrm{total}}}\ \ge\ C(1-\varepsilon)^{B-1}.
-\]
-Furthermore, the top 3 channels (by energy) jointly satisfy
-\[
-\alpha_b + \alpha_{b,2} + \alpha_{b,3}\ \ge\ 1-\delta,
-\]
-for a small residual $\delta$, empirically $\delta<0.03$ for $B=3..5$.
+\begin{theorem}[$\varphi$-NTT Spectral Concentration, Quasi-Theorem]
+\label{thm:quasi}
+Under assumptions \emph{(A1)} and \emph{(A2)}, there exist constants $C > 0$
+and $0 < \varepsilon < 1$ (depending on the signal class) such that the energy
+fraction captured by the level-$b$ detail channel satisfies
+\begin{equation}
+  \alpha_{b}
+  \;=\;
+  \frac{E\bigl[\mathrm{ch}_{T\cdots TU_{b}T\cdots T}\bigr]}{E_{\mathrm{total}}}
+  \;\ge\;
+  C \cdot (1-\varepsilon)^{B-1}.
+\end{equation}
+Furthermore, the top~3 channels (by energy) jointly satisfy
+\begin{equation}
+  \alpha_{b} + \alpha_{b,2} + \alpha_{b,3} \;\ge\; 1 - \delta
+\end{equation}
+for a small residual $\delta$, empirically $\delta < 0.03$ for $B = 3, 4, 5$.
 \end{theorem}
 
-We call this a \emph{quasi-theorem} because $C$ and $\varepsilon$ are characterized implicitly through (A1)--(A2) rather than in closed form, and because strict algebraic orthogonality of the $T/U$ decomposition --- while consistent with numerical evidence --- remains unproved (Section~6).
+We call this a \emph{quasi-theorem} because the constants $C$ and $\varepsilon$
+are characterized implicitly through (A1)--(A2) rather than in closed form, and
+because the strict algebraic orthogonality of the $T/U$ decomposition---while
+consistent with all numerical evidence---remains unproved (see
+Section~\ref{sec:discussion}).
 
 \subsection{Interpretation}
-The bound $C(1-\varepsilon)^{B-1}$ has transparent structure: $\varepsilon$ measures digit-level leakage from the dominant digit $b$ into the other $B-1$ digits, while $(1-\varepsilon)^{B-1}$ is the product of per-stage suppression factors. The observed $\alpha_b$ decreases from 86\% ($B=3$) to $\approx 68\%$ ($B=4,5$) as more stages accumulate leakage, while top-3 coverage stays $\ge 97\%$ because nearest channels absorb most leakage.
+
+The bound $C(1-\varepsilon)^{B-1}$ has a transparent structure:
+$\varepsilon$ measures digit-level roughness---how much energy leaks from the
+dominant digit $b$ to each of the other $B-1$ digits.
+The factor $(1-\varepsilon)^{B-1}$ is the product of $B-1$ per-stage suppression
+factors, explaining why the observed $\alpha_{b}$ decreases from $86\%$ ($B=3$)
+to $68\%$ ($B=4,5$) as more stages accumulate leakage.
+The constant $C$ absorbs the baseline energy ratio at the dominant stage itself.
+
+The exponential decay in $B$ is a structural feature: with more digit stages,
+more channels compete for energy.
+The top-3 coverage ($\ge 97\%$) remains stable because the channels at levels
+$b \pm 1$ absorb most of the leakage.
 
 \subsection{Proof Sketch}
-\textbf{Step 1} (Digit smoothness $\Rightarrow$ $U$ energy bound). By (A1), for each $b'\ne b$, the $U_{b'}$ projection (parity alternation at digit $b'$) has small inner product with $x$, yielding $E[U_{b'}]\le \varepsilon^2 E[U_b]$.
 
-\textbf{Step 2} (Dominant digit $\Rightarrow$ $U_b$ lower bound). By (A2), $x$ correlates strongly with $(-1)^{d_b}$, the kernel of $U_b$, yielding $E[U_b]\ge C_0 E_{\mathrm{total}}$ for some $C_0>0$.
+We sketch the structure of the argument; a complete algebraic proof is left for
+future work.
 
-\textbf{Step 3} (Tensor product $\Rightarrow$ multiplicative separation). The channel $T\cdots TU_bT\cdots T$ receives energy from $U_b$ at stage $b$ and $T$ at other stages; $U_{b'}$ at other stages is suppressed by $\varepsilon$ per stage.
+\textbf{Step 1} (Digit smoothness $\Rightarrow$ $U$ energy bound).
+By (A1), for each $b' \ne b$, the $U_{b'}$ projection has small inner product
+with $x$, giving $E[U_{b'}] \le \varepsilon^{2} \cdot E[U_{b}]$ for $b' \ne b$.
 
-\textbf{Step 4} (Normalization $\Rightarrow$ lower bound). Summing energy across all $2^B$ channels yields $\alpha_b \ge C(1-\varepsilon)^{B-1}$ with $C$ absorbing $C_0$ and pass-through factors.
+\textbf{Step 2} (Dominant digit $\Rightarrow$ $U_{b}$ lower bound).
+By (A2), $x$ oscillates with period $\approx 2\cdot 10^{b}$, correlating
+strongly with the $\mathbb{Z}_{2}$ parity indicator $(-1)^{d_{b}}$.
+This is precisely the kernel of $U_{b}$, yielding
+$E[U_{b}] \ge C_{0}\cdot E_{\mathrm{total}}$ for some $C_{0} > 0$.
+
+\textbf{Step 3} (Tensor product $\Rightarrow$ multiplicative separation).
+Because the $B$-stage decomposition applies each operator independently per
+digit, the channel $T\cdots TU_{b}T\cdots T$ receives energy from $U_{b}$ at
+stage $b$ and $T$ at all other stages.
+The $T$ projections at stages $b'\ne b$ pass through the slowly varying envelope
+(factor $\approx 1$), while $U_{b'}$ channels at those stages are suppressed by
+$\varepsilon$ per stage.
+
+\textbf{Step 4} (Normalization $\Rightarrow$ $\alpha_{b}$ lower bound).
+Summing the energy across all $2^{B}$ channels and normalizing yields
+$\alpha_{b} \ge C(1-\varepsilon)^{B-1}$, where $C$ absorbs $C_{0}$ and the
+$T$-stage pass-through factors.
 
 \subsection{Empirical Alignment}
-For $B=3..5$ and test signal $\sin(2\pi n/100)$ with $P=100\approx 2\cdot 10^1$ ($b=1$):
-\begin{center}
-\begin{tabular}{@{}lll@{}}
+
+The quasi-theorem is consistent with all numerical experiments
+($B = 3, 4, 5$; test signal $\sin(2\pi n/100)$, $P = 100 \approx 2\cdot 10^{1}$,
+$b = 1$):
+
+\begin{table}[h]
+\centering
+\caption{Empirical alignment with Quasi-Theorem~\ref{thm:quasi}.}
+\label{tab:alignment}
+\begin{tabular}{cll}
 \toprule
-$B$ & $\alpha_b$ (observed) & Lower bound structure \\
+$B$ & $\alpha_{b}$ (observed) & Lower bound structure \\
 \midrule
-3 & 0.864 & $C(1-\varepsilon)^2$ with $\varepsilon\approx 0.07$ \\
-4 & 0.687 & $C(1-\varepsilon)^3$ \\
-5 & 0.682 & $C(1-\varepsilon)^4$ \\
+3 & 0.864 & $C(1-\varepsilon)^{2}$ with $\varepsilon \approx 0.07$ \\
+4 & 0.687 & $C(1-\varepsilon)^{3}$ \\
+5 & 0.682 & $C(1-\varepsilon)^{4}$ \\
 \bottomrule
 \end{tabular}
-\end{center}
-Top-3 channels cover $\ge 97\%$ and $UU\cdots U$ carries $<0.01\%$ in all experiments.
+\end{table}
 
+In all cases, the top~3 channels jointly cover $\ge 97\%$ of total energy, and
+the $UU\cdots U$ channel carries $<0.01\%$ in all experiments.
+The values of $C$ and $\varepsilon$ are not fitted here; the table shows only
+that the observed decay is consistent with the bound structure
+$C(1-\varepsilon)^{B-1}$.
+
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Numerical Experiments}
+\label{sec:experiments}
 
 \subsection{Experimental Setup}
-All experiments use the reference implementation \texttt{phi\_carry\_free.py}, operating entirely in exact integer arithmetic over $\Z[\varphi]$. No floating-point operations occur in the transform itself; \texttt{zval()} is used only for energy measurement in post-processing.
 
-We test $B=1..5$ (signal lengths $N=10$ to $100{,}000$) with a low-frequency test signal
+All experiments use the reference implementation \texttt{phi\_carry\_free.py},
+operating entirely in exact integer arithmetic over $\Zphi$.
+No floating-point operations are involved in the transform itself;
+\texttt{zval()} (evaluation to float) is used only for energy measurement in
+post-processing.
+
+We test $B = 1, \ldots, 5$ (signal lengths $N = 10$ to $100{,}000$) with a
+low-frequency test signal
 \[
-x[n] = \sin(2\pi n/100) + \sin(2\pi n/P_2) + \text{noise},
+  x[n] = \sin(2\pi n/100) + \sin(2\pi n/P_{2}) + \mathrm{noise},
 \]
-where $P_2$ is a secondary period scaled to $N$ and noise is a small integer perturbation. This signal class satisfies assumptions (A1)--(A2) with dominant period $P=100\approx 2\cdot 10^1$ ($b=1$).
+where $P_{2}$ is a secondary period scaled to $N$ and the noise is a small
+integer perturbation.
+This signal class satisfies assumptions (A1)--(A2) of Section~\ref{sec:quasithm}
+with dominant period $P = 100 \approx 2\cdot 10^{1}$ ($b = 1$).
 
-Correctness is verified by (i) direct comparison of \texttt{phi\_conv\_carry\_free} against the reference $O(N^2)$ carry-free convolution, and (ii) round-trip test with a delta kernel $h=\delta_0$, confirming exact reconstruction for $B=1..5$.
+Correctness is verified in two ways: (i) direct comparison of
+\texttt{phi\_conv\_carry\_free} against the reference $O(N^{2})$ carry-free
+convolution, and (ii) round-trip test with a delta kernel $h = \delta_{0}$,
+confirming exact reconstruction for all $B = 1, \ldots, 5$.
 
 \subsection{Channel Energy Distribution}
-Energy fractions are computed as
+
+Table~\ref{tab:energy} shows the energy fraction of the top-3 channels and the
+$UU\cdots U$ channel for $B = 3, 4, 5$.
+All fractions are computed as
 \[
-\frac{E[ch]}{E_{\mathrm{total}}},\quad
-E[ch] = \frac{1}{N}\sum_k \bigl(\mathrm{zval}(ch[k])\bigr)^2\quad\text{(real-valued signal assumption)}.
+  E[\mathrm{ch}] / E_{\mathrm{total}},
+  \qquad
+  E[\mathrm{ch}] = \frac{1}{N}\sum_{k} \bigl(\mathrm{zval}(\mathrm{ch}[k])\bigr)^{2}.
 \]
 
 \begin{table}[h]
 \centering
 \caption{Channel energy distribution (low-frequency test signal).}
 \label{tab:energy}
-\begin{tabular}{@{}lllllllll@{}}
+\begin{tabular}{clrclrclrrrr}
 \toprule
-$B$ & \#1 ch & $\alpha_1$ & \#2 ch & $\alpha_2$ & \#3 ch & $\alpha_3$ & Top-3 & $UU\cdots U$ \\
+$B$ & \#1 ch & $\alpha_{1}$ & \#2 ch & $\alpha_{2}$ & \#3 ch & $\alpha_{3}$
+    & Top-3 & $UU{\cdots}U$ \\
 \midrule
-3 & TUT   & 86.4\% & TTT    & 11.1\% & UTT    & 2.3\%  & 99.8\% & $<0.01\%$ \\
-4 & TUTT  & 68.7\% & TTUT   & 17.7\% & TTTT   & 11.7\% & 98.1\% & $<0.01\%$ \\
-5 & TUTTT & 68.2\% & TTTUT  & 17.7\% & TTTTT  & 11.7\% & 97.6\% & $<0.01\%$ \\
+3 & TUT   & 86.4\% & TTT   & 11.1\% & UTT  & 2.3\%  & 99.8\% & $<0.01\%$ \\
+4 & TUTT  & 68.7\% & TTUT  & 17.7\% & TTTT & 11.7\% & 98.1\% & $<0.01\%$ \\
+5 & TUTTT & 68.2\% & TTTUT & 17.7\% & TTTTT& 11.7\% & 97.6\% & $<0.01\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Three observations are immediate. (i) The dominant channel is consistently of the form $T\cdots TU_1T\cdots T$ (U only at digit $b=1$), matching the prediction for $P\approx 2\cdot 10^1$. (ii) Top-3 channels jointly cover $\ge 97\%$, consistent with $\delta<0.03$. (iii) $UU\cdots U$ carries negligible energy, consistent with checkerboard suppression.
+Three observations are immediate.
+First, the dominant channel is consistently of the form $T\cdots TU_{1}T\cdots T$
+(U only at digit $b=1$), in agreement with the Section~\ref{sec:wavelet}
+prediction for $P \approx 2\cdot 10^{1}$.
+Second, the top-3 channels jointly cover $\ge 97\%$ of total energy across all
+tested values of $B$, consistent with the $\delta < 0.03$ claim of
+Theorem~\ref{thm:quasi}.
+Third, the $UU\cdots U$ channel carries negligible energy ($<0.01\%$) in all
+cases, consistent with the checkerboard suppression argument of
+Section~\ref{sec:wavelet}.
 
 \begin{table}[h]
 \centering
-\caption{SNR vs.\ retained channels (low-frequency signal).}
+\caption{SNR vs.\ retained channels (low-frequency signal, $B = 3, 4, 5$).}
 \label{tab:snr}
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{ccccc}
 \toprule
 $B$ & 1 ch & 2 ch & 4 ch & All ch \\
 \midrule
-3 & 9.5 dB & 15.4 dB & 28.5 dB & $\infty$ (exact) \\
-4 & 5.3 dB & 9.5 dB  & 20.5 dB & $\infty$ (exact) \\
-5 & 5.2 dB & 9.3 dB  & 18.5 dB & $\infty$ (exact) \\
+3 & 9.5 dB  & 15.4 dB & 28.5 dB & $\infty$ (exact) \\
+4 & 5.3 dB  & 9.5 dB  & 20.5 dB & $\infty$ (exact) \\
+5 & 5.2 dB  & 9.3 dB  & 18.5 dB & $\infty$ (exact) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+The ``$\infty$ (exact)'' entries confirm lossless reconstruction when all
+channels are retained.
+
 \subsection{Reconstruction Accuracy}
-Exact reconstruction is guaranteed by the algebraic structure of $\varphi$-NTT, not numerical precision. Scale factors $40^B$ (round-trip) and $80^B$ (after convolution) divide exactly in $\Z[\varphi]$, verified for $B=1..5$ by assertion checks. No floating-point rounding occurs.
+
+Exact reconstruction is guaranteed by the algebraic structure of $\varphi$-NTT,
+not by numerical precision.
+The scale factors $40^{B}$ (round-trip) and $80^{B}$ (after convolution) divide
+exactly in $\Zphi$, as verified by assertion checks for all $B = 1, \ldots, 5$:
+\begin{verbatim}
+assert v[0] % scale == 0 and v[1] % scale == 0   # holds for all v
+\end{verbatim}
+The delta-kernel test \texttt{phi\_conv\_carry\_free(x, $\delta_{0}$, B) == x}
+passes for all tested inputs and all $B = 1, \ldots, 5$, confirming
+Theorem~\ref{thm:conv}.
 
 \subsection{Computational Structure}
-$\varphi$-NTT avoids two complexity sources common in FFT: no inter-stage twiddle factors (all phase corrections vanish by the tensor-product theorem over $\Z_{10}^{B}$), and integer-only arithmetic (divisions are only final exact scale normalizations). The transform operates on length-$10^B$ signals with $2^B$ channels in $O(N\cdot B)$ integer operations per stage. Detailed complexity analysis and FFT comparisons are reserved for future work.
 
+The $\varphi$-NTT avoids two sources of complexity common in FFT implementations.
+First, there are no inter-stage twiddle factors: all phase corrections vanish by
+the tensor-product theorem over $\ZB$.
+Second, all arithmetic is integer-valued; the only divisions are the final
+scale-factor normalizations, which are exact.
+The transform operates on length-$10^{B}$ signals with $2^{B}$ output channels
+in $O(N \cdot B)$ integer operations per stage.
+Detailed complexity analysis and comparison with FFT are reserved for future work.
+
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Discussion}
+\label{sec:discussion}
 
 \subsection{Open Problems}
-\textbf{(P1) Orthogonality of $T/U$ projections.} Numerical evidence shows energy partition and exact reconstruction, but strict algebraic orthogonality $T_b\perp U_b$ over $\Z[\varphi]$ remains unproved.
 
-\textbf{(P2) Closed-form determination of $C$ and $\varepsilon$.} Constants in the quasi-theorem are characterized implicitly via (A1)--(A2). Closed forms in terms of period $P$, base 10, and $\Z[\varphi]$ basis would make bounds signal-class independent.
+Three problems remain open.
 
-\textbf{(P3) Connection to carry-based convolution (overlap-add).} Current work is restricted to carry-free convolution on $\Z_{10}^{B}$. Bridging to ordinary cyclic convolution on $\Z/(10^B)\Z$ via overlap-add is non-trivial due to $\Z_{10}^B \not\cong \Z/(10^B)\Z$ for $B\ge 2$.
+\textbf{(P1) Orthogonality of $T/U$ projections.}
+The numerical experiments confirm that energy is partitioned across channels
+without loss and that exact reconstruction holds for all tested $B$.
+However, the strict algebraic orthogonality $T_{b} \perp U_{b}$ over $\Zphi$ has
+not been proved.
+Establishing this would upgrade Theorem~\ref{thm:quasi} to a full theorem, with
+$C$ and $\varepsilon$ determined by the projection geometry.
+
+\textbf{(P2) Closed-form determination of $C$ and $\varepsilon$.}
+The constants $C$ and $\varepsilon$ in Theorem~\ref{thm:quasi} are currently
+characterized implicitly through (A1)--(A2).
+Deriving explicit expressions---presumably in terms of the signal period $P$,
+the digit base 10, and the $\Zphi$ basis elements---would make the spectral
+concentration bound fully quantitative and signal-class independent.
+
+\textbf{(P3) Connection to carry-based convolution (overlap-add).}
+The present work is restricted to carry-free convolution on $\ZB$.
+A natural extension is to bridge this to ordinary cyclic convolution on
+$\mathbb{Z}/(10^{B})\mathbb{Z}$ via an overlap-add scheme, enabling
+$\varphi$-NTT-based filtering of standard integer sequences.
+The group non-isomorphism $\ZB \not\cong \mathbb{Z}/(10^{B})\mathbb{Z}$
+(for $B \ge 2$) means this bridge is non-trivial and requires a separate
+treatment.
 
 \subsection{Relation to Existing Frameworks}
-\textbf{vs.\ FFT.} FFT diagonalizes cyclic convolution on $\Z/(N)$ using complex twiddles and floating point; $\varphi$-NTT diagonalizes a different algebra (carry-free convolution on $\Z_{10}^{B}$) over $\Z[\varphi]$, enabling exact integer arithmetic.
 
-\textbf{vs.\ Haar MRA.} The binary-tree structure is analogous but inexact: Haar uses $\mathbb{R}$ and $\pm1$ basis on $\Z/(2^B)\Z$, while $\varphi$-NTT uses $\Z[\varphi]$ basis on $\Z_{10}^{B}$.
+\textbf{vs.\ FFT.}
+Standard FFT operates on the cyclic group $\mathbb{Z}/(N)\mathbb{Z}$ with
+complex twiddle factors, accumulating floating-point error.
+$\varphi$-NTT operates on $\ZB$ with coefficients in $\Zphi$, achieving exact
+integer arithmetic.
+The two transforms diagonalize different convolution operations and are not
+directly comparable in terms of computational cost; FFT runs in $O(N\log N)$
+while the complexity of $\varphi$-NTT is $O(NB)$ with $N = 10^{B}$.
 
-\textbf{vs.\ NTT.} Classical NTT replaces complex roots with modular roots but retains cyclic $\Z/(N)$ structure. $\varphi$-NTT uses direct-product $\Z_{10}^{B}$ and 
+\textbf{vs.\ Standard NTTs.}
+Galois-field NTTs (e.g., used in lattice-based cryptography) achieve exact
+integer arithmetic by working modulo a prime $p$.
+$\varphi$-NTT works over $\Zphi$ without modular reduction, preserving the full
+digit structure of $\ZB$.
+The two frameworks address different algebraic settings and are complementary.
+
+\textbf{vs.\ Haar Wavelets.}
+Haar MRA on length-$2^{B}$ signals uses $\pm 1$ arithmetic and achieves
+exact orthogonality.
+$\varphi$-NTT on length-$10^{B}$ signals uses $\Zphi$ arithmetic and conjectured
+quasi-orthogonality.
+The structural analogy (Section~\ref{sec:wavelet}) is precise; the arithmetic
+and group structure differ.
+
+\subsection{Limitations}
+
+The current work has the following limitations.
+The quasi-theorem (Theorem~\ref{thm:quasi}) is stated for real-valued signals
+satisfying (A1)--(A2); extension to complex-valued or high-bandwidth signals
+remains open.
+The computational complexity $O(NB)$ has not been compared to FFT implementations
+for the same problem size.
+The carry-free convolution studied here does not directly apply to standard
+digital filtering tasks, which rely on ordinary cyclic convolution (Problem~P3).
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have introduced $\varphi$-NTT, a transform defined over the carry-free direct
+product group $\mathbb{Z}_{10}^{B}$ with coefficients in the golden-ratio integer
+ring $\Zphi$.
+The three main contributions are as follows.
+
+First, we establish a carry-free convolution theorem
+(Theorem~\ref{thm:conv}): $\varphi$-NTT diagonalizes carry-free convolution
+on $\ZB$, with exact integer arithmetic and no floating-point error.
+
+Second, we develop a hierarchical wavelet interpretation
+(Section~\ref{sec:wavelet}): the $B$-stage $T/U$ decomposition is structurally
+analogous to Haar MRA, producing $2^{B}$ channels arranged in a complete binary
+tree of depth $B$.
+
+Third, we state a Spectral Concentration Quasi-Theorem
+(Theorem~\ref{thm:quasi}): for signals with dominant period
+$P \approx 2\cdot 10^{b}$, the level-$b$ detail channel captures energy fraction
+$\alpha_{b} \ge C(1-\varepsilon)^{B-1}$, and the top~3 channels jointly cover
+$\ge 97\%$ of total energy for $B = 3, 4, 5$.
+
+Open problems include the algebraic proof of $T/U$ orthogonality (P1),
+closed-form determination of $C$ and $\varepsilon$ (P2), and the connection to
+standard carry-based convolution via overlap-add (P3).
+We hope this work opens a productive line of inquiry at the intersection of
+carry-free arithmetic, wavelet theory, and exact integer transforms.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\appendix
+
+\section{Basis Tables for $B=1$}
+\label{app:basis}
+
+\subsection{$C_{5}$-Twisted DFT Basis (T-channel)}
+
+The $T$-channel basis elements $\mathrm{cos5\_zphi}(m) \in \Zphi$ for
+$m \in \{0,1,2,3,4\}$ (one representative per $C_{5}$ orbit) take exactly three
+distinct values:
+\[
+  \mathrm{cos5\_zphi}(m) \in
+  \{(2,0),\;(-1,1),\;(0,-1)\} \subset \Zphi,
+\]
+corresponding to $2\cos(0) = 2$, $2\cos(2\pi/5) = \varphi - 1$, and
+$2\cos(4\pi/5) = -\varphi^{-1}$ respectively, expressed as elements of $\Zphi$.
+No irrational twiddle factors appear at runtime.
+
+\subsection{$\mathbb{Z}_{2}$ Parity Kernel (U-channel)}
+
+The $U$-channel parity kernel $U_{1}[k]$ for $k \in \{0,\ldots,9\}$ takes
+values in $\{(0,0), (\pm 1,0), (0,\pm 1)\} \subset \Zphi$, corresponding to
+the parity indicator $(-1)^{k}$ lifted into $\Zphi$ via the even/odd split
+of $\Zte \cong \mathbb{Z}_{2} \times \mathbb{Z}_{5}$.
+
+% ── Appendix B ──────────────────────────────────────────────────────────────
+\section{Permutation \texttt{perm10}}
+\label{app:perm10}
+
+The permutation \texttt{perm10} reindexes $\{0,\ldots,9\}$ to align the CRT
+decomposition $\Zte \cong \mathbb{Z}_{2} \times \mathbb{Z}_{5}$ with the natural
+digit order.
+Explicitly, \texttt{perm10} maps $k \mapsto \sigma(k)$ where
+$\sigma = (0, 5, 2, 7, 4, 9, 6, 1, 8, 3)$ (0-indexed).
+This permutation is its own inverse up to sign, and all $\varphi$-NTT stages
+apply it before the $C_{5}$ DFT step.
+The full derivation is given in the reference implementation
+\texttt{phi\_carry\_free.py}.
+
+% ── Appendix C ──────────────────────────────────────────────────────────────
+\section{$80^{B}$ Scale Factor Decomposition}
+\label{app:scale}
+
+The scale factor $80^{B}$ arising from a full forward--inverse cycle with
+carry-free convolution decomposes as
+\[
+  80^{B} = 40^{B} \times 2^{B},
+\]
+where $40^{B}$ arises from the $B$-stage forward--inverse round trip (each stage
+contributing a factor of 40) and the additional $2^{B}$ arises from the
+$T/U$ cross-coupling normalization at each of the $B$ stages.
+Both factors are exact divisors in $\Zphi$ (no remainder), ensuring lossless
+integer reconstruction.
+The complete verification that $80^{B}$ divides all output elements exactly is
+implemented in the assertion checks of \texttt{phi\_carry\_free.py} and holds for
+all tested $B = 1, \ldots, 5$.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\end{document}
