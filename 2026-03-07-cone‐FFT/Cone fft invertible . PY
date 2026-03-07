@@ -1,0 +1,177 @@
+"""
+cone_fft_invertible.py — cone-FFT v29 cos+sin 完全可逆パイプライン
+
+Forward:
+  f (N=BASE=3120 integer list)
+  → FFT → cos_proj, sin_proj (integer, scale BASE)
+  → split T/U
+  → 40-recursion B steps
+  → output: T_cos_B, U_cos_B, T_sin_B, U_sin_B
+
+Inverse:
+  T_cos_B, U_cos_B, T_sin_B, U_sin_B
+  → inverse 40-recursion B steps
+  → merge T/U
+  → IFFT → f_recovered (integer, exact)
+
+Requirement: numpy (for FFT precision)
+             parseval_core.py (integer recursion)
+"""
+
+import numpy as np
+from parseval_core import (
+    build_fractal_integer_signal,
+    build_fractal_integer_signal_inv,
+)
+
+BASE = 3120  # N must equal BASE for exact recovery
+
+
+# ── helpers ──────────────────────────────────────────────
+
+def _split_TU(sig):
+    return sig[0::2], sig[1::2]
+
+
+def _merge_TU(T, U):
+    out = [0] * (len(T) + len(U))
+    for i, v in enumerate(T): out[2*i]   = v
+    for i, v in enumerate(U): out[2*i+1] = v
+    return out
+
+
+# ── forward transform ─────────────────────────────────────
+
+def cone_fft_forward(f: list[int], B: int = 1):
+    """
+    Forward pass.
+
+    Parameters
+    ----------
+    f : list[int]  length N = BASE = 3120
+    B : int        recursion depth (default 1)
+
+    Returns
+    -------
+    dict with keys:
+        cos_proj, sin_proj  : integer lists (length N), before recursion
+        T_cos, U_cos        : integer lists (length N//2), after recursion
+        T_sin, U_sin        : integer lists (length N//2), after recursion
+        B                   : depth used
+    """
+    N = len(f)
+    assert N == BASE, f"N must be BASE={BASE}, got {N}"
+
+    # FFT
+    F = np.fft.fft(np.array(f, dtype=np.int64))
+    cos_proj = [round(BASE * F[k].real) for k in range(N)]
+    sin_proj = [round(BASE * F[k].imag) for k in range(N)]
+
+    # T/U split
+    T_cos0, U_cos0 = _split_TU(cos_proj)
+    T_sin0, U_sin0 = _split_TU(sin_proj)
+
+    # 40-recursion
+    T_cos, U_cos = build_fractal_integer_signal(B, T_cos0, U_cos0)
+    T_sin, U_sin = build_fractal_integer_signal(B, T_sin0, U_sin0)
+
+    return {
+        "cos_proj": cos_proj,
+        "sin_proj": sin_proj,
+        "T_cos": T_cos,
+        "U_cos": U_cos,
+        "T_sin": T_sin,
+        "U_sin": U_sin,
+        "B": B,
+    }
+
+
+# ── inverse transform ─────────────────────────────────────
+
+def cone_fft_inverse(T_cos: list[int], U_cos: list[int],
+                     T_sin: list[int], U_sin: list[int],
+                     B: int = 1) -> list[int]:
+    """
+    Inverse pass. Exact integer recovery when B matches forward B.
+
+    Parameters
+    ----------
+    T_cos, U_cos, T_sin, U_sin : integer lists (length N//2)
+    B                          : recursion depth used in forward
+
+    Returns
+    -------
+    f_recovered : list[int]  (length N = BASE = 3120)
+    """
+    N = (len(T_cos) + len(U_cos))
+    assert N == BASE
+
+    # inverse 40-recursion
+    T_cos0, U_cos0 = build_fractal_integer_signal_inv(B, T_cos, U_cos)
+    T_sin0, U_sin0 = build_fractal_integer_signal_inv(B, T_sin, U_sin)
+
+    # merge T/U
+    cos_proj = _merge_TU(T_cos0, U_cos0)
+    sin_proj = _merge_TU(T_sin0, U_sin0)
+
+    # IFFT
+    F_rec = np.array([complex(cos_proj[k], sin_proj[k]) / BASE
+                      for k in range(N)])
+    f_float = np.fft.ifft(F_rec).real
+    return [round(v) for v in f_float]
+
+
+# ── round-trip convenience ────────────────────────────────
+
+def cone_fft_roundtrip(f: list[int], B: int = 1) -> list[int]:
+    """Forward → inverse. Should return f exactly."""
+    res = cone_fft_forward(f, B)
+    return cone_fft_inverse(
+        res["T_cos"], res["U_cos"],
+        res["T_sin"], res["U_sin"],
+        B,
+    )
+
+
+# ── demo & verification ───────────────────────────────────
+
+if __name__ == "__main__":
+    import random
+    random.seed(42)
+
+    print("=" * 56)
+    print("cone-FFT v29  cos+sin 完全可逆パイプライン 検証")
+    print("=" * 56)
+
+    f = [random.randint(-127, 127) for _ in range(BASE)]
+    print(f"\n入力: N={BASE}, 範囲=[{min(f)}, {max(f)}]")
+
+    for B in [1, 2, 3]:
+        f_rec = cone_fft_roundtrip(f, B)
+        errors = [abs(f[j] - f_rec[j]) for j in range(BASE)]
+        ok = all(e == 0 for e in errors)
+        print(f"  B={B}: {'✓ 完全復元' if ok else f'✗ max_err={max(errors)}'}")
+
+    print("\n[中間表現のノルムスケーリング確認]")
+    res = cone_fft_forward(f, B=1)
+    n_proj = sum(x*x for x in res["cos_proj"]) + sum(x*x for x in res["sin_proj"])
+    n_after = (sum(x*x for x in res["T_cos"]) + sum(x*x for x in res["U_cos"]) +
+               sum(x*x for x in res["T_sin"]) + sum(x*x for x in res["U_sin"]))
+    print(f"  norm(射影後)  = {n_proj:.3e}")
+    print(f"  norm(40再帰後) = {n_after:.3e}")
+    print(f"  比 = {n_after/n_proj:.2f}  (expect 40.00)")
+
+    print("\n[パイプライン図]")
+    print("  f (整数列, N=3120)")
+    print("   ↓ FFT + round(BASE·)")
+    print("  cos_proj, sin_proj (整数)")
+    print("   ↓ split T/U")
+    print("  T_cos/U_cos, T_sin/U_sin")
+    print("   ↓ 40再帰 B段 (Proposition A/C/D)")
+    print("  T_cos_B/U_cos_B, T_sin_B/U_sin_B  ← 保存・送信・処理")
+    print("   ↓ 逆再帰 B段 (Proposition C)")
+    print("  cos_proj_r, sin_proj_r")
+    print("   ↓ IFFT + round()")
+    print("  f_recovered (整数, 完全復元)")
+    print()
+    print("=" * 56)
