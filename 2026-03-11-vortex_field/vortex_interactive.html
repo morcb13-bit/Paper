@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>coneFFT — 渦場インタラクティブビジュアライザー</title>
+<style>
+:root {
+  --bg: #080a0f;
+  --panel: #0e1119;
+  --border: #1a2033;
+  --accent: #4fc3f7;
+  --red: #ef5350;
+  --green: #66bb6a;
+  --gold: #ffd54f;
+  --dim: #4a5568;
+  --text: #b0bcd4;
+  --font: 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+header {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.title { font-size: 0.72rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+
+.btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  font-family: var(--font);
+  font-size: 0.65rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.12s;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.active { background: #0a2030; border-color: var(--accent); color: var(--accent); }
+.btn.danger { border-color: #333; }
+.btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+.sep { width: 1px; height: 16px; background: var(--border); }
+
+.ctrl-group { display: flex; align-items: center; gap: 6px; }
+.ctrl-label { font-size: 0.6rem; color: var(--dim); letter-spacing: 0.06em; }
+input[type=range] { width: 70px; accent-color: var(--accent); }
+.ctrl-val { font-size: 0.65rem; color: var(--accent); min-width: 28px; }
+
+select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.65rem;
+  padding: 3px 6px;
+}
+
+/* ── Main area ── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  overflow: hidden;
+}
+
+/* ── Canvas area ── */
+.canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #050709;
+}
+canvas { display: block; }
+
+#main-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  cursor: crosshair;
+}
+#arrow-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+}
+#overlay-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+}
+
+/* ── Side panel ── */
+.side {
+  border-left: 1px solid var(--border);
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  font-size: 0.62rem;
+}
+.side-section { }
+.side-title {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+/* Vortex list */
+.vortex-list { display: flex; flex-direction: column; gap: 4px; }
+.vortex-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  font-size: 0.6rem;
+}
+.vortex-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.vortex-info { flex: 1; }
+.vortex-del {
+  background: none; border: none; color: var(--dim);
+  cursor: pointer; font-size: 0.7rem; line-height: 1;
+  padding: 0 2px;
+}
+.vortex-del:hover { color: var(--red); }
+
+/* Stats */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid #0f1520;
+}
+.stat-key { color: var(--dim); font-size: 0.58rem; }
+.stat-num { font-size: 0.72rem; font-weight: 700; }
+.pos { color: var(--accent); }
+.neg { color: var(--red); }
+.neu { color: var(--green); }
+.warn { color: var(--gold); }
+
+/* Mode indicator */
+.mode-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mode-plus  { border-color: var(--accent); color: var(--accent); }
+.mode-minus { border-color: var(--red);    color: var(--red); }
+.mode-erase { border-color: var(--gold);   color: var(--gold); }
+
+/* Formation anim */
+.grow-bar {
+  width: 100%; height: 4px; background: var(--border); margin-top: 4px;
+}
+.grow-fill {
+  height: 100%; background: var(--accent);
+  transition: width 0.08s;
+}
+
+/* Colorbar */
+.cb-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cb-row { display: flex; align-items: center; gap: 4px; font-size: 0.55rem; color: var(--dim); }
+.cb-canvas { flex: 1; height: 6px; }
+
+/* Footer */
+footer {
+  padding: 5px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.58rem;
+  color: var(--dim);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.hint { color: var(--dim); }
+.hint span { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">Vortex Field · coneFFT</span>
+  <div class="sep"></div>
+
+  <!-- Mode -->
+  <div class="ctrl-group">
+    <span class="ctrl-label">配置モード:</span>
+    <button class="btn active" id="btn-plus"  onclick="setMode('plus')">＋ 渦 (w=+1)</button>
+    <button class="btn"        id="btn-minus" onclick="setMode('minus')">－ 反渦 (w=−1)</button>
+    <button class="btn"        id="btn-double" onclick="setMode('double')">×2 (w=+2)</button>
+    <button class="btn"        id="btn-erase" onclick="setMode('erase')">✕ 消去</button>
+  </div>
+  <div class="sep"></div>
+
+  <!-- View -->
+  <div class="ctrl-group">
+    <span class="ctrl-label">表示:</span>
+    <select id="viewSelect" onchange="render()">
+      <option value="phase">位相 θ(r)</option>
+      <option value="v3">V3 巻き付き密度</option>
+      <option value="v1">V1 Φ_d (4方向)</option>
+      <option value="amp">振幅 |ψ|</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Arrows -->
+  <div class="ctrl-group">
+    <span class="ctrl-label">矢印:</span>
+    <button class="btn active" id="btn-arrow" onclick="toggleArrows()">ベクトル場</button>
+  </div>
+  <div class="sep"></div>
+
+  <!-- Formation -->
+  <div class="ctrl-group">
+    <span class="ctrl-label">形成アニメ:</span>
+    <button class="btn" id="btn-grow" onclick="toggleGrow()">▶ 生成</button>
+    <span class="ctrl-label" style="margin-left:6px">速度:</span>
+    <input type="range" id="speedSlider" min="1" max="40" value="5" style="width:60px" oninput="updateSpeed()">
+    <span class="ctrl-val" id="speedVal">×1</span>
+    <button class="btn danger" onclick="clearAll()">全消去</button>
+  </div>
+</header>
+
+<main>
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="main-canvas"></canvas>
+    <canvas id="arrow-canvas"></canvas>
+    <canvas id="overlay-canvas"></canvas>
+  </div>
+
+  <div class="side">
+    <!-- Mode -->
+    <div class="side-section">
+      <div class="side-title">現在のモード</div>
+      <span class="mode-badge mode-plus" id="mode-label">＋ 渦 (w=+1)</span>
+    </div>
+
+    <!-- Vortex list -->
+    <div class="side-section">
+      <div class="side-title">配置済み渦 (<span id="vcount">0</span>)</div>
+      <div class="vortex-list" id="vortex-list">
+        <span style="color:var(--dim);font-size:0.58rem">クリックで渦を配置</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="side-section">
+      <div class="side-title">Φ_d 統計</div>
+      <div class="stat-row">
+        <span class="stat-key">総巻き付き数 W</span>
+        <span class="stat-num" id="s-W">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">V3 |peak|</span>
+        <span class="stat-num pos" id="s-v3peak">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">V3 sum</span>
+        <span class="stat-num neu" id="s-v3sum">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">V1 |peak|</span>
+        <span class="stat-num warn" id="s-v1peak">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">V1 sum ≈ 0?</span>
+        <span class="stat-num" id="s-v1sum">—</span>
+      </div>
+    </div>
+
+    <!-- Formation -->
+    <div class="side-section">
+      <div class="side-title">形成アニメ</div>
+      <div class="stat-row">
+        <span class="stat-key">成長度</span>
+        <span class="stat-num pos" id="s-grow">100%</span>
+      </div>
+      <div class="grow-bar"><div class="grow-fill" id="grow-fill" style="width:100%"></div></div>
+    </div>
+
+    <!-- Colorbar -->
+    <div class="side-section">
+      <div class="side-title">カラーマップ</div>
+      <div class="cb-wrap">
+        <div class="cb-row">
+          <span style="width:22px;text-align:right">neg</span>
+          <canvas class="cb-canvas" id="cb-main" width="120" height="6"></canvas>
+          <span>pos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint -->
+    <div class="side-section" style="margin-top:auto">
+      <div class="side-title">凡例</div>
+      <div style="font-size:0.57rem;line-height:1.8;color:var(--dim)">
+        <span style="color:#4fc3f7">●</span> w=+1 渦<br>
+        <span style="color:#ef5350">●</span> w=−1 反渦<br>
+        <span style="color:#ffd54f">●</span> w=+2 多重<br>
+        V3: 真の巻き付き密度<br>
+        V1: Φ_d (coneFFT型)
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="hint">左クリック: <span>渦を配置</span></span>
+  <span class="hint">配置済みをクリック: <span>削除</span></span>
+  <span class="hint">▶ 生成: <span>渦が徐々に形成される様子</span></span>
+  <span class="hint">表示切替: <span>θ / V3 / V1 / 振幅</span></span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════════════════════════════════════
+
+const wrap   = document.getElementById('canvasWrap');
+const cvMain = document.getElementById('main-canvas');
+const cvArr  = document.getElementById('arrow-canvas');
+const cvOvl  = document.getElementById('overlay-canvas');
+const ctxM   = cvMain.getContext('2d');
+const ctxA   = cvArr.getContext('2d');
+const ctxO   = cvOvl.getContext('2d');
+
+let W, H, N;
+let showArrows = true;
+let mode = 'plus';
+let vortices = [];   // {cx, cy, w, color, label}
+let growPhase = 1.0; // 0→1 animation
+let growAnim = null;
+
+function resize() {
+  const rect = wrap.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  N = Math.min(Math.floor(Math.min(W,H) / 2), 120);
+  [cvMain, cvArr, cvOvl].forEach(c => { c.width=W; c.height=H; });
+  render();
+}
+
+// domain: [-2, 2] × [-2, 2] (aspect-corrected)
+function toField(px, py) {
+  const aspect = W/H;
+  const fx = (px/W * 4 - 2) * (aspect > 1 ? 1 : 1/aspect);
+  const fy = (py/H * 4 - 2) * (aspect > 1 ? 1/aspect : 1);
+  return [fx, fy];
+}
+function toPixel(fx, fy) {
+  const aspect = W/H;
+  const px = (fx / (aspect>1?1:1/aspect) + 2) / 4 * W;
+  const py = (fy / (aspect>1?1/aspect:1) + 2) / 4 * H;
+  return [px, py];
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// VORTEX MATH
+// ═══════════════════════════════════════════════════════════════════════
+
+function computeField(growFrac) {
+  // sample on NxN grid in field coords
+  const aspect = W/H;
+  const sx = aspect>1 ? 4 : 4/aspect;
+  const sy = aspect>1 ? 4/aspect : 4;
+  const xs = Array.from({length:N}, (_,i) => (i/(N-1))*sx - sx/2);
+  const ys = Array.from({length:N}, (_,j) => (j/(N-1))*sy - sy/2);
+
+  const re = new Float32Array(N*N).fill(1);
+  const im = new Float32Array(N*N);
+
+  const sigma = 0.06;
+
+  for (const v of vortices) {
+    const amp_scale = growFrac;  // growth factor
+    for (let j=0;j<N;j++) for (let i=0;i<N;i++){
+      const dx = xs[i]-v.cx, dy = ys[j]-v.cy;
+      const r2 = dx*dx+dy*dy;
+      const a  = amp_scale * Math.sqrt(r2/(r2+sigma));
+      const th = v.w * Math.atan2(dy, dx);
+      const k  = j*N+i;
+      // multiply into existing field (superposition via complex mult for clean phase)
+      const cr = a*Math.cos(th) + (1-a);
+      const ci = a*Math.sin(th);
+      const nr = re[k]*cr - im[k]*ci;
+      const ni = re[k]*ci + im[k]*cr;
+      re[k]=nr; im[k]=ni;
+    }
+  }
+  return {re, im, xs, ys};
+}
+
+function plaquetteWinding(re, im) {
+  const th = new Float32Array(N*N);
+  for (let k=0;k<N*N;k++) th[k]=Math.atan2(im[k],re[k]);
+  const wrap=d=>{while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;};
+  const dtx=new Float32Array(N*N), dty=new Float32Array(N*N);
+  for (let j=0;j<N;j++) for (let i=0;i<N;i++){
+    dtx[j*N+i]=wrap(th[j*N+((i+1)%N)]-th[j*N+i]);
+    dty[j*N+i]=wrap(th[((j+1)%N)*N+i]-th[j*N+i]);
+  }
+  const curl=new Float32Array(N*N);
+  for (let j=0;j<N;j++) for (let i=0;i<N;i++){
+    curl[j*N+i]=(dty[j*N+((i+1)%N)]-dty[j*N+i]
+                -dtx[((j+1)%N)*N+i]+dtx[j*N+i])/(2*Math.PI);
+  }
+  return curl;
+}
+
+function phiD4(re, im) {
+  const pd=new Float32Array(N*N);
+  const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+  for (const [dr,dc] of dirs){
+    for (let j=0;j<N;j++) for (let i=0;i<N;i++){
+      const jj=(j+dr+N)%N, ii=(i+dc+N)%N;
+      const re1=re[j*N+i],im1=im[j*N+i];
+      const re2=re[jj*N+ii],im2=im[jj*N+ii];
+      pd[j*N+i]+=im2*re1-re2*im1;
+    }
+  }
+  return pd;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// COLORMAPS
+// ═══════════════════════════════════════════════════════════════════════
+
+function cmPhase(v) {  // v in [-1,1] → θ in [-π,π]
+  const h=((v+1)/2*360+180)%360;
+  return hsl(h,0.85,0.52);
+}
+function cmDiverge(v) {  // v in [-1,1]
+  const t=Math.max(-1,Math.min(1,v));
+  if (t<0){const s=-t; return [Math.round(10+20*s),Math.round(30+100*(1-s)),Math.round(60+195*s)];}
+  else{return [Math.round(60+195*t),Math.round(130-80*t),Math.round(60+10*(1-t))];}
+}
+function cmAmp(v) {  // v in [0,1]
+  const t=Math.max(0,Math.min(1,v));
+  return [Math.round(t*240),Math.round(t*200),Math.round(40+t*215)];
+}
+function hsl(h,s,l){
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+  return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════
+
+function render() {
+  if (!W) return;
+
+  const {re, im, xs, ys} = computeField(growPhase);
+  const view = document.getElementById('viewSelect').value;
+
+  // choose field and colormap
+  let field, colorFn;
+  let vmax = 1;
+  if (view==='phase') {
+    field = new Float32Array(N*N);
+    for (let k=0;k<N*N;k++) field[k]=Math.atan2(im[k],re[k])/Math.PI;  // [-1,1]
+    colorFn = cmPhase;
+  } else if (view==='v3') {
+    field = plaquetteWinding(re, im);
+    vmax = Math.max(1, ...field.map(Math.abs));
+    colorFn = v => cmDiverge(v/vmax);
+  } else if (view==='v1') {
+    field = phiD4(re, im);
+    vmax = Math.max(0.01, ...field.map(Math.abs));
+    colorFn = v => cmDiverge(v/vmax);
+  } else {
+    field = new Float32Array(N*N);
+    for (let k=0;k<N*N;k++) field[k]=Math.sqrt(re[k]**2+im[k]**2);
+    vmax = Math.max(0.01, ...field);
+    colorFn = v => cmAmp(v/vmax);
+  }
+
+  // draw field
+  const img = ctxM.createImageData(N, N);
+  for (let j=0;j<N;j++) for (let i=0;i<N;i++){
+    const [r,g,b] = colorFn(field[j*N+i]);
+    const idx = ((N-1-j)*N+i)*4;
+    img.data[idx]=r; img.data[idx+1]=g; img.data[idx+2]=b; img.data[idx+3]=255;
+  }
+  const tmp = document.createElement('canvas'); tmp.width=N; tmp.height=N;
+  tmp.getContext('2d').putImageData(img,0,0);
+  ctxM.clearRect(0,0,W,H);
+  ctxM.drawImage(tmp,0,0,W,H);
+
+  // arrows
+  drawArrows(re, im, xs, ys);
+
+  // vortex markers
+  drawMarkers();
+
+  // stats
+  updateStats(re, im);
+
+  // colorbar
+  drawColorbar(view);
+}
+
+function drawArrows(re, im, xs, ys) {
+  ctxA.clearRect(0,0,W,H);
+  if (!showArrows) return;
+
+  const view = document.getElementById('viewSelect').value;
+  // amp表示は明るい背景なので暗い矢印、それ以外は明るい矢印
+  const arrowColor = view === 'amp'
+    ? 'rgba(20, 40, 80, 0.7)'
+    : 'rgba(180,200,220,0.55)';
+
+  const step = Math.max(8, Math.floor(N/16));
+  ctxA.strokeStyle = arrowColor;
+  ctxA.lineWidth = 0.8;
+
+  for (let j=step>>1; j<N; j+=step) for (let i=step>>1; i<N; i+=step) {
+    const k = j*N+i;
+    const r = re[k], m = im[k];
+    const mag = Math.sqrt(r*r+m*m)+1e-9;
+    const ux = r/mag, uy = m/mag;
+
+    const [px,py] = toPixel(xs[i], ys[j]);
+    const len = (W/N)*step*0.38;
+    const ex = px + ux*len, ey = py - uy*len;  // flip y
+
+    // arrow body
+    ctxA.beginPath();
+    ctxA.moveTo(px - ux*len*0.4, py + uy*len*0.4);
+    ctxA.lineTo(ex, ey);
+    ctxA.stroke();
+
+    // arrowhead
+    const hw = len*0.18, hlen = len*0.28;
+    const ax = -ux, ay = uy;  // reverse direction (flipped)
+    const nx = -ay, ny = -ax;  // normal (perp)
+    ctxA.beginPath();
+    ctxA.moveTo(ex, ey);
+    ctxA.lineTo(ex + ax*hlen + nx*hw, ey + ay*hlen + ny*hw);
+    ctxA.lineTo(ex + ax*hlen - nx*hw, ey + ay*hlen - ny*hw);
+    ctxA.closePath();
+    ctxA.fillStyle = arrowColor;
+    ctxA.fill();
+  }
+}
+
+function drawMarkers() {
+  ctxO.clearRect(0,0,W,H);
+
+  // grid lines (subtle)
+  ctxO.strokeStyle = 'rgba(30,40,60,0.6)';
+  ctxO.lineWidth = 0.5;
+  const [cx0,cy0] = toPixel(0,0);
+  ctxO.beginPath(); ctxO.moveTo(cx0,0); ctxO.lineTo(cx0,H); ctxO.stroke();
+  ctxO.beginPath(); ctxO.moveTo(0,cy0); ctxO.lineTo(W,cy0); ctxO.stroke();
+
+  // vortex markers
+  for (const v of vortices) {
+    const [px,py] = toPixel(v.cx, v.cy);
+    const r = 10;
+
+    // glow
+    const grd = ctxO.createRadialGradient(px,py,0,px,py,r*2.5);
+    grd.addColorStop(0, v.color+'88');
+    grd.addColorStop(1, v.color+'00');
+    ctxO.fillStyle = grd;
+    ctxO.beginPath(); ctxO.arc(px,py,r*2.5,0,Math.PI*2); ctxO.fill();
+
+    // circle
+    ctxO.strokeStyle = v.color;
+    ctxO.lineWidth = 1.5;
+    ctxO.beginPath(); ctxO.arc(px,py,r,0,Math.PI*2); ctxO.stroke();
+
+    // label
+    ctxO.fillStyle = v.color;
+    ctxO.font = 'bold 10px monospace';
+    ctxO.textAlign = 'center';
+    ctxO.textBaseline = 'middle';
+    ctxO.fillText(v.label, px, py);
+
+    // winding number badge
+    ctxO.font = '9px monospace';
+    ctxO.fillStyle = '#fff';
+    ctxO.fillText('w='+v.w, px, py+r+8);
+  }
+  ctxO.textAlign = 'left';
+}
+
+function updateStats(re, im) {
+  const v3 = plaquetteWinding(re, im);
+  const v1 = phiD4(re, im);
+  const v3max = Math.max(...v3.map(Math.abs));
+  const v1max = Math.max(...v1.map(Math.abs));
+  const v3sum = v3.reduce((a,b)=>a+b,0);
+  const v1sum = v1.reduce((a,b)=>a+b,0);
+  const totalW = vortices.reduce((a,v)=>a+v.w,0);
+
+  const el = (id,val,cls) => {
+    const e=document.getElementById(id);
+    e.textContent=val;
+    if(cls)e.className='stat-num '+cls;
+  };
+  el('s-W', (totalW>=0?'+':'')+totalW, totalW>0?'pos':totalW<0?'neg':'neu');
+  el('s-v3peak', v3max.toFixed(4), 'pos');
+  el('s-v3sum',  v3sum.toFixed(4), Math.abs(v3sum)<0.1?'neu':'warn');
+  el('s-v1peak', v1max.toFixed(4), 'warn');
+  el('s-v1sum',  v1sum.toFixed(4), Math.abs(v1sum)<0.1?'neu':'warn');
+}
+
+function drawColorbar(view) {
+  const cv = document.getElementById('cb-main');
+  const ctx = cv.getContext('2d');
+  const w=cv.width;
+  for (let i=0;i<w;i++){
+    const t = i/w*2-1;
+    let c;
+    if (view==='phase') c=cmPhase(t);
+    else if (view==='amp') c=cmAmp((t+1)/2);
+    else c=cmDiverge(t);
+    ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+    ctx.fillRect(i,0,1,cv.height);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INTERACTION
+// ═══════════════════════════════════════════════════════════════════════
+
+const vColors = {'+1':'#4fc3f7', '-1':'#ef5350', '+2':'#ffd54f', '-2':'#ff8a65'};
+let vCounter = 0;
+
+cvOvl.addEventListener('click', e => {
+  const rect = wrap.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+
+  if (mode === 'erase') {
+    // find nearest vortex
+    let best=-1, bestD=Infinity;
+    for (let idx=0;idx<vortices.length;idx++){
+      const [vx,vy]=toPixel(vortices[idx].cx,vortices[idx].cy);
+      const d=Math.hypot(px-vx,py-vy);
+      if(d<best){ best=idx; bestD=d; }
+      if(d<bestD){bestD=d;best=idx;}
+    }
+    if(best>=0&&bestD<30){vortices.splice(best,1); updateList(); render();}
+    return;
+  }
+
+  // check if clicking existing vortex
+  for (let idx=0;idx<vortices.length;idx++){
+    const [vx,vy]=toPixel(vortices[idx].cx,vortices[idx].cy);
+    if(Math.hypot(px-vx,py-vy)<12){vortices.splice(idx,1);updateList();render();return;}
+  }
+
+  // place new vortex
+  const [fx,fy] = toField(px, py);
+  const w = mode==='plus'?+1:mode==='minus'?-1:+2;
+  const wkey = (w>=0?'+':'')+w;
+  const color = vColors[wkey] || '#aaa';
+  vCounter++;
+  vortices.push({cx:fx,cy:fy,w, color,
+    label: w>0?(w===1?'↺':'↺↺'):'↻'
+  });
+  updateList(); render();
+});
+
+// hover: show coordinates
+cvOvl.addEventListener('mousemove', e => {
+  const rect = wrap.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+  const [fx,fy] = toField(px,py);
+
+  ctxO.clearRect(0,0,W,H);
+  drawMarkers();
+
+  // crosshair
+  ctxO.strokeStyle='rgba(255,255,255,0.15)';
+  ctxO.lineWidth=0.5;
+  ctxO.setLineDash([3,4]);
+  ctxO.beginPath(); ctxO.moveTo(px,0); ctxO.lineTo(px,H); ctxO.stroke();
+  ctxO.beginPath(); ctxO.moveTo(0,py); ctxO.lineTo(W,py); ctxO.stroke();
+  ctxO.setLineDash([]);
+
+  // coord label
+  ctxO.fillStyle='rgba(180,200,220,0.7)';
+  ctxO.font='9px monospace';
+  ctxO.fillText(`(${fx.toFixed(2)}, ${fy.toFixed(2)})`, px+5, py-5);
+});
+
+cvOvl.addEventListener('mouseleave', () => { ctxO.clearRect(0,0,W,H); drawMarkers(); });
+
+function updateList() {
+  document.getElementById('vcount').textContent = vortices.length;
+  const list = document.getElementById('vortex-list');
+  if (vortices.length===0){
+    list.innerHTML='<span style="color:var(--dim);font-size:0.58rem">クリックで渦を配置</span>';
+    return;
+  }
+  list.innerHTML = vortices.map((v,i)=>`
+    <div class="vortex-item">
+      <div class="vortex-dot" style="background:${v.color}"></div>
+      <div class="vortex-info">
+        w=${v.w>=0?'+':''}${v.w} &nbsp;
+        (${v.cx.toFixed(2)},${v.cy.toFixed(2)})
+      </div>
+      <button class="vortex-del" onclick="removeVortex(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeVortex(i) { vortices.splice(i,1); updateList(); render(); }
+
+// ═══════════════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════════════
+
+function setMode(m) {
+  mode=m;
+  ['plus','minus','double','erase'].forEach(b=>{
+    document.getElementById('btn-'+b).classList.toggle('active',b===m);
+  });
+  const labels={plus:'＋ 渦 (w=+1)',minus:'－ 反渦 (w=−1)',double:'×2 (w=+2)',erase:'✕ 消去モード'};
+  const classes={plus:'mode-plus',minus:'mode-minus',double:'mode-plus',erase:'mode-erase'};
+  const lb=document.getElementById('mode-label');
+  lb.textContent=labels[m]; lb.className='mode-badge '+classes[m];
+}
+
+function toggleArrows() {
+  showArrows=!showArrows;
+  document.getElementById('btn-arrow').classList.toggle('active',showArrows);
+  render();
+}
+
+function clearAll() {
+  vortices=[];
+  growPhase=1.0;
+  updateList();
+  render();
+}
+
+// ── Formation animation ──────────────────────────────────────────────
+let growRunning=false;
+let growSpeed = 0.002;  // default: slow
+
+function updateSpeed() {
+  const v = parseInt(document.getElementById('speedSlider').value);
+  // map 1-40 → speed: nonlinear, 1=very slow(0.001), 40=fast(0.025)
+  growSpeed = 0.001 * Math.pow(v, 1.4);
+  const label = v <= 5 ? `×${((v)/5).toFixed(1)}` : `×${Math.round(v/5)}`;
+  document.getElementById('speedVal').textContent = label;
+}
+
+function toggleGrow() {
+  if (vortices.length===0) return;
+  if (growRunning) {
+    growRunning=false;
+    cancelAnimationFrame(growAnim);
+    document.getElementById('btn-grow').textContent='▶ 生成';
+    document.getElementById('btn-grow').classList.remove('active');
+    return;
+  }
+  growPhase=0.0;
+  growRunning=true;
+  document.getElementById('btn-grow').textContent='⏸ 停止';
+  document.getElementById('btn-grow').classList.add('active');
+  animGrow();
+}
+
+function animGrow() {
+  if (!growRunning) return;
+  growPhase = Math.min(1.0, growPhase + growSpeed);
+  document.getElementById('s-grow').textContent = Math.round(growPhase*100)+'%';
+  document.getElementById('grow-fill').style.width = (growPhase*100)+'%';
+  render();
+  if (growPhase>=1.0) {
+    growRunning=false;
+    document.getElementById('btn-grow').textContent='▶ 再生成';
+    document.getElementById('btn-grow').classList.remove('active');
+    return;
+  }
+  growAnim = requestAnimationFrame(animGrow);
+}
+
+// ── Keyboard shortcuts ───────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if(e.key==='+' || e.key==='=') setMode('plus');
+  if(e.key==='-') setMode('minus');
+  if(e.key==='2') setMode('double');
+  if(e.key==='e' || e.key==='Escape') setMode('erase');
+  if(e.key==='a') toggleArrows();
+  if(e.key==='Delete' || e.key==='Backspace') clearAll();
+  if(e.key===' ') { e.preventDefault(); toggleGrow(); }
+  if(e.key==='v') {
+    const sel=document.getElementById('viewSelect');
+    const opts=['phase','v3','v1','amp'];
+    sel.value=opts[(opts.indexOf(sel.value)+1)%opts.length];
+    render();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+
+window.addEventListener('resize', resize);
+resize();
+
+// Initial demo: single vortex
+vortices.push({cx:-0.6, cy:0, w:+1, color:'#4fc3f7', label:'↺'});
+vortices.push({cx:+0.6, cy:0, w:-1, color:'#ef5350', label:'↻'});
+updateList();
+render();
+</script>
+</body>
+</html>
