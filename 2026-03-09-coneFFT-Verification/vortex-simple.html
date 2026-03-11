@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>coneFFT — 渦場ビジュアライザー（簡易版）</title>
+<style>
+:root {
+  --bg: #080a0f;
+  --panel: #0e1119;
+  --border: #1a2033;
+  --accent: #4fc3f7;
+  --red: #ef5350;
+  --gold: #ffd54f;
+  --dim: #4a5568;
+  --text: #b0bcd4;
+  --font: 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+header {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.title { font-size: 0.7rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+.btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  font-family: var(--font);
+  font-size: 0.62rem;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.active { background: #0a2030; border-color: var(--accent); color: var(--accent); }
+.btn.red:hover { border-color: var(--red); color: var(--red); }
+.btn.active-red { background: #200a0a; border-color: var(--red); color: var(--red); }
+.sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+.ctrl-group { display: flex; align-items: center; gap: 6px; }
+.ctrl-label { font-size: 0.58rem; color: var(--dim); }
+input[type=range] { width: 65px; accent-color: var(--accent); }
+.ctrl-val { font-size: 0.62rem; color: var(--accent); min-width: 26px; }
+.canvas-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #050709;
+  cursor: crosshair;
+}
+canvas { display: block; position: absolute; top: 0; left: 0; }
+#cv-arrows, #cv-overlay { pointer-events: none; }
+footer {
+  padding: 4px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.56rem;
+  color: var(--dim);
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+footer span { color: var(--text); }
+.grow-bar { width: 80px; height: 4px; background: var(--border); display: inline-block; vertical-align: middle; margin-left: 4px; }
+.grow-fill { height: 100%; background: var(--accent); transition: width 0.05s; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">Vortex · coneFFT</span>
+  <div class="sep"></div>
+
+  <div class="ctrl-group">
+    <span class="ctrl-label">配置:</span>
+    <button class="btn active" id="btn-plus"  onclick="setMode('plus')">＋ 渦</button>
+    <button class="btn"        id="btn-minus" onclick="setMode('minus')">－ 反渦</button>
+    <button class="btn"        id="btn-erase" onclick="setMode('erase')">✕ 消去</button>
+    <button class="btn red"    onclick="clearAll()">全消去</button>
+  </div>
+  <div class="sep"></div>
+
+  <div class="ctrl-group">
+    <span class="ctrl-label">矢印:</span>
+    <button class="btn active" id="btn-arrow" onclick="toggleArrows()">表示</button>
+  </div>
+  <div class="sep"></div>
+
+  <div class="ctrl-group">
+    <span class="ctrl-label">形成アニメ:</span>
+    <button class="btn" id="btn-grow" onclick="toggleGrow()">▶ 生成</button>
+    <input type="range" id="speedSlider" min="1" max="40" value="5" oninput="updateSpeed()">
+    <span class="ctrl-val" id="speedVal">×1</span>
+  </div>
+
+  <div class="ctrl-group" style="margin-left:auto">
+    <span class="ctrl-label">成長:</span>
+    <span style="font-size:0.62rem;color:var(--accent)" id="s-grow">100%</span>
+    <div class="grow-bar"><div class="grow-fill" id="grow-fill" style="width:100%"></div></div>
+  </div>
+</header>
+
+<div class="canvas-wrap" id="wrap">
+  <canvas id="cv-main"></canvas>
+  <canvas id="cv-arrows"></canvas>
+  <canvas id="cv-overlay"></canvas>
+</div>
+
+<footer>
+  クリック: <span>渦を配置</span>
+  &nbsp;|&nbsp; 配置済みをクリック: <span>削除</span>
+  &nbsp;|&nbsp; ▶ 生成: <span>渦の形成アニメ</span>
+  &nbsp;|&nbsp; <span style="color:#4fc3f7">●</span> w=+1 &nbsp;
+  <span style="color:#ef5350">●</span> w=−1
+  &nbsp;|&nbsp; 矢印: <span>位相勾配ベクトル場</span>
+</footer>
+
+<script>
+const wrap    = document.getElementById('wrap');
+const cvMain  = document.getElementById('cv-main');
+const cvArr   = document.getElementById('cv-arrows');
+const cvOvl   = document.getElementById('cv-overlay');
+const ctxM    = cvMain.getContext('2d');
+const ctxA    = cvArr.getContext('2d');
+const ctxO    = cvOvl.getContext('2d');
+
+let W, H, N;
+let showArrows = true;
+let mode = 'plus';
+let vortices = [];
+let growPhase = 1.0;
+let growRunning = false;
+let growAnim = null;
+let growSpeed = 0.002;
+
+// ── resize ──────────────────────────────────────────────
+function resize() {
+  const rect = wrap.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  // N上限64（軽量化）
+  N = Math.min(Math.floor(Math.min(W, H) / 3), 64);
+  [cvMain, cvArr, cvOvl].forEach(c => { c.width = W; c.height = H; });
+  render();
+}
+
+// ── coord transforms ─────────────────────────────────────
+function toField(px, py) {
+  const aspect = W / H;
+  const fx = (px / W * 4 - 2) * (aspect > 1 ? 1 : 1 / aspect);
+  const fy = (py / H * 4 - 2) * (aspect > 1 ? 1 / aspect : 1);
+  return [fx, fy];
+}
+function toPixel(fx, fy) {
+  const aspect = W / H;
+  const px = (fx / (aspect > 1 ? 1 : 1 / aspect) + 2) / 4 * W;
+  const py = (fy / (aspect > 1 ? 1 / aspect : 1) + 2) / 4 * H;
+  return [px, py];
+}
+
+// ── vortex field computation ──────────────────────────────
+function computeField(growFrac) {
+  const aspect = W / H;
+  const sx = aspect > 1 ? 4 : 4 / aspect;
+  const sy = aspect > 1 ? 4 / aspect : 4;
+  const xs = Array.from({ length: N }, (_, i) => (i / (N - 1)) * sx - sx / 2);
+  const ys = Array.from({ length: N }, (_, j) => (j / (N - 1)) * sy - sy / 2);
+
+  const re = new Float32Array(N * N).fill(1);
+  const im = new Float32Array(N * N);
+  const sigma = 0.06;
+
+  for (const v of vortices) {
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const dx = xs[i] - v.cx, dy = ys[j] - v.cy;
+      const r2 = dx * dx + dy * dy;
+      const a  = growFrac * Math.sqrt(r2 / (r2 + sigma));
+      const th = v.w * Math.atan2(dy, dx);
+      const k  = j * N + i;
+      const cr = a * Math.cos(th) + (1 - a);
+      const ci = a * Math.sin(th);
+      const nr = re[k] * cr - im[k] * ci;
+      const ni = re[k] * ci + im[k] * cr;
+      re[k] = nr; im[k] = ni;
+    }
+  }
+  return { re, im, xs, ys };
+}
+
+// ── colormap: phase ───────────────────────────────────────
+function hsl(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+function cmPhase(v) {
+  const h = ((v + 1) / 2 * 360 + 180) % 360;
+  return hsl(h, 0.85, 0.52);
+}
+
+// ── render ────────────────────────────────────────────────
+function render() {
+  if (!W) return;
+  const { re, im, xs, ys } = computeField(growPhase);
+
+  // draw phase field
+  const img = ctxM.createImageData(N, N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const v = Math.atan2(im[j * N + i], re[j * N + i]) / Math.PI;
+    const [r, g, b] = cmPhase(v);
+    const idx = ((N - 1 - j) * N + i) * 4;
+    img.data[idx] = r; img.data[idx + 1] = g; img.data[idx + 2] = b; img.data[idx + 3] = 255;
+  }
+  const tmp = document.createElement('canvas'); tmp.width = N; tmp.height = N;
+  tmp.getContext('2d').putImageData(img, 0, 0);
+  ctxM.clearRect(0, 0, W, H);
+  ctxM.drawImage(tmp, 0, 0, W, H);
+
+  drawArrows(re, im, xs, ys);
+  drawMarkers();
+}
+
+// ── arrows ────────────────────────────────────────────────
+function drawArrows(re, im, xs, ys) {
+  ctxA.clearRect(0, 0, W, H);
+  if (!showArrows || vortices.length === 0) return;
+
+  const step = Math.max(4, Math.floor(N / 12));
+  ctxA.strokeStyle = 'rgba(180,200,220,0.55)';
+  ctxA.fillStyle   = 'rgba(180,200,220,0.55)';
+  ctxA.lineWidth   = 0.8;
+
+  for (let j = step >> 1; j < N; j += step) for (let i = step >> 1; i < N; i += step) {
+    const k   = j * N + i;
+    const r   = re[k], m = im[k];
+    const mag = Math.sqrt(r * r + m * m) + 1e-9;
+    const ux  = r / mag, uy = m / mag;
+    const [px, py] = toPixel(xs[i], ys[j]);
+    const len = (W / N) * step * 0.38;
+    const ex  = px + ux * len, ey = py - uy * len;
+
+    ctxA.beginPath();
+    ctxA.moveTo(px - ux * len * 0.4, py + uy * len * 0.4);
+    ctxA.lineTo(ex, ey);
+    ctxA.stroke();
+
+    const hw = len * 0.18, hlen = len * 0.28;
+    const ax = -ux, ay = uy;
+    const nx = -ay, ny = -ax;
+    ctxA.beginPath();
+    ctxA.moveTo(ex, ey);
+    ctxA.lineTo(ex + ax * hlen + nx * hw, ey + ay * hlen + ny * hw);
+    ctxA.lineTo(ex + ax * hlen - nx * hw, ey + ay * hlen - ny * hw);
+    ctxA.closePath();
+    ctxA.fill();
+  }
+}
+
+// ── markers ───────────────────────────────────────────────
+function drawMarkers() {
+  ctxO.clearRect(0, 0, W, H);
+
+  // axis lines
+  ctxO.strokeStyle = 'rgba(30,40,60,0.6)';
+  ctxO.lineWidth   = 0.5;
+  const [cx0, cy0] = toPixel(0, 0);
+  ctxO.beginPath(); ctxO.moveTo(cx0, 0); ctxO.lineTo(cx0, H); ctxO.stroke();
+  ctxO.beginPath(); ctxO.moveTo(0, cy0); ctxO.lineTo(W, cy0); ctxO.stroke();
+
+  // vortex circles
+  for (const v of vortices) {
+    const [px, py] = toPixel(v.cx, v.cy);
+    const rad = 10;
+    const grd = ctxO.createRadialGradient(px, py, 0, px, py, rad * 2.5);
+    grd.addColorStop(0, v.color + '88');
+    grd.addColorStop(1, v.color + '00');
+    ctxO.fillStyle = grd;
+    ctxO.beginPath(); ctxO.arc(px, py, rad * 2.5, 0, Math.PI * 2); ctxO.fill();
+
+    ctxO.strokeStyle = v.color;
+    ctxO.lineWidth   = 1.5;
+    ctxO.beginPath(); ctxO.arc(px, py, rad, 0, Math.PI * 2); ctxO.stroke();
+
+    ctxO.fillStyle = v.color;
+    ctxO.font = 'bold 10px monospace';
+    ctxO.textAlign = 'center';
+    ctxO.textBaseline = 'middle';
+    ctxO.fillText(v.label, px, py);
+    ctxO.font = '9px monospace';
+    ctxO.fillStyle = '#fff';
+    ctxO.fillText('w=' + v.w, px, py + rad + 8);
+  }
+  ctxO.textAlign = 'left';
+}
+
+// ── interaction ───────────────────────────────────────────
+const vColors = { '+1': '#4fc3f7', '-1': '#ef5350' };
+
+cvOvl.addEventListener('click', e => {
+  const rect = wrap.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+
+  if (mode === 'erase') {
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i < vortices.length; i++) {
+      const [vx, vy] = toPixel(vortices[i].cx, vortices[i].cy);
+      const d = Math.hypot(px - vx, py - vy);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (best >= 0 && bestD < 30) { vortices.splice(best, 1); render(); }
+    return;
+  }
+
+  // click on existing → delete
+  for (let i = 0; i < vortices.length; i++) {
+    const [vx, vy] = toPixel(vortices[i].cx, vortices[i].cy);
+    if (Math.hypot(px - vx, py - vy) < 12) { vortices.splice(i, 1); render(); return; }
+  }
+
+  // place new
+  const [fx, fy] = toField(px, py);
+  const w = mode === 'plus' ? +1 : -1;
+  const wkey = (w >= 0 ? '+' : '') + w;
+  vortices.push({ cx: fx, cy: fy, w, color: vColors[wkey] || '#aaa', label: w > 0 ? '↺' : '↻' });
+  render();
+});
+
+cvOvl.addEventListener('mousemove', e => {
+  const rect = wrap.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+  const [fx, fy] = toField(px, py);
+  ctxO.clearRect(0, 0, W, H);
+  drawMarkers();
+  ctxO.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctxO.lineWidth   = 0.5;
+  ctxO.setLineDash([3, 4]);
+  ctxO.beginPath(); ctxO.moveTo(px, 0); ctxO.lineTo(px, H); ctxO.stroke();
+  ctxO.beginPath(); ctxO.moveTo(0, py); ctxO.lineTo(W, py); ctxO.stroke();
+  ctxO.setLineDash([]);
+  ctxO.fillStyle = 'rgba(180,200,220,0.65)';
+  ctxO.font = '9px monospace';
+  ctxO.fillText(`(${fx.toFixed(2)}, ${fy.toFixed(2)})`, px + 5, py - 5);
+});
+
+cvOvl.addEventListener('mouseleave', () => { ctxO.clearRect(0, 0, W, H); drawMarkers(); });
+
+// ── controls ──────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  ['plus', 'minus', 'erase'].forEach(b => {
+    document.getElementById('btn-' + b).classList.toggle('active', b === m);
+    if (b === 'minus') document.getElementById('btn-' + b).classList.toggle('active-red', m === 'minus');
+  });
+}
+
+function toggleArrows() {
+  showArrows = !showArrows;
+  document.getElementById('btn-arrow').classList.toggle('active', showArrows);
+  render();
+}
+
+function clearAll() {
+  vortices = []; growPhase = 1.0;
+  document.getElementById('s-grow').textContent = '100%';
+  document.getElementById('grow-fill').style.width = '100%';
+  render();
+}
+
+function updateSpeed() {
+  const v = parseInt(document.getElementById('speedSlider').value);
+  growSpeed = 0.001 * Math.pow(v, 1.4);
+  document.getElementById('speedVal').textContent =
+    v <= 5 ? `×${(v / 5).toFixed(1)}` : `×${Math.round(v / 5)}`;
+}
+
+function toggleGrow() {
+  if (vortices.length === 0) return;
+  if (growRunning) {
+    growRunning = false;
+    cancelAnimationFrame(growAnim);
+    document.getElementById('btn-grow').textContent = '▶ 生成';
+    document.getElementById('btn-grow').classList.remove('active');
+    return;
+  }
+  growPhase = 0.0;
+  growRunning = true;
+  document.getElementById('btn-grow').textContent = '⏸ 停止';
+  document.getElementById('btn-grow').classList.add('active');
+  animGrow();
+}
+
+function animGrow() {
+  if (!growRunning) return;
+  growPhase = Math.min(1.0, growPhase + growSpeed);
+  document.getElementById('s-grow').textContent = Math.round(growPhase * 100) + '%';
+  document.getElementById('grow-fill').style.width = (growPhase * 100) + '%';
+  render();
+  if (growPhase >= 1.0) {
+    growRunning = false;
+    document.getElementById('btn-grow').textContent = '▶ 再生成';
+    document.getElementById('btn-grow').classList.remove('active');
+    return;
+  }
+  growAnim = requestAnimationFrame(animGrow);
+}
+
+// ── keyboard shortcuts ────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === '+' || e.key === '=') setMode('plus');
+  if (e.key === '-') setMode('minus');
+  if (e.key === 'e' || e.key === 'Escape') setMode('erase');
+  if (e.key === 'a') toggleArrows();
+  if (e.key === 'Delete' || e.key === 'Backspace') clearAll();
+  if (e.key === ' ') { e.preventDefault(); toggleGrow(); }
+});
+
+// ── init ──────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+resize();
+
+// initial demo
+vortices.push({ cx: -0.6, cy: 0, w: +1, color: '#4fc3f7', label: '↺' });
+vortices.push({ cx: +0.6, cy: 0, w: -1, color: '#ef5350', label: '↻' });
+render();
+</script>
+</body>
+</html>
