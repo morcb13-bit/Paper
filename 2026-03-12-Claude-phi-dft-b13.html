@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>φ-DFT × B13 · 三角関数なしFFT</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=JetBrains+Mono:wght@300;400;700&display=swap');
+
+:root {
+  --bg: #03030a;
+  --gold: #c8a84b;
+  --silver: #6a8a9f;
+  --text: #c8c4ba;
+  --dim: #404040;
+  --pos: #e85c5c;
+  --neg: #4a8fe8;
+  --lucas: #5ec4a8;
+  --fib: #e8a840;
+  --panel: #06060f;
+  --border: #111124;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+header {
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+h1 { font-family:'Shippori Mincho',serif; font-size:1rem; color:var(--gold); letter-spacing:0.1em; }
+
+.hdr-right { font-size:0.62rem; color:var(--silver); text-align:right; line-height:1.8; }
+.hdr-right b { color:var(--gold); }
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr 280px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.pane {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pane-title {
+  padding: 0.5rem 1rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+canvas { width:100%; flex:1; display:block; }
+
+.panel {
+  background: var(--panel);
+  padding: 0.8rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.sec { font-size:0.58rem; letter-spacing:0.2em; color:var(--dim); text-transform:uppercase; padding-bottom:0.3rem; border-bottom:1px solid var(--border); }
+
+.btn-group { display:flex; flex-direction:column; gap:0.25rem; margin-top:0.4rem; }
+
+.btn {
+  padding:0.4rem 0.6rem;
+  border-radius:2px;
+  border:1px solid var(--border);
+  background:#0a0a16;
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.65rem;
+  cursor:pointer;
+  transition:all 0.15s;
+  text-align:left;
+}
+.btn:hover { background:#12122a; }
+.btn.active { border-color:var(--gold); color:var(--gold); }
+
+.info-box {
+  background:#08081a;
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:0.6rem;
+  font-size:0.65rem;
+  line-height:1.9;
+}
+.info-box .L { color:var(--lucas); }
+.info-box .F { color:var(--fib); }
+.info-box .G { color:#4ae880; }
+.info-box .H { color:var(--gold); }
+
+.matrix-display {
+  overflow-x:auto;
+  font-size:0.55rem;
+  line-height:1.6;
+  background:#06060f;
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:0.5rem;
+}
+
+.algo-box {
+  background:#0a0a05;
+  border:1px solid #1a1a08;
+  border-radius:2px;
+  padding:0.6rem;
+  font-size:0.63rem;
+  line-height:2;
+  color:#a0a060;
+}
+.algo-box b { color:var(--gold); }
+.algo-box .step { color:var(--lucas); }
+
+footer {
+  padding:0.35rem 1rem;
+  font-size:0.58rem;
+  color:var(--dim);
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+  display:flex;
+  justify-content:space-between;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>φ-DFT × B13 · 三角関数なしFFT</h1>
+    <div style="font-size:0.6rem;color:var(--dim);margin-top:0.1rem">
+      実部 = リュカ数 L(nk mod 13)　虚部 = フィボナッチ数 F(nk mod 13)
+    </div>
+  </div>
+  <div class="hdr-right">
+    通常DFT: cos+i×sin → 三角関数必要<br>
+    <b>φ-DFT: L(n)+i×F(n) → 加算のみ!</b><br>
+    L(n)=φⁿ+ψⁿ　F(n)=(φⁿ−ψⁿ)/√5
+  </div>
+</header>
+
+<div class="workspace">
+
+  <!-- 左ペイン: 入力信号 -->
+  <div class="pane">
+    <div class="pane-title">入力信号 x[n]　（クリックで編集）</div>
+    <canvas id="c-input"></canvas>
+  </div>
+
+  <!-- 中ペイン: φ-DFT出力 vs 通常FFT -->
+  <div class="pane">
+    <div class="pane-title">φ-DFT 出力　vs　通常FFT（正規化）</div>
+    <canvas id="c-output"></canvas>
+  </div>
+
+  <!-- 右パネル -->
+  <div class="panel">
+
+    <div>
+      <div class="sec">入力プリセット</div>
+      <div class="btn-group">
+        <button class="btn active" onclick="setSignal('impulse')">インパルス　δ[0]</button>
+        <button class="btn" onclick="setSignal('sine')">正弦波　sin(2πk/13)</button>
+        <button class="btn" onclick="setSignal('fib')">フィボナッチ列</button>
+        <button class="btn" onclick="setSignal('lucas')">リュカ数列</button>
+        <button class="btn" onclick="setSignal('skyrmion')">スキルミオン的</button>
+        <button class="btn" onclick="setSignal('random')">ランダム</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec">φ-DFT 核心</div>
+      <div class="info-box">
+        <div>基底関数:</div>
+        <div>　<span class="L">実部 = L(nk mod 13)</span></div>
+        <div>　<span class="F">虚部 = F(nk mod 13)</span></div>
+        <div style="margin-top:0.3rem">計算:</div>
+        <div>　L(n) = L(n-1) + L(n-2)</div>
+        <div>　F(n) = F(n-1) + F(n-2)</div>
+        <div>　<span class="G">→ 加算のみ! ✓</span></div>
+        <div style="margin-top:0.3rem">等価性:</div>
+        <div>　L(n) = φⁿ + ψⁿ</div>
+        <div>　　　 = <span class="H">表+裏</span> (鏡像の和)</div>
+        <div>　F(n) = (φⁿ−ψⁿ)/√5</div>
+        <div>　　　 = <span class="H">表−裏</span> (鏡像の差)</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sec">φ-DFT 行列 (13×13)</div>
+      <div class="matrix-display" id="matrix-display">計算中...</div>
+    </div>
+
+    <div>
+      <div class="sec">アルゴリズム</div>
+      <div class="algo-box">
+        <b>Step 1</b> 入力 x[0..12]<br>
+        <span class="step">Step 2</span> L,F を漸化式で生成<br>
+        <b>Step 3</b> M[k,n]=L(nk%13)+iF(nk%13)<br>
+        <span class="step">Step 4</span> X = M × x<br>
+        <b>→ 三角関数ゼロ回!</b><br>
+        <br>
+        計算量: O(N²) 整数加算<br>
+        通常FFT: O(N log N) 複素乗算<br>
+        N=13では同等、N→∞で改善
+      </div>
+    </div>
+
+    <div>
+      <div class="sec">Φ_d との統一</div>
+      <div class="info-box">
+        <div>φ-DFT虚部 ≡ Φ_d</div>
+        <div>　Im[ψ_j ψ_i*] = 位相差</div>
+        <div>　F(nk) = フィボナッチ差分</div>
+        <div style="margin-top:0.3rem">3120 = χ×V×2×B13</div>
+        <div>　= <span class="L">2</span>×<span class="H">60</span>×2×<span class="F">13</span></div>
+        <div>非ゼロ頂点 = <span class="G">52 = 4×13</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <span>入力信号をクリックして値を変更できます</span>
+  <span id="status">N=13 · φ-DFT ready</span>
+</footer>
+
+<script>
+const N = 13;
+const phi = (1+Math.sqrt(5))/2;
+const psi = -1/phi;
+
+// フィボナッチ・リュカ数列 (mod Nインデックス)
+const fibSeq = [0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987];
+const lucSeq = [2,1,3,4,7,11,18,29,47,76,123,199,322,521,843,1364];
+
+// φ-DFT行列
+function buildPhiDFT(N) {
+  const M = [];
+  for(let k=0;k<N;k++){
+    M.push([]);
+    for(let n=0;n<N;n++){
+      const idx=(n*k)%N;
+      M[k].push({re:lucSeq[idx], im:fibSeq[idx]});
+    }
+  }
+  return M;
+}
+
+const M = buildPhiDFT(N);
+
+// 通常DFT
+function dft(x) {
+  const X=[];
+  for(let k=0;k<N;k++){
+    let re=0,im=0;
+    for(let n=0;n<N;n++){
+      const ang=-2*Math.PI*n*k/N;
+      re+=x[n]*Math.cos(ang);
+      im+=x[n]*Math.sin(ang);
+    }
+    X.push({re,im});
+  }
+  return X;
+}
+
+// φ-DFT
+function phiDFT(x) {
+  const X=[];
+  for(let k=0;k<N;k++){
+    let re=0,im=0;
+    for(let n=0;n<N;n++){
+      re+=x[n]*M[k][n].re;
+      im+=x[n]*M[k][n].im;
+    }
+    X.push({re,im});
+  }
+  return X;
+}
+
+// 信号プリセット
+const signals = {
+  impulse:  ()=>Array.from({length:N},(_, i)=>i===0?1:0),
+  sine:     ()=>Array.from({length:N},(_,i)=>Math.sin(2*Math.PI*i/N)),
+  fib:      ()=>fibSeq.slice(0,N).map(v=>v/fibSeq[N-1]),
+  lucas:    ()=>lucSeq.slice(0,N).map(v=>v/lucSeq[N-1]),
+  skyrmion: ()=>Array.from({length:N},(_,i)=>Math.sin(Math.PI*i/N)*Math.cos(2*Math.PI*i/N)),
+  random:   ()=>Array.from({length:N},()=>Math.random()*2-1),
+};
+
+let x = signals.impulse();
+
+function setSignal(name){
+  x=signals[name]();
+  document.querySelectorAll('.btn').forEach((b,i)=>{
+    b.classList.toggle('active',['impulse','sine','fib','lucas','skyrmion','random'][i]===name);
+  });
+  draw();
+}
+
+// 行列表示
+function renderMatrix(){
+  const el=document.getElementById('matrix-display');
+  let html='<div style="color:var(--dim);margin-bottom:0.3rem">L(nk%13) + i·F(nk%13)</div>';
+  for(let k=0;k<N;k++){
+    const row=M[k].map(v=>{
+      const rs=v.re.toString().padStart(3);
+      const is=v.im.toString().padStart(3);
+      return `<span style="color:var(--lucas)">${rs}</span>+<span style="color:var(--fib)">${is}</span>i`;
+    }).join(' ');
+    html+=`<div>${row}</div>`;
+  }
+  el.innerHTML=html;
+}
+renderMatrix();
+
+// 描画
+const c1=document.getElementById('c-input');
+const ctx1=c1.getContext('2d');
+const c2=document.getElementById('c-output');
+const ctx2=c2.getContext('2d');
+
+function drawInput(){
+  const W=c1.width,H=c1.height;
+  ctx1.clearRect(0,0,W,H);
+  const pad=30, pw=W-2*pad, ph=H-2*pad;
+  const bw=pw/N*0.7;
+
+  // 軸
+  ctx1.strokeStyle='#1a1a2e';
+  ctx1.lineWidth=1;
+  ctx1.beginPath();
+  ctx1.moveTo(pad,pad+ph/2);
+  ctx1.lineTo(pad+pw,pad+ph/2);
+  ctx1.stroke();
+
+  // バー
+  const max=Math.max(...x.map(Math.abs),0.01);
+  x.forEach((v,i)=>{
+    const bx=pad+i*pw/N+(pw/N-bw)/2;
+    const bh=Math.abs(v)/max*ph/2;
+    const by=pad+ph/2-(v>0?bh:0);
+    ctx1.fillStyle=v>=0?'rgba(232,92,92,0.8)':'rgba(74,143,232,0.8)';
+    ctx1.fillRect(bx,by,bw,bh||1);
+    ctx1.fillStyle='#555';
+    ctx1.font='9px JetBrains Mono';
+    ctx1.fillText(i,bx+bw/2-3,pad+ph+12);
+  });
+
+  // ラベル
+  ctx1.fillStyle='#555';
+  ctx1.font='10px JetBrains Mono';
+  ctx1.fillText('x[n]',4,14);
+}
+
+function drawOutput(){
+  const W=c2.width,H=c2.height;
+  ctx2.clearRect(0,0,W,H);
+  const pad=30, pw=W-2*pad, ph=(H-2*pad)/2-10;
+
+  const Xphi=phiDFT(x);
+  const Xdft=dft(x);
+
+  // 正規化
+  const phiMax=Math.max(...Xphi.map(v=>Math.sqrt(v.re*v.re+v.im*v.im)),0.01);
+  const dftMax=Math.max(...Xdft.map(v=>Math.sqrt(v.re*v.re+v.im*v.im)),0.01);
+
+  const bw=pw/N*0.65;
+
+  // φ-DFT (上半分)
+  ctx2.fillStyle='#0e0e1a';
+  ctx2.fillRect(pad-2,pad-2,pw+4,ph+4);
+  ctx2.fillStyle='#333';
+  ctx2.font='9px JetBrains Mono';
+  ctx2.fillStyle='var(--gold)';
+  ctx2.font='10px JetBrains Mono';
+  ctx2.fillText('φ-DFT |X[k]|',pad,pad-4);
+
+  ctx2.strokeStyle='#1a1a2e';
+  ctx2.lineWidth=0.5;
+  ctx2.beginPath();
+  ctx2.moveTo(pad,pad+ph);
+  ctx2.lineTo(pad+pw,pad+ph);
+  ctx2.stroke();
+
+  Xphi.forEach((v,k)=>{
+    const amp=Math.sqrt(v.re*v.re+v.im*v.im)/phiMax;
+    const bx=pad+k*pw/N+(pw/N-bw)/2;
+    const bh=amp*ph*0.9;
+    ctx2.fillStyle='rgba(200,168,75,0.85)';
+    ctx2.fillRect(bx,pad+ph-bh,bw,bh||1);
+    ctx2.fillStyle='#444';
+    ctx2.font='9px JetBrains Mono';
+    ctx2.fillText(k,bx+bw/2-3,pad+ph+10);
+  });
+
+  // 通常DFT (下半分)
+  const y2=pad+ph+25;
+  ctx2.fillStyle='#0a0a10';
+  ctx2.fillRect(pad-2,y2-2,pw+4,ph+4);
+  ctx2.fillStyle='var(--silver)';
+  ctx2.font='10px JetBrains Mono';
+  ctx2.fillText('通常FFT |X[k]|',pad,y2-4);
+
+  ctx2.strokeStyle='#1a1a2e';
+  ctx2.lineWidth=0.5;
+  ctx2.beginPath();
+  ctx2.moveTo(pad,y2+ph);
+  ctx2.lineTo(pad+pw,y2+ph);
+  ctx2.stroke();
+
+  Xdft.forEach((v,k)=>{
+    const amp=Math.sqrt(v.re*v.re+v.im*v.im)/dftMax;
+    const bx=pad+k*pw/N+(pw/N-bw)/2;
+    const bh=amp*ph*0.9;
+    ctx2.fillStyle='rgba(100,140,160,0.7)';
+    ctx2.fillRect(bx,y2+ph-bh,bw,bh||1);
+    ctx2.fillStyle='#444';
+    ctx2.font='9px JetBrains Mono';
+    ctx2.fillText(k,bx+bw/2-3,y2+ph+10);
+  });
+
+  // ピーク一致確認
+  const phiPeak=Xphi.reduce((m,v,i)=>Math.sqrt(v.re*v.re+v.im*v.im)>Math.sqrt(Xphi[m].re*Xphi[m].re+Xphi[m].im*Xphi[m].im)?i:m,0);
+  const dftPeak=Xdft.reduce((m,v,i)=>Math.sqrt(v.re*v.re+v.im*v.im)>Math.sqrt(Xdft[m].re*Xdft[m].re+Xdft[m].im*Xdft[m].im)?i:m,0);
+  document.getElementById('status').textContent=
+    `φ-DFT peak: k=${phiPeak} | FFT peak: k=${dftPeak} | 一致: ${phiPeak===dftPeak?'✓':'✗'}`;
+}
+
+function draw(){drawInput();drawOutput();}
+
+function resize(){
+  c1.width=c1.offsetWidth; c1.height=c1.offsetHeight;
+  c2.width=c2.offsetWidth; c2.height=c2.offsetHeight;
+  draw();
+}
+
+// 入力クリック編集
+c1.addEventListener('click',e=>{
+  const rect=c1.getBoundingClientRect();
+  const mx=e.clientX-rect.left;
+  const W=c1.width, pad=30, pw=W-2*pad;
+  const i=Math.floor((mx-pad)/(pw/N));
+  if(i>=0&&i<N){
+    const my=e.clientY-rect.top;
+    const H=c1.height,ph=H-2*pad;
+    const v=1-2*(my-pad)/ph;
+    x[i]=Math.max(-1,Math.min(1,v));
+    draw();
+  }
+});
+
+window.addEventListener('resize',resize);
+resize();
+</script>
+</body>
+</html>
