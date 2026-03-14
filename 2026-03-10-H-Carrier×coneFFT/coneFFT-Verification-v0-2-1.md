@@ -1,4 +1,4 @@
-# H-Carrier × coneFFT — 技術ノート
+# H-Carrier × coneFFT Live audio — 技術ノート
 
 **バージョン**: v0.4  
 **日付**: 2026-03-10  
