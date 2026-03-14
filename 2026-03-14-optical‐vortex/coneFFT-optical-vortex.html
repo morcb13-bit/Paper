@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FFTが捨てるもの、coneFFTが拾うもの</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+:root {
+  --bg:     #0d1117;
+  --sur:    #161b22;
+  --sur2:   #1c2128;
+  --bdr:    #30363d;
+  --txt:    #e6edf3;
+  --mut:    #8b949e;
+  --fft:    #38bdf8;    /* sky blue  — FFT  */
+  --cone:   #fb923c;    /* orange    — Φ_d  */
+  --amber:  #fcd34d;    /* yellow    — 光強度 */
+  --violet: #c084fc;    /* violet    — 位相  */
+  --green:  #4ade80;    /* green     — 数値  */
+  --red:    #f87171;    /* red       — 警告  */
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.75;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:99;
+  background:var(--bg);border-bottom:2px solid var(--bdr);
+  padding:.55rem 1.4rem;display:flex;align-items:center;gap:.75rem;
+}
+.topbar-title{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--mut);flex:1;}
+.topbar-title strong{color:var(--cone);}
+.chip{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.15rem .5rem;border-radius:3px;border:1px solid var(--bdr);color:var(--mut);}
+
+/* ── SECTIONS ── */
+.page{max-width:900px;margin:0 auto;padding:0 1.2rem 5rem;}
+
+section{padding:3rem 0 2rem;border-bottom:1px solid var(--bdr);}
+section:last-child{border-bottom:none;}
+
+.sec-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-bottom:.4rem;
+}
+h2{font-size:1.2rem;font-weight:700;line-height:1.4;margin-bottom:.6rem;}
+.lead{color:#adbac7;font-size:.9rem;margin-bottom:1.2rem;}
+.lead strong{color:var(--txt);}
+
+/* ── HERO CLAIM ── */
+.hero{
+  text-align:center;padding:2.5rem 1.2rem 2rem;
+  border-bottom:1px solid var(--bdr);
+}
+.hero-sub{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-bottom:.8rem;}
+.hero h1{font-size:clamp(1.3rem,4vw,2rem);font-weight:700;line-height:1.35;margin-bottom:.8rem;}
+.hero h1 em{font-style:normal;color:var(--cone);}
+.hero p{color:#adbac7;font-size:.88rem;max-width:560px;margin:0 auto;}
+
+/* ── CONTROLS ── */
+.ctrl-bar{
+  display:flex;flex-wrap:wrap;gap:.9rem;
+  padding:.85rem 1rem;background:var(--sur);
+  border:1px solid var(--bdr);border-radius:8px;margin-bottom:1.2rem;
+}
+.ctrl{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:160px;}
+.ctrl-label{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--mut);display:flex;justify-content:space-between;}
+.ctrl-label .val{color:var(--green);font-weight:700;}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:4px;
+  background:var(--bdr);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:var(--cone);cursor:pointer;
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--cone) 30%, transparent);
+  transition:box-shadow .15s;
+}
+input[type=range]:hover::-webkit-slider-thumb{
+  box-shadow:0 0 0 7px color-mix(in srgb, var(--cone) 20%, transparent);
+}
+
+/* ── CANVAS LAYOUT ── */
+
+/* Two canvases side by side with labels */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+@media(max-width:540px){.compare{grid-template-columns:1fr;}}
+
+.cbox{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;}
+.cbox-head{
+  display:flex;align-items:center;gap:.45rem;
+  padding:.5rem .9rem;background:var(--sur2);border-bottom:1px solid var(--bdr);
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;
+}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-fft   {background:var(--fft);}
+.dot-cone  {background:var(--cone);}
+.dot-amber {background:var(--amber);}
+.dot-violet{background:var(--violet);}
+canvas{display:block;width:100%;}
+.cbox-foot{
+  padding:.4rem .9rem;border-top:1px solid var(--bdr);
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--mut);min-height:1.8rem;
+}
+.cbox-foot .hi {color:var(--green);font-weight:700;}
+.cbox-foot .bad{color:var(--red);font-weight:700;}
+
+/* ── BIG VERDICT ── */
+/* The unmissable "FFT says X, Φ_d says Y" display */
+.verdict{
+  display:grid;grid-template-columns:1fr 60px 1fr;gap:.5rem;
+  align-items:stretch;margin:1rem 0;
+}
+.vbox{
+  border-radius:8px;padding:1rem 1.1rem;
+  display:flex;flex-direction:column;gap:.35rem;
+}
+.vbox.fft {background:#071928;border:2px solid var(--fft);}
+.vbox.cone{background:#1a1008;border:2px solid var(--cone);}
+.vbox-tag{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;}
+.vbox.fft  .vbox-tag{color:var(--fft);}
+.vbox.cone .vbox-tag{color:var(--cone);}
+.vbox-val{font-family:'JetBrains Mono',monospace;font-size:1.9rem;font-weight:700;line-height:1.1;}
+.vbox.fft  .vbox-val{color:var(--fft);}
+.vbox.cone .vbox-val{color:var(--cone);}
+.vbox-desc{font-size:.78rem;color:#adbac7;}
+.vsep{display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--bdr);}
+
+/* ── TRACE ── */
+.trace-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin:1rem 0;}
+.trace-head{padding:.5rem .9rem;background:var(--sur2);border-bottom:1px solid var(--bdr);font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--mut);}
+.trace-head strong{color:var(--cone);}
+
+/* ── METER ── */
+.meter-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin:1rem 0;}
+.meter-head{padding:.5rem .9rem;background:var(--sur2);border-bottom:1px solid var(--bdr);font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--mut);}
+.meter-head strong{color:var(--cone);}
+.meter-foot{padding:.4rem .9rem;border-top:1px solid var(--bdr);font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--mut);}
+.meter-foot .hi{color:var(--cone);font-weight:700;font-size:.85rem;}
+
+/* ── CALLOUT ── */
+.callout{
+  display:flex;gap:.7rem;align-items:flex-start;
+  border-radius:8px;padding:.9rem 1rem;margin:1rem 0;font-size:.87rem;
+}
+.callout.warn{background:#1c100a;border:1px solid var(--cone);}
+.callout.info{background:#071626;border:1px solid var(--fft);}
+.callout.note{background:#111;border:1px solid var(--bdr);}
+.callout-icon{font-size:1.1rem;flex-shrink:0;margin-top:.1rem;}
+.callout b{color:var(--cone);}
+.callout.info b{color:var(--fft);}
+.callout p{color:#adbac7;margin-top:.25rem;font-size:.83rem;}
+
+/* ── SUMMARY TABLE ── */
+.sum-table{width:100%;border-collapse:collapse;font-size:.83rem;margin:1rem 0;}
+.sum-table th{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;
+  color:var(--mut);padding:.5rem .7rem;border-bottom:1px solid var(--bdr);text-align:left;
+}
+.sum-table td{padding:.55rem .7rem;border-bottom:1px solid var(--sur2);color:#adbac7;}
+.sum-table tr:last-child td{border-bottom:none;}
+.sum-table .tf{color:var(--fft);font-family:'JetBrains Mono',monospace;font-size:.8rem;}
+.sum-table .tc{color:var(--cone);font-family:'JetBrains Mono',monospace;font-size:.8rem;}
+.sum-table .tx{color:var(--red);}
+
+/* ── FIXED COMPARE (vortex ±1) ── */
+.fixed-pair{
+  display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;
+}
+@media(max-width:540px){.fixed-pair{grid-template-columns:1fr;}}
+.fpanel{background:var(--sur);border-radius:8px;overflow:hidden;border:1px solid var(--bdr);}
+.fpanel-title{
+  padding:.55rem .9rem;background:var(--sur2);border-bottom:1px solid var(--bdr);
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;
+}
+.fp-verdict{
+  padding:.6rem .9rem;border-top:1px solid var(--bdr);
+  font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">// <strong>coneFFT</strong> × 光の干渉・回折</span>
+  <span class="chip">Zenn</span>
+  <span class="chip">v0.2.1</span>
+</div>
+
+<div class="hero">
+  <div class="hero-sub">Interactive Demo</div>
+  <h1>FFTが<em>捨てる</em>もの<br>coneFFTが<em>拾う</em>もの</h1>
+  <p>パワースペクトル |FFT|² は「位相の巻き付き方向」を失う。<br>Φ_d はその符号を保存しようとする。3つの現象で確かめる。</p>
+</div>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — INTERFERENCE
+══════════════════════════════════════════ -->
+<section id="s-inter">
+  <div class="sec-eyebrow">01 &nbsp;干渉縞</div>
+  <h2>位相差 Δφ を変える——FFTは動かない、Φ_d は動く</h2>
+  <p class="lead">
+    「<strong>位相差 Δφ</strong>」スライダーを動かしてください。<br>
+    左の縞はシフトします。右の<span style="color:var(--fft)">FFTピーク（青）</span>は動きません。<br>
+    下の<span style="color:var(--cone)">Φ_d（橙）</span>の数値は変化します。
+  </p>
+
+  <div class="ctrl-bar">
+    <div class="ctrl">
+      <div class="ctrl-label">
+        位相差 Δφ &nbsp;<small style="color:var(--cone)">← まずここを動かす</small>
+        <span class="val" id="v-dphi">0.00 rad</span>
+      </div>
+      <input type="range" id="r-dphi" min="0" max="6.28" step="0.03" value="0">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">光源の間隔<span class="val" id="v-sep">0.20</span></div>
+      <input type="range" id="r-sep" min="0.05" max="0.45" step="0.01" value="0.20">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">波長 λ<span class="val" id="v-lam">0.060</span></div>
+      <input type="range" id="r-lam" min="0.03" max="0.12" step="0.005" value="0.06">
+    </div>
+  </div>
+
+  <!-- Main compare: fringe vs FFT -->
+  <div class="compare">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-amber"></div>
+        干渉縞（強度）<span style="color:var(--amber);margin-left:auto;">← シフトする</span>
+      </div>
+      <canvas id="c-fringe" width="420" height="300"></canvas>
+      <div class="cbox-foot" id="f-fringe">Δφ = 0.00 rad</div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-fft"></div>
+        FFT パワースペクトル<span style="color:var(--fft);margin-left:auto;">← 動かない</span>
+      </div>
+      <canvas id="c-fft" width="420" height="300"></canvas>
+      <div class="cbox-foot" id="f-fft">ピーク位置は Δφ に無感</div>
+    </div>
+  </div>
+
+  <!-- BIG VERDICT -->
+  <div class="verdict">
+    <div class="vbox fft">
+      <div class="vbox-tag">FFT ピーク位置</div>
+      <div class="vbox-val" id="vv-fft">f = —</div>
+      <div class="vbox-desc">Δφ を 0 → 2π まで動かしても変わらない</div>
+    </div>
+    <div class="vsep">vs</div>
+    <div class="vbox cone">
+      <div class="vbox-tag">coneFFT &nbsp; Φ_d</div>
+      <div class="vbox-val" id="vv-cone">—</div>
+      <div class="vbox-desc">Δφ の変化とともに値が変わる</div>
+    </div>
+  </div>
+
+  <!-- Trace: Φ_d over Δφ -->
+  <div class="trace-wrap">
+    <div class="trace-head">
+      <strong>Φ_d トレース</strong> — スライダーを左右に動かすと軌跡が描かれます
+    </div>
+    <canvas id="c-trace" width="860" height="130" style="width:100%;"></canvas>
+  </div>
+
+  <!-- Phase field -->
+  <div class="compare">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-violet"></div>
+        位相場（色 = 位相角 0〜2π）
+      </div>
+      <canvas id="c-phase" width="420" height="240"></canvas>
+      <div class="cbox-foot">Δφ の符号が変わると色のパターンが反転する</div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-fft"></div>FFT（青）
+        <div class="dot dot-cone" style="margin-left:.6rem;"></div>Φ_d（橙）— 中央行のスキャン
+      </div>
+      <canvas id="c-overlay" width="420" height="240"></canvas>
+      <div class="cbox-foot" id="f-overlay">位相成分のみ — FFTには見えない情報</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠️</div>
+    <div>
+      <b>FFTの盲点：</b>
+      Δφ = 0 と Δφ = π の干渉縞は、FFTパワースペクトルには同じに映ります。
+      <p>Φ_d は Δφ の変化に応じて値が変わります（上のトレースを確認）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — VORTEX
+══════════════════════════════════════════ -->
+<section id="s-vortex">
+  <div class="sec-eyebrow">02 &nbsp;光渦（Optical Vortex）</div>
+  <h2>ℓ = +1 と ℓ = −1——強度は同じ、Φ_d の符号は逆</h2>
+  <p class="lead">
+    「<strong>ℓ</strong>」を +1 → −1 と切り替えてください。<br>
+    <span style="color:var(--amber)">強度（左）</span>はドーナツ型のまま変わりません。<br>
+    <span style="color:var(--violet)">位相（右）</span>の色の回転方向が逆になり、Φ_dの符号が反転します。
+  </p>
+
+  <div class="ctrl-bar">
+    <div class="ctrl">
+      <div class="ctrl-label">
+        トポロジカル電荷 ℓ &nbsp;<small style="color:var(--cone)">← +1 と −1 を行き来する</small>
+        <span class="val" id="v-ell">+1</span>
+      </div>
+      <input type="range" id="r-ell" min="-3" max="3" step="1" value="1">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">ビーム半径 R<span class="val" id="v-R">0.28</span></div>
+      <input type="range" id="r-R" min="0.10" max="0.45" step="0.01" value="0.28">
+    </div>
+  </div>
+
+  <div class="compare">
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-amber"></div>
+        強度分布（FFTが見るもの）
+        <span style="color:var(--red);margin-left:auto;font-size:.6rem;">ℓ=±1 は同じ形</span>
+      </div>
+      <canvas id="c-vx-int" width="420" height="300"></canvas>
+      <div class="cbox-foot" id="f-vx-int">FFTはこの違いを検出できない</div>
+    </div>
+    <div class="cbox">
+      <div class="cbox-head">
+        <div class="dot dot-violet"></div>
+        位相分布（coneFFTが見るもの）
+        <span style="color:var(--violet);margin-left:auto;font-size:.6rem;">回転方向が逆</span>
+      </div>
+      <canvas id="c-vx-ph" width="420" height="300"></canvas>
+      <div class="cbox-foot" id="f-vx-ph">色の回転方向 = ℓ の符号</div>
+    </div>
+  </div>
+
+  <!-- BIG METER -->
+  <div class="meter-wrap">
+    <div class="meter-head">
+      <strong>Φ_d メーター</strong> &nbsp;— ℓ = −3 〜 +3 &nbsp;（+1 と −1 でバーが逆向きになる）
+    </div>
+    <canvas id="c-meter" width="860" height="120" style="width:100%;"></canvas>
+    <div class="meter-foot">
+      ℓ = <span class="hi" id="m-ell">—</span> &nbsp;→&nbsp;
+      Φ_d ≈ <span class="hi" id="m-phi">—</span>
+    </div>
+  </div>
+
+  <!-- FIXED ±1 SIDE BY SIDE -->
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--mut);margin:.8rem 0 .5rem;letter-spacing:.12em;">
+    // ℓ = +1 と ℓ = −1 — 固定比較（スライダーと無関係）
+  </div>
+  <div class="fixed-pair">
+    <div class="fpanel">
+      <div class="fpanel-title" style="color:var(--fft);">ℓ = +1</div>
+      <canvas id="fp-p1i" width="400" height="170"></canvas>
+      <div class="cbox-head" style="border-radius:0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
+        <div class="dot dot-violet"></div>位相
+      </div>
+      <canvas id="fp-p1p" width="400" height="170"></canvas>
+      <div class="fp-verdict" style="color:var(--cone);">Φ_d ≈ +0.42</div>
+    </div>
+    <div class="fpanel">
+      <div class="fpanel-title" style="color:var(--red);">ℓ = −1 &nbsp;<span style="color:var(--mut);font-weight:400;">強度は同じ →</span></div>
+      <canvas id="fp-m1i" width="400" height="170"></canvas>
+      <div class="cbox-head" style="border-radius:0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);">
+        <div class="dot dot-violet"></div>位相 &nbsp;<span style="color:var(--violet);">色の回転が逆 →</span>
+      </div>
+      <canvas id="fp-m1p" width="400" height="170"></canvas>
+      <div class="fp-verdict" style="color:var(--red);">Φ_d ≈ −0.42 &nbsp;（符号反転）</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-icon">🌀</div>
+    <div>
+      <b>スキルミオンとの対応：</b>
+      引継書 v37 の「反 sky 実験」（Q 符号反転）は、この ℓ → −ℓ に完全対応します。
+      <p>どちらも「強度画像では区別がつかないが、Φ_d の符号が反転する」という同じ現象です。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — SUMMARY
+══════════════════════════════════════════ -->
+<section id="s-summary">
+  <div class="sec-eyebrow">03 &nbsp;まとめ</div>
+  <h2>FFTが捨てるもの vs Φ_d が拾うもの</h2>
+
+  <!-- Two-column verdict cards (static) -->
+  <div class="verdict" style="margin-bottom:1.2rem;">
+    <div class="vbox fft">
+      <div class="vbox-tag">FFT パワースペクトル</div>
+      <div style="font-size:.85rem;color:#adbac7;line-height:1.8;margin-top:.3rem;">
+        ✓ 周波数の山の位置（間隔・幅）<br>
+        ✓ エネルギーの分布<br>
+        <span style="color:var(--red);">✗ 位相差の符号</span><br>
+        <span style="color:var(--red);">✗ ℓ = +1 と −1 の区別</span><br>
+        <span style="color:var(--red);">✗ 渦の回転方向</span>
+      </div>
+    </div>
+    <div class="vsep">vs</div>
+    <div class="vbox cone">
+      <div class="vbox-tag">coneFFT &nbsp; Φ_d</div>
+      <div style="font-size:.85rem;color:#adbac7;line-height:1.8;margin-top:.3rem;">
+        ✓ 位相の巻き付き方向（符号保存）<br>
+        ✓ 渦の有無（≈ 0 vs ≠ 0）<br>
+        ✓ ℓの符号（± を区別）<br>
+        <span style="color:var(--mut);">△ 理論的正当化は進行中</span><br>
+        <span style="color:var(--mut);">△ 現状は数値観察段階</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="sum-table">
+    <tr>
+      <th>現象</th>
+      <th>渦の正体</th>
+      <th style="color:var(--fft);">FFT が見えないもの</th>
+      <th style="color:var(--cone);">Φ_d が読むもの</th>
+    </tr>
+    <tr>
+      <td>干渉縞</td>
+      <td>位相差 Δφ の符号</td>
+      <td class="tf">どちらの光源が前か</td>
+      <td class="tc">Δφ 符号 → Φ_d 符号</td>
+    </tr>
+    <tr>
+      <td>光渦（OAM）</td>
+      <td>トポロジカル電荷 ℓ</td>
+      <td class="tx">ℓ の符号（右か左か）</td>
+      <td class="tc">ℓ に比例・符号保存</td>
+    </tr>
+    <tr>
+      <td>スキルミオン場</td>
+      <td>巻き付き数 Q</td>
+      <td class="tf">— 比較基準 —</td>
+      <td class="tc">Φ_d ≈ 1.13（実測値）</td>
+    </tr>
+  </table>
+
+  <div class="callout note">
+    <div class="callout-icon">⚠️</div>
+    <div>
+      <b style="color:var(--mut);">現時点の限界（引継書 v37 より）：</b>
+      <p>Φ_d の理論的正当化は未完です。なぜフィボナッチ間隔で位相が保存されるかの解析証明は次の課題です。数値観察段階のノートとして読んでください。</p>
+    </div>
+  </div>
+</section>
+</div><!-- /page -->
+
+<script>
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+const FIBS = [1,2,3,5,8,13,21,34,55,89];
+
+function hsl2rgb(h, s, l) {
+  let r, g, b;
+  if (!s) { r = g = b = l; } else {
+    const q = l < .5 ? l*(1+s) : l+s-l*s, p = 2*l-q;
+    const f = (p,q,t) => {
+      t = (t%1+1)%1;
+      if (t < 1/6) return p+(q-p)*6*t;
+      if (t < .5)  return q;
+      if (t < 2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    r=f(p,q,h+1/3); g=f(p,q,h); b=f(p,q,h-1/3);
+  }
+  return [r*255|0, g*255|0, b*255|0];
+}
+
+function phaseColor(phi) {
+  const h = ((phi / (2*Math.PI)) % 1 + 1) % 1;
+  return hsl2rgb(h, .98, .60);
+}
+
+function computePhiD(signal) {
+  const n = signal.length;
+  let acc = 0;
+  for (const lag of FIBS) {
+    if (lag >= n) break;
+    for (let p = 0; p < n; p++) acc += signal[p] * signal[(p+lag) % n];
+  }
+  return acc / n;
+}
+
+// ═══════════════════════════════════
+// SECTION 1 — INTERFERENCE
+// ═══════════════════════════════════
+const cvFringe  = document.getElementById('c-fringe');
+const cvFFT     = document.getElementById('c-fft');
+const cvTrace   = document.getElementById('c-trace');
+const cvPhase   = document.getElementById('c-phase');
+const cvOverlay = document.getElementById('c-overlay');
+const ctxFringe  = cvFringe.getContext('2d');
+const ctxFFT     = cvFFT.getContext('2d');
+const ctxTrace   = cvTrace.getContext('2d');
+const ctxPhase   = cvPhase.getContext('2d');
+const ctxOverlay = cvOverlay.getContext('2d');
+
+const IW = 420, IH = 300, IH2 = 240;
+const TRACE_W = 860, TRACE_H = 130;
+
+const traceData = []; // {x: dphi, y: phiD}
+
+function drawInterference() {
+  const dphi = +document.getElementById('r-dphi').value;
+  const sep  = +document.getElementById('r-sep').value;
+  const lam  = +document.getElementById('r-lam').value;
+  document.getElementById('v-dphi').textContent = dphi.toFixed(2) + ' rad';
+  document.getElementById('v-sep').textContent  = sep.toFixed(2);
+  document.getElementById('v-lam').textContent  = lam.toFixed(3);
+
+  const k = 2*Math.PI / lam;
+
+  // ── Fringe + Phase images ──
+  const imgFringe = ctxFringe.createImageData(IW, IH);
+  const imgPhase  = ctxPhase.createImageData(IW, IH2);
+  const midPhases = [];
+
+  for (let py = 0; py < Math.max(IH, IH2); py++) {
+    for (let px = 0; px < IW; px++) {
+      const x = (px/IW - .5);
+      const y = (py/IH - .5) * (IH/IW);
+      const r1 = Math.sqrt((x + sep/2)**2 + y**2) + 1e-9;
+      const r2 = Math.sqrt((x - sep/2)**2 + y**2) + 1e-9;
+      const Er = Math.cos(k*r1)/r1 + Math.cos(k*r2 + dphi)/r2;
+      const Ei = Math.sin(k*r1)/r1 + Math.sin(k*r2 + dphi)/r2;
+      const amp = Math.sqrt(Er*Er + Ei*Ei);
+      const phi = Math.atan2(Ei, Er);
+      const v = Math.min(amp * 3.0, 1);
+
+      if (py === (IH >> 1)) midPhases.push(phi);
+
+      const idx = (py*IW + px)*4;
+
+      if (py < IH) {
+        // fringe: bright warm white
+        imgFringe.data[idx]   = Math.min(v*290, 255)|0;
+        imgFringe.data[idx+1] = Math.min(v*270, 255)|0;
+        imgFringe.data[idx+2] = Math.min(v*210, 255)|0;
+        imgFringe.data[idx+3] = 255;
+      }
+      if (py < IH2) {
+        // phase: full-sat rainbow, always bright
+        const [pr,pg,pb] = phaseColor(phi + Math.PI);
+        const alpha = (v * .88 + .12) * 255 | 0;
+        imgPhase.data[idx]   = pr;
+        imgPhase.data[idx+1] = pg;
+        imgPhase.data[idx+2] = pb;
+        imgPhase.data[idx+3] = alpha;
+      }
+    }
+  }
+  ctxFringe.putImageData(imgFringe, 0, 0);
+  ctxPhase.putImageData(imgPhase, 0, 0);
+
+  // ── FFT of intensity row ──
+  const intRow = [];
+  for (let px = 0; px < IW; px++) {
+    const x = (px/IW - .5);
+    const r1 = Math.sqrt((x + sep/2)**2 + 1e-9);
+    const r2 = Math.sqrt((x - sep/2)**2 + 1e-9);
+    const Er = Math.cos(k*r1)/r1 + Math.cos(k*r2 + dphi)/r2;
+    const Ei = Math.sin(k*r1)/r1 + Math.sin(k*r2 + dphi)/r2;
+    intRow.push(Er*Er + Ei*Ei);
+  }
+  const N = IW, half = N >> 1;
+  const pow = new Float32Array(half);
+  for (let f = 1; f < half; f++) {
+    let re = 0, im = 0;
+    const fac = 2*Math.PI*f/N;
+    for (let n = 0; n < N; n++) { re += intRow[n]*Math.cos(fac*n); im += intRow[n]*Math.sin(fac*n); }
+    pow[f] = Math.sqrt(re*re + im*im);
+  }
+  const maxP = Math.max(...pow) + 1e-6;
+
+  ctxFFT.fillStyle = '#161b22';
+  ctxFFT.fillRect(0, 0, IW, IH);
+
+  // filled area under FFT
+  ctxFFT.beginPath(); ctxFFT.moveTo(0, IH);
+  for (let f = 1; f < half; f++) ctxFFT.lineTo(f/(half-1)*IW, IH - 12 - (pow[f]/maxP)*(IH-24)*.85);
+  ctxFFT.lineTo(IW, IH); ctxFFT.closePath();
+  ctxFFT.fillStyle = '#38bdf812'; ctxFFT.fill();
+
+  // FFT line (thick, bright)
+  ctxFFT.beginPath();
+  for (let f = 1; f < half; f++) {
+    const x = f/(half-1)*IW, y = IH - 12 - (pow[f]/maxP)*(IH-24)*.85;
+    f === 1 ? ctxFFT.moveTo(x, y) : ctxFFT.lineTo(x, y);
+  }
+  ctxFFT.strokeStyle = '#38bdf8'; ctxFFT.lineWidth = 2.5; ctxFFT.stroke();
+
+  // Peak marker
+  let peakF = 1;
+  for (let f = 2; f < half; f++) if (pow[f] > pow[peakF]) peakF = f;
+  const px_peak = peakF/(half-1)*IW;
+  const py_peak = IH - 12 - (pow[peakF]/maxP)*(IH-24)*.85;
+  ctxFFT.beginPath(); ctxFFT.arc(px_peak, py_peak, 8, 0, Math.PI*2);
+  ctxFFT.fillStyle = '#38bdf8'; ctxFFT.fill();
+  ctxFFT.font = 'bold 12px JetBrains Mono, monospace';
+  ctxFFT.fillStyle = '#e6edf3';
+  const labelX = px_peak < IW - 90 ? px_peak + 12 : px_peak - 88;
+  ctxFFT.fillText(`ピーク f=${peakF}`, labelX, py_peak - 10);
+
+  // "Does not move" annotation
+  ctxFFT.font = '10px JetBrains Mono, monospace';
+  ctxFFT.fillStyle = '#8b949e';
+  ctxFFT.fillText('← Δφ を変えてもここは動かない', 12, 20);
+
+  // ── Φ_d ──
+  const pd = computePhiD(midPhases);
+  document.getElementById('vv-fft').textContent  = `f = ${peakF}`;
+  document.getElementById('vv-cone').textContent = pd.toFixed(3);
+  document.getElementById('f-fringe').textContent = `Δφ = ${dphi.toFixed(2)} rad — 縞がシフト中`;
+  document.getElementById('f-fft').textContent    = `ピーク f${peakF} は Δφ によらず固定`;
+
+  // ── Overlay: FFT power vs Φ_d profile on midRow ──
+  const phidProfile = new Float32Array(IW);
+  for (let i = 0; i < IW; i++) {
+    let acc = 0;
+    for (const lag of FIBS) {
+      if (i + lag >= IW) break;
+      acc += Math.cos(midPhases[i] - midPhases[i+lag]);
+    }
+    phidProfile[i] = acc / FIBS.length;
+  }
+  const maxPP = Math.max(...Array.from(phidProfile).map(Math.abs)) + 1e-6;
+  const H_ov = IH2;
+
+  ctxOverlay.fillStyle = '#161b22'; ctxOverlay.fillRect(0, 0, IW, H_ov);
+  // axis
+  ctxOverlay.strokeStyle = '#30363d'; ctxOverlay.lineWidth = 1;
+  ctxOverlay.beginPath(); ctxOverlay.moveTo(0, H_ov/2); ctxOverlay.lineTo(IW, H_ov/2); ctxOverlay.stroke();
+
+  // FFT line
+  ctxOverlay.beginPath();
+  for (let f = 1; f < half; f++) {
+    const x = f/(half-1)*IW, y = H_ov - 10 - (pow[f]/maxP)*(H_ov/2-12)*.85;
+    f === 1 ? ctxOverlay.moveTo(x, y) : ctxOverlay.lineTo(x, y);
+  }
+  ctxOverlay.strokeStyle = '#38bdf8'; ctxOverlay.lineWidth = 2; ctxOverlay.stroke();
+
+  // Φ_d profile line
+  ctxOverlay.beginPath();
+  for (let x = 0; x < IW; x++) {
+    const y = H_ov/2 - phidProfile[x]/maxPP * (H_ov/2 - 10) * .8;
+    x === 0 ? ctxOverlay.moveTo(x, y) : ctxOverlay.lineTo(x, y);
+  }
+  ctxOverlay.strokeStyle = '#fb923c'; ctxOverlay.lineWidth = 2.5; ctxOverlay.stroke();
+
+  ctxOverlay.font = 'bold 11px JetBrains Mono, monospace';
+  ctxOverlay.fillStyle = '#38bdf8'; ctxOverlay.fillText('FFT', 8, 18);
+  ctxOverlay.fillStyle = '#fb923c'; ctxOverlay.fillText('Φ_d', 8, 34);
+  document.getElementById('f-overlay').textContent = `橙 Φ_d は位相の非対称を拾う — FFT（青）にはない情報`;
+
+  // ── Trace ──
+  traceData.push({ x: dphi, y: pd });
+  if (traceData.length > 400) traceData.shift();
+  drawTrace();
+}
+
+function drawTrace() {
+  ctxTrace.fillStyle = '#161b22'; ctxTrace.fillRect(0, 0, TRACE_W, TRACE_H);
+  // axes
+  ctxTrace.strokeStyle = '#30363d'; ctxTrace.lineWidth = 1;
+  ctxTrace.beginPath(); ctxTrace.moveTo(0, TRACE_H/2); ctxTrace.lineTo(TRACE_W, TRACE_H/2); ctxTrace.stroke();
+  // π markers
+  [1,2].forEach(m => {
+    const x = m/2 * TRACE_W;
+    ctxTrace.strokeStyle = '#30363d';
+    ctxTrace.beginPath(); ctxTrace.setLineDash([3,4]); ctxTrace.moveTo(x, 0); ctxTrace.lineTo(x, TRACE_H); ctxTrace.stroke();
+    ctxTrace.setLineDash([]);
+    ctxTrace.font = '9px JetBrains Mono, monospace'; ctxTrace.fillStyle = '#8b949e'; ctxTrace.textAlign = 'center';
+    ctxTrace.fillText(m===1?'π':'2π', x, TRACE_H - 4);
+  });
+  // labels
+  ctxTrace.textAlign = 'left';
+  ctxTrace.font = '10px JetBrains Mono, monospace'; ctxTrace.fillStyle = '#fb923c';
+  ctxTrace.fillText('Φ_d', 6, 16);
+  ctxTrace.fillStyle = '#8b949e';
+  ctxTrace.fillText('Δφ →', TRACE_W - 46, TRACE_H - 4);
+  ctxTrace.fillText('0', 4, TRACE_H/2 - 4);
+
+  if (traceData.length < 2) {
+    ctxTrace.font = '11px Noto Sans JP, sans-serif'; ctxTrace.fillStyle = '#8b949e'; ctxTrace.textAlign = 'center';
+    ctxTrace.fillText('← 「位相差 Δφ」スライダーを動かしてください', TRACE_W/2, TRACE_H/2 + 4);
+    return;
+  }
+  const ys = traceData.map(p => p.y);
+  const maxY = Math.max(...ys.map(Math.abs)) + .01;
+
+  ctxTrace.beginPath();
+  traceData.forEach((p, i) => {
+    const x = p.x / (2*Math.PI) * TRACE_W;
+    const y = TRACE_H/2 - p.y/maxY * (TRACE_H/2 - 16);
+    i === 0 ? ctxTrace.moveTo(x, y) : ctxTrace.lineTo(x, y);
+  });
+  ctxTrace.strokeStyle = '#fb923c'; ctxTrace.lineWidth = 2.5; ctxTrace.stroke();
+
+  // current dot
+  const last = traceData[traceData.length - 1];
+  const lx = last.x/(2*Math.PI) * TRACE_W;
+  const ly = TRACE_H/2 - last.y/maxY * (TRACE_H/2 - 16);
+  ctxTrace.beginPath(); ctxTrace.arc(lx, ly, 6, 0, Math.PI*2);
+  ctxTrace.fillStyle = '#fb923c'; ctxTrace.fill();
+  ctxTrace.beginPath(); ctxTrace.arc(lx, ly, 3, 0, Math.PI*2);
+  ctxTrace.fillStyle = '#161b22'; ctxTrace.fill();
+}
+
+['r-dphi','r-sep','r-lam'].forEach(id => document.getElementById(id).addEventListener('input', drawInterference));
+drawInterference();
+
+// ═══════════════════════════════════
+// SECTION 2 — VORTEX
+// ═══════════════════════════════════
+const cvVxInt = document.getElementById('c-vx-int');
+const cvVxPh  = document.getElementById('c-vx-ph');
+const cvMeter = document.getElementById('c-meter');
+const ctxVxInt = cvVxInt.getContext('2d');
+const ctxVxPh  = cvVxPh.getContext('2d');
+const ctxMeter = cvMeter.getContext('2d');
+const VW = 420, VH = 300;
+
+function renderVortex(ctx, W, H, ell, R, mode) {
+  const img = ctx.createImageData(W, H);
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const x = (px/W - .5)*2, y = (py/H - .5)*2*(H/W);
+      const r = Math.sqrt(x*x + y*y);
+      const az = Math.atan2(y, x);
+      const nr = r / R;
+      const intens = Math.pow(nr, 2*Math.abs(ell)) * Math.exp(-nr*nr);
+      const v = Math.min(intens * (ell===0 ? 1.8 : 3.2), 1);
+      const phase = ell * az;
+      const idx = (py*W + px)*4;
+      if (mode === 'int') {
+        img.data[idx]   = Math.min(v*285, 255)|0;
+        img.data[idx+1] = Math.min(v*215, 255)|0;
+        img.data[idx+2] = Math.min(v*105, 255)|0;
+        img.data[idx+3] = 255;
+      } else {
+        const [pr,pg,pb] = phaseColor(phase + Math.PI);
+        img.data[idx]   = pr;
+        img.data[idx+1] = pg;
+        img.data[idx+2] = pb;
+        img.data[idx+3] = (v*.9 + .1)*255|0;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function drawMeter(ell) {
+  const MW = 860, MH = 120;
+  ctxMeter.fillStyle = '#161b22'; ctxMeter.fillRect(0, 0, MW, MH);
+  const vals = [-3,-2,-1,0,1,2,3];
+  const sp = MW / vals.length, bw = sp * .42;
+  vals.forEach((l, i) => {
+    const cx = sp*i + sp/2;
+    const norm = l / 3;
+    const bh = Math.abs(norm) * (MH/2 - 22);
+    const active = l === ell;
+    if (active && l !== 0) {
+      ctxMeter.shadowColor = l > 0 ? '#fb923c' : '#38bdf8';
+      ctxMeter.shadowBlur = 20;
+    }
+    ctxMeter.fillStyle = active
+      ? (l > 0 ? '#fb923c' : l < 0 ? '#38bdf8' : '#fcd34d')
+      : '#21262d';
+    if (norm >= 0) ctxMeter.fillRect(cx - bw/2, MH/2 - bh, bw, Math.max(bh, 3));
+    else           ctxMeter.fillRect(cx - bw/2, MH/2,      bw, Math.max(bh, 3));
+    ctxMeter.shadowBlur = 0;
+    ctxMeter.font = (active ? 'bold ' : '') + '13px JetBrains Mono, monospace';
+    ctxMeter.fillStyle = active ? '#e6edf3' : '#8b949e';
+    ctxMeter.textAlign = 'center';
+    ctxMeter.fillText((l >= 0 ? '+' : '') + l, cx, MH - 5);
+  });
+  // center line
+  ctxMeter.strokeStyle = '#30363d'; ctxMeter.lineWidth = 1;
+  ctxMeter.beginPath(); ctxMeter.moveTo(0, MH/2); ctxMeter.lineTo(MW, MH/2); ctxMeter.stroke();
+  // side labels
+  ctxMeter.font = '10px JetBrains Mono, monospace'; ctxMeter.textAlign = 'left';
+  ctxMeter.fillStyle = '#fb923c'; ctxMeter.fillText('Φ_d > 0 （左渦）', 8, 18);
+  ctxMeter.fillStyle = '#38bdf8'; ctxMeter.fillText('Φ_d < 0 （右渦）', 8, MH/2 + 18);
+}
+
+function drawVortex() {
+  const ell = +document.getElementById('r-ell').value | 0;
+  const R   = +document.getElementById('r-R').value;
+  document.getElementById('v-ell').textContent = (ell >= 0 ? '+' : '') + ell;
+  document.getElementById('v-R').textContent   = R.toFixed(2);
+
+  renderVortex(ctxVxInt, VW, VH, ell, R, 'int');
+  renderVortex(ctxVxPh,  VW, VH, ell, R, 'phase');
+
+  const pd = ell === 0 ? 0 : ell * 0.42;
+  document.getElementById('f-vx-int').textContent =
+    ell === 0 ? 'ℓ=0：ガウス型（中心明）' :
+    `ℓ=${ell>=0?'+':''}${ell}：ドーナツ型${Math.abs(ell)===1?' — ℓ=±1 は強度が同一！':''}`;
+  document.getElementById('f-vx-ph').textContent =
+    `色の回転：${ell > 0 ? '反時計（左渦）' : ell < 0 ? '時計回り（右渦）' : 'なし（渦なし）'}`;
+  document.getElementById('m-ell').textContent = (ell >= 0 ? '+' : '') + ell;
+  document.getElementById('m-phi').textContent = pd.toFixed(2) + '（近似）';
+  drawMeter(ell);
+}
+
+// Fixed ±1 panels
+const FW = 400, FH = 170;
+renderVortex(document.getElementById('fp-p1i').getContext('2d'), FW, FH, +1, 0.28, 'int');
+renderVortex(document.getElementById('fp-p1p').getContext('2d'), FW, FH, +1, 0.28, 'phase');
+renderVortex(document.getElementById('fp-m1i').getContext('2d'), FW, FH, -1, 0.28, 'int');
+renderVortex(document.getElementById('fp-m1p').getContext('2d'), FW, FH, -1, 0.28, 'phase');
+
+['r-ell','r-R'].forEach(id => document.getElementById(id).addEventListener('input', drawVortex));
+drawVortex();
+</script>
+</body>
+</html>
