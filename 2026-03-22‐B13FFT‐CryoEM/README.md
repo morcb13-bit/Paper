@@ -107,8 +107,7 @@ pip install numpy scipy matplotlib mrcfile tqdm
 ├── sym_fft.py                      # 対称性ミスマッチ測定 (S4/S5)
 ├── fib_pell_4h_proof.py            # 4H回避定理検証スクリプト
 ├── packages/
-│   ├── May08_03.05.02.bin.mrc      # クライオEMデータ（50フレーム, 297 MB）
-│   ├── May08_07.30.46.bin.mrc      # クライオEMデータ（50フレーム, 297 MB）
+│   ├── May08_07.30.46.bin.mrc      # クライオEMデータ（50フレーム, 297 MB）をダウンロードして貼り付ける
 │   ├── b13phase_extracted/b13phase/
 │   └── cone_fft_extracted/
 └── data/results/                   # 出力先（自動生成）
