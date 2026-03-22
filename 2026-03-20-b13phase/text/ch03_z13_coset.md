@@ -119,6 +119,10 @@ for k in range(12):
 
 $\mathbb{Z}_{13}^*$ の文脈で注目すべき定理がある。**フィボナッチ数列とペル数列は $\bmod 13$ において 4H コセット（$\{4, 6, 7, 9\}$）に決して落ちない**というものである。
 
+:::message
+**証明状態（v63 更新）**　本節の定理は v63 において代数的に完全証明された。以前の「継続中」の注記は削除した。
+:::
+
 ### 3.4.1　フィボナッチ数列の 4H 回避
 
 フィボナッチ数列 $F(n)$ を 13 で割った余りの列は周期 7 で繰り返す（Pisano 周期）。
@@ -150,18 +154,88 @@ print(f"\nn=0..200 で 4H 回避: {ok}")  # True
 ![Fib/Pell の mod 13 コセット軌跡](/images/fig_ch3_fib_pell.png)
 *図 3-3　$F(n) \bmod 13$（左）と $P(n) \bmod 13$（右）のコセット分布。オレンジ（4H）には一度も現れない。*
 
-### 3.4.3　なぜ 4H を回避するのか
+### 3.4.3　完全証明（v63）
 
-直感的な理由を示す。フィボナッチ数列の生成行列
+**定理（4H 回避）**　すべての $n \geq 0$ に対して
+
+$$
+F(n) \bmod 13 \notin 4H, \qquad P(n) \bmod 13 \notin 4H
+$$
+
+**証明**を 3 ステップで与える。フィボナッチの場合を示す（ペルも同構造）。
+
+---
+
+**Step 1　生成行列のスカラー冪**
+
+フィボナッチ数列の生成行列
 
 $$
 M = \begin{pmatrix} 1 & 1 \\ 1 & 0 \end{pmatrix}
 $$
 
-に対して、$M^7 \equiv 8I \pmod{13}$ が成立する（$F(7) = 13 \equiv 0$ が根拠）。$8 \in H$ であるから、$M^7$ の固有値的な振る舞いが $H$ に収まる。これが数列の値を $H \cup 2H$ に制限する。
+に対して、$F(7) = 13 \equiv 0 \pmod{13}$ を根拠に直接計算すると
+
+$$
+M^7 \equiv 8I \pmod{13}
+$$
+
+が成立する。$8 \in H$ であるから、$M^7$ は $H$ のスカラー倍として振る舞う。
+
+```python
+import numpy as np
+
+M = np.array([[1,1],[1,0]])
+Mk = np.linalg.matrix_power(M, 7) % 13
+print(Mk)
+# [[8 0]
+#  [0 8]]  → 8I mod 13 ✓
+```
+
+---
+
+**Step 2　$H$ の乗法閉包**
+
+$H \times (H \cup 2H)$ の全積を $\bmod 13$ で列挙すると
+
+$$
+H \times (H \cup 2H) = H \cup 2H
+$$
+
+が成立し、$4H$ を含まない。数値確認：
+
+```python
+from b13phase.constants import H_SET, H2_SET, H4_SET
+
+products = {(h * x) % 13 for h in H_SET for x in H_SET | H2_SET}
+assert products <= H_SET | H2_SET, "4H が混入"
+print(f"H × (H∪2H) = {sorted(products)}")
+# [1, 2, 3, 5, 8, 10, 11, 12] = H ∪ 2H ✓
+```
+
+また $H \times 4H = 4H$ が成立し、$4H$ は $H$ の作用で閉じている。
+
+---
+
+**Step 3　帰納的完結**
+
+$n = 7q + r$（$0 \leq r < 7$）と書くと
+
+$$
+\begin{pmatrix} F(n+1) \\ F(n) \end{pmatrix}
+= M^n \cdot \begin{pmatrix} 1 \\ 0 \end{pmatrix}
+= (M^7)^q \cdot M^r \cdot \begin{pmatrix} 1 \\ 0 \end{pmatrix}
+= 8^q \cdot \left( M^r \cdot \begin{pmatrix} 1 \\ 0 \end{pmatrix} \right)
+$$
+
+- $8^q \in H$（Step 1 より $8 \in H$、$H$ は乗法閉）
+- $M^r \cdot [1,0]^T \in \{0\} \cup H \cup 2H$（$r = 0, \ldots, 6$ の直接確認）
+- Step 2 より $H \times (\{0\} \cup H \cup 2H) = \{0\} \cup H \cup 2H$
+
+したがって $F(n) \bmod 13 \in \{0\} \cup H \cup 2H$、すなわち $F(n) \bmod 13 \notin 4H$。$\square$
 
 :::message
-**代数的証明の状態**　引継書 v60 時点では、この定理の完全な代数的証明は「継続中」の状態である。数値的には $n = 0 \sim 200$ で確認済み。
+**数値検証との整合**　上記の代数的証明は `verify_4h_avoidance(n_max=200)` の数値確認と完全に整合する。証明は有限計算（$r = 0 \sim 6$ の直接確認 + Step 2 の積表）に帰着しており、コンピュータ代数的に閉じている。
 :::
 
 ---
@@ -201,5 +275,5 @@ for k in range(12):
 
 1. $\mathbb{Z}_{13}^*$ は位数 12 の乗法群であり、2 を原始根とする。`k` は $2^k \bmod 13$ の指数に対応する。
 2. $\mathbb{Z}_{13}^*$ は部分群 $H = \{1, 5, 8, 12\}$ によって $H \cup 2H \cup 4H$ に分解される。この周期 3 のパターンが $m \bmod 3$ に対応する。
-3. フィボナッチ数列とペル数列は $\bmod 13$ において $4H$ コセットに決して現れない（$n = 0 \sim 200$ で確認済み）。
+3. フィボナッチ数列とペル数列は $\bmod 13$ において $4H$ コセットに決して現れない。これは $M^7 \equiv 8I \pmod{13}$ を起点とする3ステップの代数的証明によって完全に示された（v63 確定）。
 4. band（極角分類）と coset（$m \bmod 3$）は独立した2軸であり、`evaluator.py` の設計の基礎をなす。
