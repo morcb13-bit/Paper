@@ -1,0 +1,233 @@
+
+<style>
+canvas { display: block; width: 100%; }
+.ctrl { display: flex; align-items: center; gap: 12px; padding: 8px 0; flex-wrap: wrap; }
+.ctrl label { font-size: 13px; color: var(--color-text-secondary); min-width: 60px; }
+.stat-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin: 8px 0; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.stat-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px; }
+.stat-val { font-size: 16px; font-weight: 500; color: var(--color-text-primary); font-family: var(--font-mono); }
+button { cursor: pointer; }
+</style>
+
+<canvas id="c" height="480"></canvas>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-label">経過日数</div><div class="stat-val" id="s-day">0</div></div>
+  <div class="stat"><div class="stat-label">|G| / R</div><div class="stat-val" id="s-g">0.5774</div></div>
+  <div class="stat"><div class="stat-label">木星 m13</div><div class="stat-val" id="s-m13">—</div></div>
+</div>
+
+<div class="ctrl">
+  <button id="btn-play" onclick="togglePlay()">一時停止</button>
+  <label>速度</label>
+  <input type="range" id="sl-speed" min="1" max="60" value="12" step="1" style="flex:1" oninput="speed=+this.value;document.getElementById('sl-speed-val').textContent=this.value+'×'">
+  <span id="sl-speed-val" style="font-size:13px;min-width:32px;color:var(--color-text-secondary)">12×</span>
+  <button onclick="reset()">リセット</button>
+  <button onclick="sendPrompt('木星のFIB6ステップ時刻（216.5日×FIB6）での軌道の様子を説明してください')">FIB6ステップとは ↗</button>
+</div>
+
+<div class="ctrl">
+  <label style="min-width:80px">表示</label>
+  <label><input type="checkbox" id="chk-trail" checked onchange="draw()"> 軌跡</label>
+  <label><input type="checkbox" id="chk-grid" checked onchange="draw()"> B13格子</label>
+  <label><input type="checkbox" id="chk-tri" checked onchange="draw()"> 三角形</label>
+  <label><input type="checkbox" id="chk-g" checked onchange="draw()"> 重心G</label>
+  <label><input type="checkbox" id="chk-fib6" checked onchange="draw()"> FIB6点</label>
+</div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const W = 640, H = 480;
+cv.width = W; cv.height = H;
+
+const CX = W/2, CY = H/2;
+const R = 160;
+
+const T_JUP = 4330;
+const OMEGA = 2*Math.PI / T_JUP;
+const FIB6 = [8,5,3,2,1,1];
+const FIB6_TOTAL = 20;
+const FIB6_TIMES = (() => {
+  let acc=0, ts=[0];
+  for(const f of FIB6){ acc+=f; ts.push(Math.round(T_JUP*acc/FIB6_TOTAL)); }
+  return ts;
+})();
+
+let t = 0;
+let speed = 12;
+let playing = true;
+let raf;
+let trailJup=[], trailL4=[], trailG=[];
+const TRAIL_LEN = 300;
+
+function pos(day) {
+  const th_jup = OMEGA * day;
+  const th_L4  = th_jup + Math.PI/3;
+  const sJup = { x: CX + R*Math.cos(th_jup), y: CY - R*Math.sin(th_jup) };
+  const sL4  = { x: CX + R*Math.cos(th_L4),  y: CY - R*Math.sin(th_L4)  };
+  const sG   = { x: (CX + sJup.x + sL4.x)/3, y: (CY + sJup.y + sL4.y)/3 };
+  const gNorm = Math.sqrt((sG.x-CX)**2 + (sG.y-CY)**2) / R;
+  const m13 = ((th_jup % (2*Math.PI)) / (2*Math.PI/13) + 13) % 13;
+  return { sJup, sL4, sG, gNorm, m13 };
+}
+
+function isDark() {
+  return matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function draw() {
+  const dark = isDark();
+  ctx.clearRect(0,0,W,H);
+
+  const colBg    = dark ? '#1a1a18' : '#ffffff';
+  const colGrid  = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const colOrbit = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)';
+  const colSun   = '#EF9F27';
+  const colJup   = '#1D9E75';
+  const colL4    = '#7F77DD';
+  const colG     = '#D85A30';
+  const colTri   = dark ? 'rgba(127,119,221,0.35)' : 'rgba(127,119,221,0.3)';
+  const colFib   = dark ? 'rgba(239,159,39,0.6)' : 'rgba(186,117,23,0.7)';
+
+  ctx.fillStyle = colBg;
+  ctx.fillRect(0,0,W,H);
+
+  if(document.getElementById('chk-grid').checked) {
+    for(let k=0;k<13;k++){
+      const a = k*2*Math.PI/13;
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(CX + (R+24)*Math.cos(a), CY - (R+24)*Math.sin(a));
+      ctx.strokeStyle = colGrid;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(k, CX+(R+36)*Math.cos(a), CY-(R+36)*Math.sin(a)+4);
+    }
+  }
+
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.strokeStyle = colOrbit;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  if(document.getElementById('chk-fib6').checked) {
+    for(const ft of FIB6_TIMES) {
+      const th = OMEGA * ft;
+      const fx = CX + R*Math.cos(th);
+      const fy = CY - R*Math.sin(th);
+      ctx.beginPath();
+      ctx.arc(fx, fy, 3, 0, Math.PI*2);
+      ctx.fillStyle = colFib;
+      ctx.fill();
+      ctx.font = '9px monospace';
+      ctx.fillStyle = colFib;
+      ctx.textAlign = 'center';
+      ctx.fillText(ft+'d', fx, fy-7);
+    }
+  }
+
+  const showTrail = document.getElementById('chk-trail').checked;
+  function drawTrail(trail, col) {
+    if(!showTrail || trail.length < 2) return;
+    for(let i=1;i<trail.length;i++){
+      const alpha = i/trail.length * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(trail[i-1].x, trail[i-1].y);
+      ctx.lineTo(trail[i].x, trail[i].y);
+      ctx.strokeStyle = col.replace(')',`,${alpha})`).replace('rgb','rgba');
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+  }
+
+  drawTrail(trailJup, 'rgb(29,158,117)');
+  drawTrail(trailL4,  'rgb(127,119,221)');
+  if(document.getElementById('chk-g').checked)
+    drawTrail(trailG, 'rgb(216,90,48)');
+
+  const p = pos(t);
+
+  if(document.getElementById('chk-tri').checked) {
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(p.sJup.x, p.sJup.y);
+    ctx.lineTo(p.sL4.x, p.sL4.y);
+    ctx.closePath();
+    ctx.strokeStyle = colTri;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = dark ? 'rgba(127,119,221,0.06)' : 'rgba(127,119,221,0.05)';
+    ctx.fill();
+  }
+
+  function dot(x, y, r, col, label) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = col;
+    ctx.fill();
+    if(label) {
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, y - r - 5);
+    }
+  }
+
+  dot(CX, CY, 10, colSun, '太陽');
+  dot(p.sJup.x, p.sJup.y, 8, colJup, '木星');
+  dot(p.sL4.x,  p.sL4.y,  6, colL4,  'L4');
+  if(document.getElementById('chk-g').checked)
+    dot(p.sG.x, p.sG.y, 5, colG, 'G');
+
+  if(document.getElementById('chk-fib6').checked) {
+    const FIB_PAIRS = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]];
+    for(let i=0;i<6;i++){
+      const t0 = FIB6_TIMES[i], t1 = FIB6_TIMES[i+1];
+      if(t >= t0 && t < t1) {
+        const th0 = OMEGA*t0, th1 = OMEGA*t1;
+        ctx.beginPath();
+        ctx.arc(CX, CY, R, -th1, -th0);
+        ctx.strokeStyle = colFib;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        break;
+      }
+    }
+  }
+
+  document.getElementById('s-day').textContent = Math.round(t) + ' 日';
+  document.getElementById('s-g').textContent = p.gNorm.toFixed(6);
+  document.getElementById('s-m13').textContent = p.m13.toFixed(3);
+}
+
+function step() {
+  if(!playing) return;
+  t = (t + speed) % T_JUP;
+  const p = pos(t);
+  trailJup.push({...p.sJup}); if(trailJup.length > TRAIL_LEN) trailJup.shift();
+  trailL4.push({...p.sL4});   if(trailL4.length  > TRAIL_LEN) trailL4.shift();
+  trailG.push({...p.sG});     if(trailG.length   > TRAIL_LEN) trailG.shift();
+  draw();
+  raf = requestAnimationFrame(step);
+}
+
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('btn-play').textContent = playing ? '一時停止' : '再生';
+  if(playing) step();
+}
+
+function reset() {
+  t=0; trailJup=[]; trailL4=[]; trailG=[];
+  draw();
+}
+
+step();
+</script>
