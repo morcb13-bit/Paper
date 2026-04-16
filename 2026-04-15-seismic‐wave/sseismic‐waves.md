@@ -138,7 +138,7 @@ B13 windingによる位相構造の空間自己相関がイベント間で系統
 ## 付記
 
 **再現性**: b13phase v0.5.1 + Python（scipy/numpy）、seed=42で完全再現可能。  
-**データ**: 防災科学技術研究所 K-NET（https://www.kyoshin.bosai.go.jp/）  
+**データ**: 防災科学技術研究所 (2019) 防災科研K-NET, KiK-net, 防災科学技術研究所. https://www.doi.org/10.17598/NIED.0004
 
 ---
 **著者**: MORC.B13  
