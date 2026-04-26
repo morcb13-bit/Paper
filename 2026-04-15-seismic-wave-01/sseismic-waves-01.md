@@ -1,6 +1,5 @@
-## 東日本大震災前後での地震波の位相構造の変化　ー　公開ノート　ー　
-## Changes in the phase structure of seismic waves before and after the Great East Japan Earthquake　
-
+## 東日本大震災前後での地震波の位相構造の変化（その１）　ー　公開ノート　ー　
+## Changes in the phase structure of seismic waves before and after the Great East Japan Earthquake
 ## プロローグ
 
 東日本大震災の発生から既に15年の歳月が流れたが、未だその傷は癒えない。
@@ -137,11 +136,13 @@ B13 windingによる位相構造の空間自己相関がイベント間で系統
 
 ## 付記
 
-**再現性**: b13phase v0.5.1 + Python（scipy/numpy）、seed=42で完全再現可能。  
-**データ**: 防災科学技術研究所 (2019) 防災科研K-NET, KiK-net, 防災科学技術研究所. https://www.doi.org/10.17598/NIED.0004
+**再現性**: b13phase v0.5.1 + Python、seed=42
+** コードは、githubの下記レポジトリを参照してください。
+https://github.com/morcb13-bit/Paper/tree/main/2026-03-23-b13phase-v066
 
----
-**著者**: MORC.B13  
-**日付**: 2026-04-15  
+**地震波データ**: 防災科学技術研究所 (2019) 防災科研K-NET, KiK-net, 防災科学技術研究所.
+https://www.doi.org/10.17598/NIED.0004
+
+
 
 
