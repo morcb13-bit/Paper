@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fibonacci Confocal λ-Family — umbilics ride the focal hyperbola (v147)</title>
+<style>
+  :root{
+    --bg:#060608; --ink:#e8e8ea; --dim:#7c7c86;
+    --gold:#ffcf5a;      /* 不変の焦点円錐＝黄金の背骨 */
+    --cyan:#00ffcc;      /* umbilic 欠陥（署名層・整数指数） */
+    --blue:#4a86ff;      /* 掃く楕円体（計量層・連続） */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);
+       font-family:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace}
+  #hud{position:absolute;top:14px;left:14px;z-index:10;max-width:380px;
+       background:rgba(8,8,12,.74);border:1px solid #1d1d26;border-radius:8px;
+       padding:13px 15px;backdrop-filter:blur(3px);line-height:1.5;font-size:12.5px}
+  #hud h1{margin:0 0 8px;font-size:13.5px;letter-spacing:.3px;font-weight:600}
+  #hud .row{margin:3px 0;color:var(--dim)}
+  #hud b{color:var(--ink);font-weight:600}
+  .gold{color:var(--gold)} .cyan{color:var(--cyan)} .blue{color:var(--blue)}
+  #ctrl{position:absolute;bottom:16px;left:14px;z-index:10;
+        background:rgba(8,8,12,.74);border:1px solid #1d1d26;border-radius:8px;
+        padding:10px 13px;font-size:12px;display:flex;align-items:center;gap:10px}
+  #ctrl input[type=range]{width:190px;accent-color:var(--blue)}
+  #ctrl button{background:#15151d;color:var(--ink);border:1px solid #2a2a36;
+        border-radius:5px;padding:4px 9px;font:inherit;cursor:pointer}
+  #ctrl button:hover{border-color:var(--blue)}
+  #hint{position:absolute;bottom:16px;right:14px;z-index:10;color:var(--dim);font-size:11px}
+</style>
+</head>
+<body>
+<div id="hud">
+  <h1>Fibonacci Confocal λ-Family <span class="dim">(A,B,C)=(21,13,8)</span></h1>
+  <div class="row">x²/(21+λ) + y²/(13+λ) + z²/(8+λ) = 1</div>
+  <div class="row"><b class="blue">計量層</b>：面が λ で連続に伸縮（λ ∈ ℝ, ここでは楕円体域）</div>
+  <div class="row">λ = <b id="lam" class="blue">—</b></div>
+  <div class="row" style="margin-top:7px"><b class="gold">不変の背骨</b>：焦点双曲線 x²/8 − z²/5 = 1 &nbsp;<span class="dim">[8=F₆,5=F₅]</span></div>
+  <div class="row"><b class="cyan">署名層</b>：umbilic 4点・各 index +½, Σ=χ=2（整数量子）</div>
+  <div class="row">umbilic = (±<b id="ux" class="cyan">—</b>, 0, ±<b id="uz" class="cyan">—</b>) — 双曲線上を滑る</div>
+  <div class="row" style="margin-top:7px;font-size:11.5px">位置 ∉ ℚ(√5) ⇒ φ進は<b>非周期・無限</b>（収束するが閉じない）</div>
+</div>
+
+<div id="ctrl">
+  <button id="auto">⏸ auto</button>
+  <span class="dim">λ</span>
+  <input id="slider" type="range" min="-6" max="8" step="0.01" value="0">
+</div>
+<div id="hint">drag = rotate &nbsp;·&nbsp; scroll = zoom</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ---- 数理パラメータ（連続フィボナッチ軸）------------------------------------
+const A=21, B=13, C=8;              // a²,b²,c² = F₈,F₇,F₆
+const AB=A-B, BC=B-C, AC=A-C;       // 8,5,13  軸差（全てフィボナッチ）
+
+// umbilic（焦点双曲線 x²/(A-B) − z²/(B-C)=1 上を滑る）
+function umbilic(lam){
+  return { x: Math.sqrt((A+lam)*AB/AC), z: Math.sqrt((C+lam)*BC/AC) };
+}
+
+// ---- Three.js セットアップ --------------------------------------------------
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, 0.1, 400);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404048));
+const dir = new THREE.DirectionalLight(0xffffff, 0.7); dir.position.set(8,14,10); scene.add(dir);
+
+// 軸（淡い）
+const axisMat = new THREE.LineBasicMaterial({color:0x24242e});
+[[8,0,0],[0,6,0],[0,0,5]].forEach(a=>{
+  const g=new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-a[0]||0,-a[1]||0,-a[2]||0), new THREE.Vector3(a[0],a[1],a[2])]);
+  scene.add(new THREE.Line(g, axisMat));
+});
+
+// ---- 不変の焦点円錐（黄金の背骨）------------------------------------------
+// 焦点双曲線 (y=0): x²/8 − z²/5 = 1  →  x=±√8·cosh t, z=√5·sinh t
+const goldMat = new THREE.LineBasicMaterial({color:0xffcf5a});
+function hyperbolaBranch(sign){
+  const pts=[]; for(let t=-2.6;t<=2.6;t+=0.05)
+    pts.push(new THREE.Vector3(sign*Math.sqrt(AB)*Math.cosh(t), 0, Math.sqrt(BC)*Math.sinh(t)));
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), goldMat);
+}
+scene.add(hyperbolaBranch(+1)); scene.add(hyperbolaBranch(-1));
+
+// 漸近線 z = ±√(5/8) x （5/8 → 1/φ²）
+const asyMat=new THREE.LineBasicMaterial({color:0x4d432a});
+[1,-1].forEach(s=>{const m=Math.sqrt(BC/AB)*s, L=10;
+  const g=new THREE.BufferGeometry().setFromPoints(
+    [new THREE.Vector3(-L,0,-m*L), new THREE.Vector3(L,0,m*L)]);
+  scene.add(new THREE.Line(g,asyMat));});
+
+// 焦点楕円 (z=0): x²/13 + y²/5 = 1
+const ellPts=[]; for(let s=0;s<=2*Math.PI+0.01;s+=0.05)
+  ellPts.push(new THREE.Vector3(Math.sqrt(AC)*Math.cos(s), Math.sqrt(BC)*Math.sin(s), 0));
+scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ellPts),
+  new THREE.LineBasicMaterial({color:0x8a6f2e})));
+
+// ---- 掃く共焦点楕円体（単位球を √(軸²) でスケール）--------------------------
+const sphGeo = new THREE.SphereGeometry(1, 72, 48);
+const shell = new THREE.Mesh(sphGeo, new THREE.MeshStandardMaterial({
+  color:0x4a86ff, transparent:true, opacity:0.10, side:THREE.DoubleSide,
+  roughness:0.5, metalness:0.0}));
+const wire = new THREE.Mesh(sphGeo, new THREE.MeshBasicMaterial({
+  color:0x4a86ff, wireframe:true, transparent:true, opacity:0.20}));
+scene.add(shell); scene.add(wire);
+
+// ---- umbilic 4点 -----------------------------------------------------------
+const uMat=new THREE.MeshBasicMaterial({color:0x00ffcc});
+const uMesh=[[1,1],[1,-1],[-1,1],[-1,-1]].map(s=>{
+  const m=new THREE.Mesh(new THREE.SphereGeometry(0.14,18,18), uMat);
+  m.userData=s; scene.add(m); return m;});
+
+// ---- 自前オービット --------------------------------------------------------
+let R=15, th=0.7, ph=1.15, drag=false, px=0, py=0;
+const cv=renderer.domElement;
+cv.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointerup',()=>drag=false);
+cv.addEventListener('pointermove',e=>{ if(!drag)return;
+  th-=(e.clientX-px)*0.005; ph-=(e.clientY-py)*0.005;
+  ph=Math.max(0.16,Math.min(Math.PI-0.16,ph)); px=e.clientX; py=e.clientY;});
+cv.addEventListener('wheel',e=>{e.preventDefault(); R*=(1+Math.sign(e.deltaY)*0.08); R=Math.max(7,Math.min(38,R));},{passive:false});
+
+// ---- λ 制御 ----------------------------------------------------------------
+let auto=true, t0=0, lam=0;
+const slider=document.getElementById('slider'), btn=document.getElementById('auto');
+btn.onclick=()=>{auto=!auto; btn.textContent=(auto?'⏸':'▶')+' auto';};
+slider.oninput=()=>{auto=false; btn.textContent='▶ auto'; lam=parseFloat(slider.value);};
+
+// ---- ループ ----------------------------------------------------------------
+function frame(){
+  requestAnimationFrame(frame);
+  if(auto){ t0+=0.01; lam = 1 + 7*Math.sin(t0); slider.value=lam.toFixed(2); }
+
+  const sx=Math.sqrt(A+lam), sy=Math.sqrt(B+lam), sz=Math.sqrt(C+lam);
+  shell.scale.set(sx,sy,sz); wire.scale.set(sx,sy,sz);
+
+  const u=umbilic(lam);
+  uMesh.forEach(m=>m.position.set(m.userData[0]*u.x, 0, m.userData[1]*u.z));
+
+  document.getElementById('lam').textContent=lam.toFixed(3);
+  document.getElementById('ux').textContent=u.x.toFixed(3);
+  document.getElementById('uz').textContent=u.z.toFixed(3);
+
+  camera.position.set(R*Math.sin(ph)*Math.sin(th), R*Math.cos(ph), R*Math.sin(ph)*Math.cos(th));
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight);});
+frame();
+
+// --- 拡張メモ: 一葉(-13<λ<-8)・二葉(-21<λ<-13)双曲面は別トポロジーのメッシュ
+//     （頂点シェーダで陰関数評価 or 円柱/双曲面パラメタライズ）を λ 域で切替えて追加。
+//     focal conics は λ→-8(楕円), λ→-13(双曲線) の退化極限そのもの＝既に描画済み。
+</script>
+</body>
+</html>
