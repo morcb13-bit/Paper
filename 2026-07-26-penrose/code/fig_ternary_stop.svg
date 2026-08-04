@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans CJK JP',sans-serif">
+<rect width="900" height="420" fill="#ffffff"/>
+<text x="450.0" y="40.0" font-size="21" fill="#16202b" text-anchor="middle" font-weight="700">3つのV字は、大きなV字にならない</text>
+<text x="450.0" y="63.0" font-size="13.5" fill="#5b6675" text-anchor="middle" font-weight="400">だから3進の桁は一段で止まる。そこから先は φ が引き取る</text>
+<line x1="31.0" y1="253.1" x2="135.8" y2="176.9" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="135.8" y1="176.9" x2="240.5" y2="253.1" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="240.5" y1="253.1" x2="345.3" y2="176.9" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="345.3" y1="176.9" x2="450.0" y2="253.1" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="450.0" y1="253.1" x2="554.7" y2="176.9" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="554.7" y1="176.9" x2="659.5" y2="253.1" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="659.5" y1="253.1" x2="764.2" y2="176.9" stroke="#aab3bf" stroke-width="1.8"/>
+<line x1="764.2" y1="176.9" x2="869.0" y2="253.1" stroke="#aab3bf" stroke-width="1.8"/>
+<polyline points="31.0,253.1 135.8,176.9 240.5,253.1" fill="none" stroke="#2f6fb0" stroke-width="9" stroke-linecap="round" opacity="0.9"/>
+<polyline points="345.3,176.9 450.0,253.1 554.7,176.9" fill="none" stroke="#7fa8d4" stroke-width="9" stroke-linecap="round" opacity="0.9"/>
+<polyline points="659.5,253.1 764.2,176.9 869.0,253.1" fill="none" stroke="#2f6fb0" stroke-width="9" stroke-linecap="round" opacity="0.9"/>
+<polyline points="135.8,176.9 450.0,253.1 764.2,176.9" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="31.0" cy="253.1" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="135.8" cy="176.9" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="240.5" cy="253.1" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="345.3" cy="176.9" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="450.0" cy="253.1" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="554.7" cy="176.9" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="659.5" cy="253.1" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="764.2" cy="176.9" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="869.0" cy="253.1" r="6" fill="#ffffff" stroke="#16202b" stroke-width="1.8"/>
+<circle cx="135.8" cy="176.9" r="6" fill="#c0392b"/>
+<circle cx="450.0" cy="253.1" r="6" fill="#c0392b"/>
+<circle cx="764.2" cy="176.9" r="6" fill="#c0392b"/>
+<text x="450.0" y="287.1" font-size="17" fill="#c0392b" text-anchor="middle" font-weight="700">152.77°</text>
+<text x="450.0" y="307.1" font-size="12.5" fill="#5b6675" text-anchor="middle" font-weight="400">V字なら 108° のはず</text>
+<text x="60.0" y="352.0" font-size="13" fill="#16202b" text-anchor="start" font-weight="400">9 = 3+3+3。V字を三つ並べて、その中心（赤）を結ぶ（破線）。</text>
+<text x="60.0" y="374.0" font-size="13" fill="#5b6675" text-anchor="start" font-weight="400">折れ角は 108° にならず 152.77°。三つのV字は一段上のV字を作らないので、同じ読みを繰り返せない。</text>
+<text x="60.0" y="396.0" font-size="13" fill="#5b6675" text-anchor="start" font-weight="400">一方 φ の側は繰り返せる ── 型紙が当たるのは φ² 倍のときだけ、直線の間隔は √5·φ^m。</text>
+</svg>
