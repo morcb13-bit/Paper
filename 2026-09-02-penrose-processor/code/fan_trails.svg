@@ -1,0 +1,1417 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.87 -19.95 42.14 30.02" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToxMjllYTU4Yi1lZjcwLTRiZjktODYxNC03MDhjYzY1MzFkNDEAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaKEojJWSYltuy4rGuxyUi1AAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDoxYzg1YzI3Ni04MGVhLTQ2MDYtYWVhMS0yMjU1MTZjZTU0NmVscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoeSWYJCzB3AqqErauZ8OQPgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggoaSz/e1J6Ms3H0rZRf/NNQLZaubhsdkV/ZjftwFfbFikZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaMoW574xmASbxAtDSLnVny0AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCC4+rWCi2G6USDXtwqa4DYanCay1kblWY6C0IJscJY7vWRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBiKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjEyOWVhNThiLWVmNzAtNGJmOS04NjE0LTcwOGNjNjUzMWQ0MS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjE4MTdmNDMwLWQyNjAtNDNmMS1hZTg4LTM3NjkyZjZlNzI5OXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCChpLP97UnoyzcfStlF/801Atlq5uGx2RX9mN+3AV9sWKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggRgsy5TeT1D2iFXZ3lD1iANBRu+49biO9CPrke9Us3fyiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggjRhln/zX0w00O42iG/g5l3qTKxxwZJ6UUDQfKxFGwAt0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQLFAwy/2n4c8S4BgWVnl8Z998XCRP7wBkUfA8GyGiAZAYEg41wFaaaQN3eLU7fS0fBVdBwvpQx+j3bFItMYrHxU=</c2pa:manifest></metadata>
+<rect x="-0.87" y="-19.95" width="42.14" height="30.02" fill="#0e1014"/>
+<g stroke="#262d36" stroke-width="0.09" fill="none">
+<polygon points="7.470,-2.427 7.106,-1.309 5.931,-1.309 5.568,-2.427 6.519,-3.118"/>
+<polygon points="7.470,-0.191 6.519,0.500 5.568,-0.191 5.931,-1.309 7.106,-1.309"/>
+<polygon points="6.155,1.618 4.980,1.618 4.617,0.500 5.568,-0.191 6.519,0.500"/>
+<polygon points="4.029,2.309 3.078,1.618 3.441,0.500 4.617,0.500 4.980,1.618"/>
+<polygon points="1.902,1.618 1.539,0.500 2.490,-0.191 3.441,0.500 3.078,1.618"/>
+<polygon points="0.588,-0.191 0.951,-1.309 2.127,-1.309 2.490,-0.191 1.539,0.500"/>
+<polygon points="0.588,-2.427 1.539,-3.118 2.490,-2.427 2.127,-1.309 0.951,-1.309"/>
+<polygon points="1.902,-4.236 3.078,-4.236 3.441,-3.118 2.490,-2.427 1.539,-3.118"/>
+<polygon points="4.029,-4.927 4.980,-4.236 4.617,-3.118 3.441,-3.118 3.078,-4.236"/>
+<polygon points="6.155,-4.236 6.519,-3.118 5.568,-2.427 4.617,-3.118 4.980,-4.236"/>
+<polygon points="5.931,2.309 5.568,3.427 4.392,3.427 4.029,2.309 4.980,1.618"/>
+<polygon points="5.931,4.545 4.980,5.236 4.029,4.545 4.392,3.427 5.568,3.427"/>
+<polygon points="4.617,6.354 3.441,6.354 3.078,5.236 4.029,4.545 4.980,5.236"/>
+<polygon points="2.490,7.045 1.539,6.354 1.902,5.236 3.078,5.236 3.441,6.354"/>
+<polygon points="0.363,6.354 0.000,5.236 0.951,4.545 1.902,5.236 1.539,6.354"/>
+<polygon points="-0.951,4.545 -0.588,3.427 0.588,3.427 0.951,4.545 0.000,5.236"/>
+<polygon points="-0.951,2.309 0.000,1.618 0.951,2.309 0.588,3.427 -0.588,3.427"/>
+<polygon points="0.363,0.500 1.539,0.500 1.902,1.618 0.951,2.309 0.000,1.618"/>
+<polygon points="-0.363,6.354 -1.539,6.354 -1.902,5.236 -0.951,4.545 0.000,5.236"/>
+<polygon points="-0.363,0.500 0.000,1.618 -0.951,2.309 -1.902,1.618 -1.539,0.500"/>
+<polygon points="-0.588,-2.427 -0.951,-1.309 -2.127,-1.309 -2.490,-2.427 -1.539,-3.118"/>
+<polygon points="-0.588,-0.191 -1.539,0.500 -2.490,-0.191 -2.127,-1.309 -0.951,-1.309"/>
+<polygon points="3.441,-5.354 3.078,-4.236 1.902,-4.236 1.539,-5.354 2.490,-6.045"/>
+<polygon points="0.000,-0.618 -0.951,-1.309 -0.588,-2.427 0.588,-2.427 0.951,-1.309"/>
+<polygon points="-2.127,-7.163 -0.951,-7.163 -0.588,-6.045 -1.539,-5.354 -2.490,-6.045"/>
+<polygon points="-0.000,-7.854 0.951,-7.163 0.588,-6.045 -0.588,-6.045 -0.951,-7.163"/>
+<polygon points="2.127,-7.163 2.490,-6.045 1.539,-5.354 0.588,-6.045 0.951,-7.163"/>
+<polygon points="11.498,-5.354 11.135,-4.236 9.960,-4.236 9.596,-5.354 10.547,-6.045"/>
+<polygon points="11.498,-3.118 10.547,-2.427 9.596,-3.118 9.960,-4.236 11.135,-4.236"/>
+<polygon points="10.184,-1.309 9.009,-1.309 8.645,-2.427 9.596,-3.118 10.547,-2.427"/>
+<polygon points="8.057,-0.618 7.106,-1.309 7.470,-2.427 8.645,-2.427 9.009,-1.309"/>
+<polygon points="4.617,-5.354 5.568,-6.045 6.519,-5.354 6.155,-4.236 4.980,-4.236"/>
+<polygon points="5.931,-7.163 7.106,-7.163 7.470,-6.045 6.519,-5.354 5.568,-6.045"/>
+<polygon points="8.057,-7.854 9.009,-7.163 8.645,-6.045 7.470,-6.045 7.106,-7.163"/>
+<polygon points="10.184,-7.163 10.547,-6.045 9.596,-5.354 8.645,-6.045 9.009,-7.163"/>
+<polygon points="12.449,-2.427 12.086,-1.309 10.911,-1.309 10.547,-2.427 11.498,-3.118"/>
+<polygon points="12.449,-0.191 11.498,0.500 10.547,-0.191 10.911,-1.309 12.086,-1.309"/>
+<polygon points="11.135,1.618 9.960,1.618 9.596,0.500 10.547,-0.191 11.498,0.500"/>
+<polygon points="9.009,2.309 8.057,1.618 8.421,0.500 9.596,0.500 9.960,1.618"/>
+<polygon points="6.882,1.618 6.519,0.500 7.470,-0.191 8.421,0.500 8.057,1.618"/>
+<polygon points="6.882,-4.236 8.057,-4.236 8.421,-3.118 7.470,-2.427 6.519,-3.118"/>
+<polygon points="9.009,-4.927 9.960,-4.236 9.596,-3.118 8.421,-3.118 8.057,-4.236"/>
+<polygon points="9.960,5.236 9.596,6.354 8.421,6.354 8.057,5.236 9.009,4.545"/>
+<polygon points="6.519,2.736 7.470,3.427 7.106,4.545 5.931,4.545 5.568,3.427"/>
+<polygon points="8.645,3.427 9.009,4.545 8.057,5.236 7.106,4.545 7.470,3.427"/>
+<polygon points="6.155,5.236 6.519,6.354 5.568,7.045 4.617,6.354 4.980,5.236"/>
+<polygon points="1.902,-10.090 1.539,-8.972 0.363,-8.972 -0.000,-10.090 0.951,-10.781"/>
+<polygon points="1.902,-7.854 0.951,-7.163 -0.000,-7.854 0.363,-8.972 1.539,-8.972"/>
+<polygon points="-1.539,-12.590 -0.588,-11.899 -0.951,-10.781 -2.127,-10.781 -2.490,-11.899"/>
+<polygon points="0.588,-11.899 0.951,-10.781 -0.000,-10.090 -0.951,-10.781 -0.588,-11.899"/>
+<polygon points="4.980,-10.090 4.617,-8.972 3.441,-8.972 3.078,-10.090 4.029,-10.781"/>
+<polygon points="4.980,-7.854 4.029,-7.163 3.078,-7.854 3.441,-8.972 4.617,-8.972"/>
+<polygon points="3.665,-6.045 2.490,-6.045 2.127,-7.163 3.078,-7.854 4.029,-7.163"/>
+<polygon points="-1.902,-7.854 -1.539,-8.972 -0.363,-8.972 -0.000,-7.854 -0.951,-7.163"/>
+<polygon points="-1.902,-10.090 -0.951,-10.781 -0.000,-10.090 -0.363,-8.972 -1.539,-8.972"/>
+<polygon points="1.539,-12.590 2.490,-11.899 2.127,-10.781 0.951,-10.781 0.588,-11.899"/>
+<polygon points="3.665,-11.899 4.029,-10.781 3.078,-10.090 2.127,-10.781 2.490,-11.899"/>
+<polygon points="13.988,2.309 13.625,3.427 12.449,3.427 12.086,2.309 13.037,1.618"/>
+<polygon points="13.988,4.545 13.037,5.236 12.086,4.545 12.449,3.427 13.625,3.427"/>
+<polygon points="12.674,6.354 11.498,6.354 11.135,5.236 12.086,4.545 13.037,5.236"/>
+<polygon points="10.547,7.045 9.596,6.354 9.960,5.236 11.135,5.236 11.498,6.354"/>
+<polygon points="7.106,2.309 8.057,1.618 9.009,2.309 8.645,3.427 7.470,3.427"/>
+<polygon points="12.674,0.500 13.037,1.618 12.086,2.309 11.135,1.618 11.498,0.500"/>
+<polygon points="9.960,-10.090 9.596,-8.972 8.421,-8.972 8.057,-10.090 9.009,-10.781"/>
+<polygon points="9.960,-7.854 9.009,-7.163 8.057,-7.854 8.421,-8.972 9.596,-8.972"/>
+<polygon points="4.392,-6.045 4.029,-7.163 4.980,-7.854 5.931,-7.163 5.568,-6.045"/>
+<polygon points="4.392,-11.899 5.568,-11.899 5.931,-10.781 4.980,-10.090 4.029,-10.781"/>
+<polygon points="6.519,-12.590 7.470,-11.899 7.106,-10.781 5.931,-10.781 5.568,-11.899"/>
+<polygon points="8.645,-11.899 9.009,-10.781 8.057,-10.090 7.106,-10.781 7.470,-11.899"/>
+<polygon points="16.478,-5.354 16.115,-4.236 14.939,-4.236 14.576,-5.354 15.527,-6.045"/>
+<polygon points="16.478,-3.118 15.527,-2.427 14.576,-3.118 14.939,-4.236 16.115,-4.236"/>
+<polygon points="15.164,-1.309 13.988,-1.309 13.625,-2.427 14.576,-3.118 15.527,-2.427"/>
+<polygon points="13.037,-0.618 12.086,-1.309 12.449,-2.427 13.625,-2.427 13.988,-1.309"/>
+<polygon points="10.911,-7.163 12.086,-7.163 12.449,-6.045 11.498,-5.354 10.547,-6.045"/>
+<polygon points="13.037,-7.854 13.988,-7.163 13.625,-6.045 12.449,-6.045 12.086,-7.163"/>
+<polygon points="15.164,-7.163 15.527,-6.045 14.576,-5.354 13.625,-6.045 13.988,-7.163"/>
+<polygon points="3.441,-14.826 3.078,-13.708 1.902,-13.708 1.539,-14.826 2.490,-15.517"/>
+<polygon points="3.441,-12.590 2.490,-11.899 1.539,-12.590 1.902,-13.708 3.078,-13.708"/>
+<polygon points="-2.127,-16.635 -0.951,-16.635 -0.588,-15.517 -1.539,-14.826 -2.490,-15.517"/>
+<polygon points="-0.000,-17.326 0.951,-16.635 0.588,-15.517 -0.588,-15.517 -0.951,-16.635"/>
+<polygon points="2.127,-16.635 2.490,-15.517 1.539,-14.826 0.588,-15.517 0.951,-16.635"/>
+<polygon points="18.017,-10.090 17.654,-8.972 16.478,-8.972 16.115,-10.090 17.066,-10.781"/>
+<polygon points="18.017,-7.854 17.066,-7.163 16.115,-7.854 16.478,-8.972 17.654,-8.972"/>
+<polygon points="16.703,-6.045 15.527,-6.045 15.164,-7.163 16.115,-7.854 17.066,-7.163"/>
+<polygon points="11.135,-7.854 11.498,-8.972 12.674,-8.972 13.037,-7.854 12.086,-7.163"/>
+<polygon points="11.135,-10.090 12.086,-10.781 13.037,-10.090 12.674,-8.972 11.498,-8.972"/>
+<polygon points="12.449,-11.899 13.625,-11.899 13.988,-10.781 13.037,-10.090 12.086,-10.781"/>
+<polygon points="14.576,-12.590 15.527,-11.899 15.164,-10.781 13.988,-10.781 13.625,-11.899"/>
+<polygon points="16.703,-11.899 17.066,-10.781 16.115,-10.090 15.164,-10.781 15.527,-11.899"/>
+<polygon points="13.988,-13.017 13.625,-11.899 12.449,-11.899 12.086,-13.017 13.037,-13.708"/>
+<polygon points="10.547,-8.281 9.596,-8.972 9.960,-10.090 11.135,-10.090 11.498,-8.972"/>
+<polygon points="7.106,-13.017 8.057,-13.708 9.009,-13.017 8.645,-11.899 7.470,-11.899"/>
+<polygon points="8.421,-14.826 9.596,-14.826 9.960,-13.708 9.009,-13.017 8.057,-13.708"/>
+<polygon points="10.547,-15.517 11.498,-14.826 11.135,-13.708 9.960,-13.708 9.596,-14.826"/>
+<polygon points="12.674,-14.826 13.037,-13.708 12.086,-13.017 11.135,-13.708 11.498,-14.826"/>
+<polygon points="20.507,-2.427 20.144,-1.309 18.968,-1.309 18.605,-2.427 19.556,-3.118"/>
+<polygon points="20.507,-0.191 19.556,0.500 18.605,-0.191 18.968,-1.309 20.144,-1.309"/>
+<polygon points="19.193,1.618 18.017,1.618 17.654,0.500 18.605,-0.191 19.556,0.500"/>
+<polygon points="17.066,2.309 16.115,1.618 16.478,0.500 17.654,0.500 18.017,1.618"/>
+<polygon points="14.939,1.618 14.576,0.500 15.527,-0.191 16.478,0.500 16.115,1.618"/>
+<polygon points="13.625,-0.191 13.988,-1.309 15.164,-1.309 15.527,-0.191 14.576,0.500"/>
+<polygon points="17.066,-4.927 18.017,-4.236 17.654,-3.118 16.478,-3.118 16.115,-4.236"/>
+<polygon points="19.193,-4.236 19.556,-3.118 18.605,-2.427 17.654,-3.118 18.017,-4.236"/>
+<polygon points="18.968,2.309 18.605,3.427 17.429,3.427 17.066,2.309 18.017,1.618"/>
+<polygon points="18.968,4.545 18.017,5.236 17.066,4.545 17.429,3.427 18.605,3.427"/>
+<polygon points="17.654,6.354 16.478,6.354 16.115,5.236 17.066,4.545 18.017,5.236"/>
+<polygon points="15.527,7.045 14.576,6.354 14.939,5.236 16.115,5.236 16.478,6.354"/>
+<polygon points="13.401,6.354 13.037,5.236 13.988,4.545 14.939,5.236 14.576,6.354"/>
+<polygon points="13.401,0.500 14.576,0.500 14.939,1.618 13.988,2.309 13.037,1.618"/>
+<polygon points="14.576,2.736 15.527,3.427 15.164,4.545 13.988,4.545 13.625,3.427"/>
+<polygon points="16.703,3.427 17.066,4.545 16.115,5.236 15.164,4.545 15.527,3.427"/>
+<polygon points="-0.588,-17.753 -0.951,-16.635 -2.127,-16.635 -2.490,-17.753 -1.539,-18.444"/>
+<polygon points="11.498,-12.590 10.547,-11.899 9.596,-12.590 9.960,-13.708 11.135,-13.708"/>
+<polygon points="10.184,-10.781 9.009,-10.781 8.645,-11.899 9.596,-12.590 10.547,-11.899"/>
+<polygon points="4.617,-12.590 4.980,-13.708 6.155,-13.708 6.519,-12.590 5.568,-11.899"/>
+<polygon points="4.617,-14.826 5.568,-15.517 6.519,-14.826 6.155,-13.708 4.980,-13.708"/>
+<polygon points="5.931,-16.635 7.106,-16.635 7.470,-15.517 6.519,-14.826 5.568,-15.517"/>
+<polygon points="8.057,-17.326 9.009,-16.635 8.645,-15.517 7.470,-15.517 7.106,-16.635"/>
+<polygon points="10.184,-16.635 10.547,-15.517 9.596,-14.826 8.645,-15.517 9.009,-16.635"/>
+<polygon points="7.470,-17.753 7.106,-16.635 5.931,-16.635 5.568,-17.753 6.519,-18.444"/>
+<polygon points="4.029,-13.017 3.078,-13.708 3.441,-14.826 4.617,-14.826 4.980,-13.708"/>
+<polygon points="0.588,-17.753 1.539,-18.444 2.490,-17.753 2.127,-16.635 0.951,-16.635"/>
+<polygon points="1.902,-19.562 3.078,-19.562 3.441,-18.444 2.490,-17.753 1.539,-18.444"/>
+<polygon points="4.029,-20.253 4.980,-19.562 4.617,-18.444 3.441,-18.444 3.078,-19.562"/>
+<polygon points="6.155,-19.562 6.519,-18.444 5.568,-17.753 4.617,-18.444 4.980,-19.562"/>
+<polygon points="21.095,-0.618 20.144,-1.309 20.507,-2.427 21.683,-2.427 22.046,-1.309"/>
+<polygon points="17.654,-5.354 18.605,-6.045 19.556,-5.354 19.193,-4.236 18.017,-4.236"/>
+<polygon points="18.968,-7.163 20.144,-7.163 20.507,-6.045 19.556,-5.354 18.605,-6.045"/>
+<polygon points="21.095,-7.854 22.046,-7.163 21.683,-6.045 20.507,-6.045 20.144,-7.163"/>
+<polygon points="17.429,-6.045 17.066,-7.163 18.017,-7.854 18.968,-7.163 18.605,-6.045"/>
+<polygon points="17.429,-11.899 18.605,-11.899 18.968,-10.781 18.017,-10.090 17.066,-10.781"/>
+<polygon points="19.556,-12.590 20.507,-11.899 20.144,-10.781 18.968,-10.781 18.605,-11.899"/>
+<polygon points="21.683,-11.899 22.046,-10.781 21.095,-10.090 20.144,-10.781 20.507,-11.899"/>
+<polygon points="-0.363,-18.444 -1.539,-18.444 -1.902,-19.562 -0.951,-20.253 -0.000,-19.562"/>
+<polygon points="0.363,-18.444 -0.000,-19.562 0.951,-20.253 1.902,-19.562 1.539,-18.444"/>
+<polygon points="15.527,-17.753 15.164,-16.635 13.988,-16.635 13.625,-17.753 14.576,-18.444"/>
+<polygon points="15.527,-15.517 14.576,-14.826 13.625,-15.517 13.988,-16.635 15.164,-16.635"/>
+<polygon points="14.213,-13.708 13.037,-13.708 12.674,-14.826 13.625,-15.517 14.576,-14.826"/>
+<polygon points="8.645,-17.753 9.596,-18.444 10.547,-17.753 10.184,-16.635 9.009,-16.635"/>
+<polygon points="9.960,-19.562 11.135,-19.562 11.498,-18.444 10.547,-17.753 9.596,-18.444"/>
+<polygon points="12.086,-20.253 13.037,-19.562 12.674,-18.444 11.498,-18.444 11.135,-19.562"/>
+<polygon points="14.213,-19.562 14.576,-18.444 13.625,-17.753 12.674,-18.444 13.037,-19.562"/>
+<polygon points="19.556,2.736 20.507,3.427 20.144,4.545 18.968,4.545 18.605,3.427"/>
+<polygon points="21.683,3.427 22.046,4.545 21.095,5.236 20.144,4.545 20.507,3.427"/>
+</g>
+<g fill="none" stroke="#7d8794" stroke-width="0.08">
+<circle cx="4.617" cy="-3.118" r="0.88"/>
+<circle cx="8.057" cy="-7.854" r="0.76"/>
+<circle cx="4.980" cy="-4.236" r="0.88"/>
+<circle cx="12.086" cy="-10.781" r="0.76"/>
+<circle cx="5.568" cy="-6.045" r="0.76"/>
+<circle cx="13.625" cy="-11.899" r="0.52"/>
+<circle cx="8.421" cy="-8.972" r="0.76"/>
+<circle cx="9.960" cy="-10.090" r="0.76"/>
+<circle cx="3.441" cy="-3.118" r="1.00"/>
+<circle cx="11.135" cy="-10.090" r="0.76"/>
+<circle cx="4.617" cy="-5.354" r="0.76"/>
+<circle cx="2.127" cy="-1.309" r="1.12"/>
+<circle cx="2.490" cy="-2.427" r="1.00"/>
+<circle cx="9.596" cy="-8.972" r="0.76"/>
+<circle cx="5.931" cy="-7.163" r="0.64"/>
+<circle cx="12.449" cy="-11.899" r="0.64"/>
+<circle cx="7.106" cy="-7.163" r="0.88"/>
+<circle cx="6.519" cy="-5.354" r="0.52"/>
+<circle cx="7.470" cy="-6.045" r="0.64"/>
+</g>
+<g fill="none" stroke-linejoin="round" stroke-linecap="round">
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 4.617,-3.118 4.980,-4.236 4.617,-5.354 5.568,-6.045 5.931,-7.163 7.106,-7.163 8.057,-7.854 8.421,-8.972 8.057,-10.090 9.009,-10.781 8.645,-11.899 9.009,-13.017 9.960,-13.708 9.596,-14.826" stroke="#e8629a" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 4.617,-3.118 4.980,-4.236 4.617,-5.354 5.568,-6.045 5.931,-7.163 7.106,-7.163 7.470,-6.045 8.645,-6.045 9.009,-7.163 9.960,-7.854 9.596,-8.972 9.960,-10.090 11.135,-10.090 12.086,-10.781" stroke="#3fc7c0" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 4.617,-3.118 4.980,-4.236 4.617,-5.354 5.568,-6.045 6.519,-5.354 7.470,-6.045 7.106,-7.163 8.057,-7.854 8.421,-8.972 9.596,-8.972 9.960,-10.090 11.135,-10.090 12.086,-10.781 12.449,-11.899" stroke="#b07ae0" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 4.617,-3.118 4.980,-4.236 6.155,-4.236 6.519,-5.354 7.470,-6.045 7.106,-7.163 8.057,-7.854 8.421,-8.972 9.596,-8.972 9.960,-10.090 11.135,-10.090 12.086,-10.781 12.449,-11.899 13.625,-11.899" stroke="#e0574a" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 3.078,-4.236 3.441,-5.354 2.490,-6.045 2.127,-7.163 3.078,-7.854 3.441,-8.972 3.078,-10.090 4.029,-10.781 4.392,-11.899 5.568,-11.899 6.519,-12.590 6.155,-13.708 6.519,-14.826 7.470,-15.517" stroke="#5cc06e" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-0.191 3.441,0.500 4.617,0.500 5.568,-0.191 6.519,0.500 7.470,-0.191 8.421,0.500 9.596,0.500 10.547,-0.191 11.498,0.500 12.674,0.500 13.037,1.618 13.988,2.309 14.939,1.618 16.115,1.618 17.066,2.309" stroke="#4aa3e0" stroke-width="0.30" opacity="0.95"/>
+<polyline points="2.127,-1.309 2.490,-2.427 3.441,-3.118 4.617,-3.118 4.980,-4.236 4.617,-5.354 5.568,-6.045 5.931,-7.163 7.106,-7.163 8.057,-7.854 8.421,-8.972 9.596,-8.972 9.960,-10.090 11.135,-10.090 12.086,-10.781 12.449,-11.899 13.625,-11.899" stroke="#ffffff" stroke-width="0.20" opacity="1.00"/>
+</g>
+<circle cx="9.596" cy="-14.826" r="0.34" fill="#e8629a"/>
+<circle cx="12.086" cy="-10.781" r="0.34" fill="#3fc7c0"/>
+<circle cx="12.449" cy="-11.899" r="0.34" fill="#b07ae0"/>
+<circle cx="13.625" cy="-11.899" r="0.34" fill="#e0574a"/>
+<circle cx="7.470" cy="-15.517" r="0.34" fill="#5cc06e"/>
+<circle cx="17.066" cy="2.309" r="0.34" fill="#4aa3e0"/>
+<circle cx="13.625" cy="-11.899" r="0.34" fill="#ffffff"/>
+<circle cx="2.127" cy="-1.309" r="0.5" fill="#0e1014" stroke="#ffffff" stroke-width="0.15"/>
+<circle cx="31.741" cy="-6.604" r="8.530" fill="none" stroke="#3a414c" stroke-width="0.12"/>
+<g fill="#1e242c">
+<circle cx="37.113" cy="-6.604" r="0.15"/>
+<circle cx="28.632" cy="-9.360" r="0.15"/>
+<circle cx="33.873" cy="-2.146" r="0.15"/>
+<circle cx="33.873" cy="-11.063" r="0.15"/>
+<circle cx="28.632" cy="-3.849" r="0.15"/>
+<circle cx="28.632" cy="-0.443" r="0.15"/>
+<circle cx="33.873" cy="-7.657" r="0.15"/>
+<circle cx="25.393" cy="-4.901" r="0.15"/>
+<circle cx="25.393" cy="-10.412" r="0.15"/>
+<circle cx="30.634" cy="-3.198" r="0.15"/>
+<circle cx="30.634" cy="-12.115" r="0.15"/>
+<circle cx="35.875" cy="-10.412" r="0.15"/>
+<circle cx="27.395" cy="-7.657" r="0.15"/>
+<circle cx="35.875" cy="-4.901" r="0.15"/>
+<circle cx="32.636" cy="-0.443" r="0.15"/>
+<circle cx="32.636" cy="-9.360" r="0.15"/>
+<circle cx="27.395" cy="-2.146" r="0.15"/>
+<circle cx="24.156" cy="-6.604" r="0.15"/>
+<circle cx="32.636" cy="-3.849" r="0.15"/>
+<circle cx="27.395" cy="-11.063" r="0.15"/>
+<circle cx="32.636" cy="-12.766" r="0.15"/>
+<circle cx="27.395" cy="-5.552" r="0.15"/>
+<circle cx="35.875" cy="-8.307" r="0.15"/>
+<circle cx="35.875" cy="-2.796" r="0.15"/>
+<circle cx="30.634" cy="-10.010" r="0.15"/>
+<circle cx="30.634" cy="-1.093" r="0.15"/>
+<circle cx="25.393" cy="-2.796" r="0.15"/>
+<circle cx="33.873" cy="-5.552" r="0.15"/>
+<circle cx="25.393" cy="-8.307" r="0.15"/>
+<circle cx="28.632" cy="-12.766" r="0.15"/>
+<circle cx="39.115" cy="-5.954" r="0.15"/>
+<circle cx="30.634" cy="-8.709" r="0.15"/>
+<circle cx="35.875" cy="-1.495" r="0.15"/>
+<circle cx="30.634" cy="0.208" r="0.15"/>
+<circle cx="35.875" cy="-7.006" r="0.15"/>
+<circle cx="27.395" cy="-4.251" r="0.15"/>
+<circle cx="27.395" cy="-9.762" r="0.15"/>
+<circle cx="32.636" cy="-2.548" r="0.15"/>
+<circle cx="32.636" cy="-11.465" r="0.15"/>
+<circle cx="37.877" cy="-9.762" r="0.15"/>
+<circle cx="29.397" cy="-7.006" r="0.15"/>
+<circle cx="37.877" cy="-4.251" r="0.15"/>
+<circle cx="34.638" cy="0.208" r="0.15"/>
+<circle cx="34.638" cy="-8.709" r="0.15"/>
+<circle cx="29.397" cy="-1.495" r="0.15"/>
+<circle cx="26.158" cy="-5.954" r="0.15"/>
+<circle cx="34.638" cy="-3.198" r="0.15"/>
+<circle cx="29.397" cy="-10.412" r="0.15"/>
+<circle cx="34.638" cy="-12.115" r="0.15"/>
+<circle cx="29.397" cy="-4.901" r="0.15"/>
+<circle cx="37.877" cy="-7.657" r="0.15"/>
+<circle cx="37.877" cy="-2.146" r="0.15"/>
+<circle cx="26.158" cy="-11.465" r="0.15"/>
+<circle cx="31.399" cy="-4.251" r="0.15"/>
+<circle cx="31.399" cy="-13.168" r="0.15"/>
+<circle cx="36.640" cy="-11.465" r="0.15"/>
+<circle cx="28.160" cy="-8.709" r="0.15"/>
+<circle cx="36.640" cy="-5.954" r="0.15"/>
+<circle cx="33.401" cy="-1.495" r="0.15"/>
+<circle cx="33.401" cy="-10.412" r="0.15"/>
+<circle cx="28.160" cy="-3.198" r="0.15"/>
+<circle cx="24.920" cy="-7.657" r="0.15"/>
+<circle cx="33.401" cy="-4.901" r="0.15"/>
+<circle cx="28.160" cy="-12.115" r="0.15"/>
+<circle cx="33.401" cy="-13.818" r="0.15"/>
+<circle cx="28.160" cy="-6.604" r="0.15"/>
+<circle cx="36.640" cy="-9.360" r="0.15"/>
+<circle cx="36.640" cy="-3.849" r="0.15"/>
+<circle cx="31.399" cy="-11.063" r="0.15"/>
+<circle cx="31.399" cy="-2.146" r="0.15"/>
+<circle cx="26.158" cy="-3.849" r="0.15"/>
+<circle cx="34.638" cy="-6.604" r="0.15"/>
+<circle cx="26.158" cy="-9.360" r="0.15"/>
+<circle cx="29.397" cy="-13.818" r="0.15"/>
+<circle cx="37.877" cy="-5.552" r="0.15"/>
+<circle cx="29.397" cy="-8.307" r="0.15"/>
+<circle cx="34.638" cy="-1.093" r="0.15"/>
+<circle cx="34.638" cy="-10.010" r="0.15"/>
+<circle cx="29.397" cy="-2.796" r="0.15"/>
+<circle cx="29.397" cy="0.610" r="0.15"/>
+<circle cx="33.401" cy="0.610" r="0.15"/>
+<circle cx="33.401" cy="-8.307" r="0.15"/>
+<circle cx="28.160" cy="-1.093" r="0.15"/>
+<circle cx="24.920" cy="-5.552" r="0.15"/>
+<circle cx="33.401" cy="-2.796" r="0.15"/>
+<circle cx="28.160" cy="-10.010" r="0.15"/>
+<circle cx="33.401" cy="-11.713" r="0.15"/>
+<circle cx="28.160" cy="-4.499" r="0.15"/>
+<circle cx="36.640" cy="-7.255" r="0.15"/>
+<circle cx="36.640" cy="-1.744" r="0.15"/>
+<circle cx="31.399" cy="-8.958" r="0.15"/>
+<circle cx="31.399" cy="-0.041" r="0.15"/>
+<circle cx="26.158" cy="-1.744" r="0.15"/>
+<circle cx="34.638" cy="-4.499" r="0.15"/>
+<circle cx="26.158" cy="-7.255" r="0.15"/>
+<circle cx="29.397" cy="-11.713" r="0.15"/>
+<circle cx="39.115" cy="-7.255" r="0.15"/>
+<circle cx="35.875" cy="-11.713" r="0.15"/>
+<circle cx="30.634" cy="-4.499" r="0.15"/>
+<circle cx="37.877" cy="-11.063" r="0.15"/>
+<circle cx="34.638" cy="-13.416" r="0.15"/>
+<circle cx="29.397" cy="-6.202" r="0.15"/>
+<circle cx="37.877" cy="-8.958" r="0.15"/>
+<circle cx="37.877" cy="-3.447" r="0.15"/>
+<circle cx="32.636" cy="-10.661" r="0.15"/>
+<circle cx="32.636" cy="-1.744" r="0.15"/>
+<circle cx="27.395" cy="-3.447" r="0.15"/>
+<circle cx="35.875" cy="-6.202" r="0.15"/>
+<circle cx="27.395" cy="-8.958" r="0.15"/>
+<circle cx="30.634" cy="-13.416" r="0.15"/>
+<circle cx="38.350" cy="-8.307" r="0.15"/>
+<circle cx="29.870" cy="-11.063" r="0.15"/>
+<circle cx="35.111" cy="-3.849" r="0.15"/>
+<circle cx="35.111" cy="-12.766" r="0.15"/>
+<circle cx="29.870" cy="-5.552" r="0.15"/>
+<circle cx="29.870" cy="-2.146" r="0.15"/>
+<circle cx="35.111" cy="-9.360" r="0.15"/>
+<circle cx="26.630" cy="-6.604" r="0.15"/>
+<circle cx="26.630" cy="-12.115" r="0.15"/>
+<circle cx="31.871" cy="-4.901" r="0.15"/>
+<circle cx="31.871" cy="-13.818" r="0.15"/>
+<circle cx="37.113" cy="-12.115" r="0.15"/>
+<circle cx="33.873" cy="-14.469" r="0.15"/>
+<circle cx="28.632" cy="-7.255" r="0.15"/>
+<circle cx="37.113" cy="-10.010" r="0.15"/>
+<circle cx="37.113" cy="-4.499" r="0.15"/>
+<circle cx="31.871" cy="-11.713" r="0.15"/>
+<circle cx="31.871" cy="-2.796" r="0.15"/>
+<circle cx="26.630" cy="-4.499" r="0.15"/>
+<circle cx="35.111" cy="-7.255" r="0.15"/>
+<circle cx="26.630" cy="-10.010" r="0.15"/>
+<circle cx="29.870" cy="-14.469" r="0.15"/>
+<circle cx="38.350" cy="-4.901" r="0.15"/>
+<circle cx="29.870" cy="-7.657" r="0.15"/>
+<circle cx="35.111" cy="-0.443" r="0.15"/>
+<circle cx="29.870" cy="1.260" r="0.15"/>
+<circle cx="35.111" cy="-5.954" r="0.15"/>
+<circle cx="26.630" cy="-3.198" r="0.15"/>
+<circle cx="26.630" cy="-8.709" r="0.15"/>
+<circle cx="31.871" cy="-1.495" r="0.15"/>
+<circle cx="31.871" cy="-10.412" r="0.15"/>
+<circle cx="37.113" cy="-8.709" r="0.15"/>
+<circle cx="28.632" cy="-5.954" r="0.15"/>
+<circle cx="37.113" cy="-3.198" r="0.15"/>
+<circle cx="33.873" cy="1.260" r="0.15"/>
+<circle cx="37.113" cy="-1.093" r="0.15"/>
+<circle cx="31.871" cy="-8.307" r="0.15"/>
+<circle cx="31.871" cy="0.610" r="0.15"/>
+<circle cx="26.630" cy="-1.093" r="0.15"/>
+<circle cx="37.113" cy="-5.303" r="0.15"/>
+<circle cx="28.632" cy="-8.059" r="0.15"/>
+<circle cx="33.873" cy="-0.845" r="0.15"/>
+<circle cx="33.873" cy="-9.762" r="0.15"/>
+<circle cx="28.632" cy="-2.548" r="0.15"/>
+<circle cx="28.632" cy="0.858" r="0.15"/>
+<circle cx="33.873" cy="-6.356" r="0.15"/>
+<circle cx="25.393" cy="-3.600" r="0.15"/>
+<circle cx="25.393" cy="-9.111" r="0.15"/>
+<circle cx="30.634" cy="-1.897" r="0.15"/>
+<circle cx="30.634" cy="-10.814" r="0.15"/>
+<circle cx="35.875" cy="-9.111" r="0.15"/>
+<circle cx="27.395" cy="-6.356" r="0.15"/>
+<circle cx="35.875" cy="-3.600" r="0.15"/>
+<circle cx="32.636" cy="0.858" r="0.15"/>
+<circle cx="32.636" cy="-8.059" r="0.15"/>
+<circle cx="27.395" cy="-0.845" r="0.15"/>
+<circle cx="24.156" cy="-5.303" r="0.15"/>
+<circle cx="25.393" cy="-1.495" r="0.15"/>
+<circle cx="33.873" cy="-4.251" r="0.15"/>
+<circle cx="25.393" cy="-7.006" r="0.15"/>
+<circle cx="28.632" cy="-11.465" r="0.15"/>
+<circle cx="39.115" cy="-8.059" r="0.15"/>
+<circle cx="35.875" cy="-12.517" r="0.15"/>
+<circle cx="30.634" cy="-5.303" r="0.15"/>
+<circle cx="27.395" cy="-11.867" r="0.15"/>
+<circle cx="32.636" cy="-4.653" r="0.15"/>
+<circle cx="32.636" cy="-13.570" r="0.15"/>
+<circle cx="37.877" cy="-11.867" r="0.15"/>
+<circle cx="29.397" cy="-9.111" r="0.15"/>
+<circle cx="37.877" cy="-6.356" r="0.15"/>
+<circle cx="34.638" cy="-1.897" r="0.15"/>
+<circle cx="34.638" cy="-10.814" r="0.15"/>
+<circle cx="29.397" cy="-3.600" r="0.15"/>
+<circle cx="26.158" cy="-8.059" r="0.15"/>
+<circle cx="34.638" cy="-5.303" r="0.15"/>
+<circle cx="29.397" cy="-12.517" r="0.15"/>
+<circle cx="34.638" cy="-14.220" r="0.15"/>
+<circle cx="30.634" cy="-14.220" r="0.15"/>
+<circle cx="39.879" cy="-7.006" r="0.15"/>
+<circle cx="31.399" cy="-9.762" r="0.15"/>
+<circle cx="36.640" cy="-2.548" r="0.15"/>
+<circle cx="31.399" cy="-0.845" r="0.15"/>
+<circle cx="36.640" cy="-8.059" r="0.15"/>
+<circle cx="28.160" cy="-5.303" r="0.15"/>
+<circle cx="28.160" cy="-10.814" r="0.15"/>
+<circle cx="33.401" cy="-3.600" r="0.15"/>
+<circle cx="33.401" cy="-12.517" r="0.15"/>
+<circle cx="38.642" cy="-10.814" r="0.15"/>
+<circle cx="30.162" cy="-8.059" r="0.15"/>
+<circle cx="38.642" cy="-5.303" r="0.15"/>
+<circle cx="35.403" cy="-0.845" r="0.15"/>
+<circle cx="35.403" cy="-9.762" r="0.15"/>
+<circle cx="30.162" cy="-2.548" r="0.15"/>
+<circle cx="26.922" cy="-7.006" r="0.15"/>
+<circle cx="35.403" cy="-4.251" r="0.15"/>
+<circle cx="30.162" cy="-11.465" r="0.15"/>
+<circle cx="35.403" cy="-13.168" r="0.15"/>
+<circle cx="30.162" cy="-5.954" r="0.15"/>
+<circle cx="38.642" cy="-8.709" r="0.15"/>
+<circle cx="38.642" cy="-3.198" r="0.15"/>
+<circle cx="28.160" cy="0.208" r="0.15"/>
+<circle cx="33.401" cy="-7.006" r="0.15"/>
+<circle cx="24.920" cy="-4.251" r="0.15"/>
+<circle cx="24.920" cy="-9.762" r="0.15"/>
+<circle cx="32.164" cy="0.208" r="0.15"/>
+<circle cx="32.164" cy="-8.709" r="0.15"/>
+<circle cx="26.922" cy="-1.495" r="0.15"/>
+<circle cx="23.683" cy="-5.954" r="0.15"/>
+<circle cx="32.164" cy="-3.198" r="0.15"/>
+<circle cx="26.922" cy="-10.412" r="0.15"/>
+<circle cx="32.164" cy="-12.115" r="0.15"/>
+<circle cx="26.922" cy="-4.901" r="0.15"/>
+<circle cx="35.403" cy="-7.657" r="0.15"/>
+<circle cx="35.403" cy="-2.146" r="0.15"/>
+<circle cx="30.162" cy="-9.360" r="0.15"/>
+<circle cx="30.162" cy="-0.443" r="0.15"/>
+<circle cx="24.920" cy="-2.146" r="0.15"/>
+<circle cx="24.920" cy="-11.063" r="0.15"/>
+<circle cx="30.162" cy="-3.849" r="0.15"/>
+<circle cx="30.162" cy="-12.766" r="0.15"/>
+<circle cx="35.403" cy="-11.063" r="0.15"/>
+<circle cx="26.922" cy="-8.307" r="0.15"/>
+<circle cx="35.403" cy="-5.552" r="0.15"/>
+<circle cx="32.164" cy="-1.093" r="0.15"/>
+<circle cx="32.164" cy="-10.010" r="0.15"/>
+<circle cx="26.922" cy="-2.796" r="0.15"/>
+<circle cx="23.683" cy="-7.255" r="0.15"/>
+<circle cx="32.164" cy="-4.499" r="0.15"/>
+<circle cx="26.922" cy="-11.713" r="0.15"/>
+<circle cx="32.164" cy="-13.416" r="0.15"/>
+<circle cx="26.922" cy="-6.202" r="0.15"/>
+<circle cx="35.403" cy="-8.958" r="0.15"/>
+<circle cx="35.403" cy="-3.447" r="0.15"/>
+<circle cx="30.162" cy="-10.661" r="0.15"/>
+<circle cx="30.162" cy="-1.744" r="0.15"/>
+<circle cx="24.920" cy="-3.447" r="0.15"/>
+<circle cx="33.401" cy="-6.202" r="0.15"/>
+<circle cx="24.920" cy="-8.958" r="0.15"/>
+<circle cx="28.160" cy="-13.416" r="0.15"/>
+<circle cx="39.879" cy="-6.202" r="0.15"/>
+<circle cx="36.640" cy="-10.661" r="0.15"/>
+<circle cx="31.399" cy="-3.447" r="0.15"/>
+<circle cx="38.642" cy="-10.010" r="0.15"/>
+<circle cx="30.162" cy="-7.255" r="0.15"/>
+<circle cx="38.642" cy="-4.499" r="0.15"/>
+<circle cx="35.403" cy="-0.041" r="0.15"/>
+<circle cx="35.403" cy="-12.364" r="0.15"/>
+<circle cx="30.162" cy="-5.150" r="0.15"/>
+<circle cx="38.642" cy="-7.905" r="0.15"/>
+<circle cx="38.642" cy="-2.394" r="0.15"/>
+<circle cx="33.401" cy="-9.608" r="0.15"/>
+<circle cx="33.401" cy="-0.691" r="0.15"/>
+<circle cx="28.160" cy="-2.394" r="0.15"/>
+<circle cx="36.640" cy="-5.150" r="0.15"/>
+<circle cx="28.160" cy="-7.905" r="0.15"/>
+<circle cx="31.399" cy="-12.364" r="0.15"/>
+<circle cx="39.115" cy="-5.150" r="0.15"/>
+<circle cx="30.634" cy="-7.905" r="0.15"/>
+<circle cx="35.875" cy="-0.691" r="0.15"/>
+<circle cx="35.875" cy="-9.608" r="0.15"/>
+<circle cx="30.634" cy="-2.394" r="0.15"/>
+<circle cx="30.634" cy="1.012" r="0.15"/>
+<circle cx="34.638" cy="1.012" r="0.15"/>
+<circle cx="34.638" cy="-7.905" r="0.15"/>
+<circle cx="29.397" cy="-0.691" r="0.15"/>
+<circle cx="26.158" cy="-5.150" r="0.15"/>
+<circle cx="34.638" cy="-2.394" r="0.15"/>
+<circle cx="29.397" cy="-9.608" r="0.15"/>
+<circle cx="34.638" cy="-11.311" r="0.15"/>
+<circle cx="29.397" cy="-4.097" r="0.15"/>
+<circle cx="37.877" cy="-6.853" r="0.15"/>
+<circle cx="37.877" cy="-1.342" r="0.15"/>
+<circle cx="32.636" cy="-8.556" r="0.15"/>
+<circle cx="32.636" cy="0.361" r="0.15"/>
+<circle cx="27.395" cy="-1.342" r="0.15"/>
+<circle cx="35.875" cy="-4.097" r="0.15"/>
+<circle cx="27.395" cy="-6.853" r="0.15"/>
+<circle cx="30.634" cy="-11.311" r="0.15"/>
+<circle cx="37.113" cy="-7.905" r="0.15"/>
+<circle cx="28.632" cy="-10.661" r="0.15"/>
+<circle cx="33.873" cy="-3.447" r="0.15"/>
+<circle cx="33.873" cy="-12.364" r="0.15"/>
+<circle cx="28.632" cy="-5.150" r="0.15"/>
+<circle cx="28.632" cy="-1.744" r="0.15"/>
+<circle cx="33.873" cy="-8.958" r="0.15"/>
+<circle cx="25.393" cy="-6.202" r="0.15"/>
+<circle cx="25.393" cy="-11.713" r="0.15"/>
+<circle cx="24.156" cy="-7.905" r="0.15"/>
+<circle cx="32.636" cy="-5.150" r="0.15"/>
+<circle cx="27.395" cy="-12.364" r="0.15"/>
+<circle cx="32.636" cy="-14.067" r="0.15"/>
+<circle cx="25.393" cy="-4.097" r="0.15"/>
+<circle cx="33.873" cy="-6.853" r="0.15"/>
+<circle cx="25.393" cy="-9.608" r="0.15"/>
+<circle cx="28.632" cy="-14.067" r="0.15"/>
+<circle cx="38.350" cy="-7.006" r="0.15"/>
+<circle cx="29.870" cy="-9.762" r="0.15"/>
+<circle cx="35.111" cy="-2.548" r="0.15"/>
+<circle cx="35.111" cy="-11.465" r="0.15"/>
+<circle cx="29.870" cy="-4.251" r="0.15"/>
+<circle cx="29.870" cy="-0.845" r="0.15"/>
+<circle cx="35.111" cy="-8.059" r="0.15"/>
+<circle cx="26.630" cy="-5.303" r="0.15"/>
+<circle cx="26.630" cy="-10.814" r="0.15"/>
+<circle cx="31.871" cy="-3.600" r="0.15"/>
+<circle cx="31.871" cy="-12.517" r="0.15"/>
+<circle cx="37.113" cy="-10.814" r="0.15"/>
+<circle cx="33.873" cy="-13.168" r="0.15"/>
+<circle cx="29.870" cy="-13.168" r="0.15"/>
+<circle cx="29.397" cy="-0.194" r="0.15"/>
+<circle cx="34.638" cy="-7.408" r="0.15"/>
+<circle cx="26.158" cy="-4.653" r="0.15"/>
+<circle cx="26.158" cy="-10.164" r="0.15"/>
+<circle cx="31.399" cy="-2.950" r="0.15"/>
+<circle cx="31.399" cy="-11.867" r="0.15"/>
+<circle cx="36.640" cy="-10.164" r="0.15"/>
+<circle cx="28.160" cy="-7.408" r="0.15"/>
+<circle cx="36.640" cy="-4.653" r="0.15"/>
+<circle cx="33.401" cy="-0.194" r="0.15"/>
+<circle cx="33.401" cy="-9.111" r="0.15"/>
+<circle cx="28.160" cy="-1.897" r="0.15"/>
+<circle cx="24.920" cy="-6.356" r="0.15"/>
+<circle cx="26.158" cy="-2.548" r="0.15"/>
+<circle cx="38.642" cy="-6.604" r="0.15"/>
+<circle cx="37.405" cy="-10.412" r="0.15"/>
+<circle cx="28.924" cy="-7.657" r="0.15"/>
+<circle cx="37.405" cy="-4.901" r="0.15"/>
+<circle cx="34.166" cy="-0.443" r="0.15"/>
+<circle cx="34.166" cy="-9.360" r="0.15"/>
+<circle cx="28.924" cy="-2.146" r="0.15"/>
+<circle cx="25.685" cy="-6.604" r="0.15"/>
+<circle cx="34.166" cy="-3.849" r="0.15"/>
+<circle cx="28.924" cy="-11.063" r="0.15"/>
+<circle cx="34.166" cy="-12.766" r="0.15"/>
+<circle cx="28.924" cy="-5.552" r="0.15"/>
+<circle cx="37.405" cy="-8.307" r="0.15"/>
+<circle cx="37.405" cy="-2.796" r="0.15"/>
+<circle cx="26.158" cy="-10.661" r="0.15"/>
+<circle cx="24.920" cy="-6.853" r="0.15"/>
+<circle cx="33.401" cy="-4.097" r="0.15"/>
+<circle cx="28.160" cy="-11.311" r="0.15"/>
+<circle cx="33.401" cy="-13.014" r="0.15"/>
+<circle cx="28.160" cy="-5.800" r="0.15"/>
+<circle cx="36.640" cy="-8.556" r="0.15"/>
+<circle cx="36.640" cy="-3.045" r="0.15"/>
+<circle cx="31.399" cy="-10.259" r="0.15"/>
+<circle cx="31.399" cy="-1.342" r="0.15"/>
+<circle cx="26.158" cy="-3.045" r="0.15"/>
+<circle cx="34.638" cy="-5.800" r="0.15"/>
+<circle cx="26.158" cy="-8.556" r="0.15"/>
+<circle cx="29.397" cy="-13.014" r="0.15"/>
+<circle cx="38.350" cy="-6.202" r="0.15"/>
+<circle cx="29.870" cy="-8.958" r="0.15"/>
+<circle cx="35.111" cy="-1.744" r="0.15"/>
+<circle cx="35.111" cy="-10.661" r="0.15"/>
+<circle cx="29.870" cy="-3.447" r="0.15"/>
+<circle cx="29.870" cy="-0.041" r="0.15"/>
+<circle cx="33.873" cy="-0.041" r="0.15"/>
+<circle cx="37.113" cy="-2.394" r="0.15"/>
+<circle cx="31.871" cy="-9.608" r="0.15"/>
+<circle cx="31.871" cy="-0.691" r="0.15"/>
+<circle cx="26.630" cy="-2.394" r="0.15"/>
+<circle cx="35.111" cy="-5.150" r="0.15"/>
+<circle cx="26.630" cy="-7.905" r="0.15"/>
+<circle cx="29.870" cy="-12.364" r="0.15"/>
+<circle cx="39.587" cy="-6.604" r="0.15"/>
+<circle cx="31.107" cy="-9.360" r="0.15"/>
+<circle cx="36.348" cy="-2.146" r="0.15"/>
+<circle cx="36.348" cy="-11.063" r="0.15"/>
+<circle cx="31.107" cy="-3.849" r="0.15"/>
+<circle cx="31.107" cy="-0.443" r="0.15"/>
+<circle cx="36.348" cy="-7.657" r="0.15"/>
+<circle cx="27.868" cy="-4.901" r="0.15"/>
+<circle cx="27.868" cy="-10.412" r="0.15"/>
+<circle cx="33.109" cy="-3.198" r="0.15"/>
+<circle cx="33.109" cy="-12.115" r="0.15"/>
+<circle cx="38.350" cy="-10.412" r="0.15"/>
+<circle cx="38.350" cy="-2.796" r="0.15"/>
+<circle cx="33.109" cy="-10.010" r="0.15"/>
+<circle cx="33.109" cy="-1.093" r="0.15"/>
+<circle cx="27.868" cy="-2.796" r="0.15"/>
+<circle cx="36.348" cy="-5.552" r="0.15"/>
+<circle cx="27.868" cy="-8.307" r="0.15"/>
+<circle cx="31.107" cy="-12.766" r="0.15"/>
+<circle cx="37.113" cy="-7.408" r="0.15"/>
+<circle cx="28.632" cy="-10.164" r="0.15"/>
+<circle cx="33.873" cy="-2.950" r="0.15"/>
+<circle cx="33.873" cy="-11.867" r="0.15"/>
+<circle cx="28.632" cy="-4.653" r="0.15"/>
+<circle cx="28.632" cy="-1.247" r="0.15"/>
+<circle cx="33.873" cy="-8.461" r="0.15"/>
+<circle cx="25.393" cy="-5.705" r="0.15"/>
+<circle cx="25.393" cy="-11.216" r="0.15"/>
+<circle cx="30.634" cy="-4.002" r="0.15"/>
+<circle cx="30.634" cy="-12.919" r="0.15"/>
+<circle cx="35.875" cy="-11.216" r="0.15"/>
+<circle cx="27.395" cy="-8.461" r="0.15"/>
+<circle cx="35.875" cy="-5.705" r="0.15"/>
+<circle cx="32.636" cy="-1.247" r="0.15"/>
+<circle cx="32.636" cy="-10.164" r="0.15"/>
+<circle cx="27.395" cy="-2.950" r="0.15"/>
+<circle cx="24.156" cy="-7.408" r="0.15"/>
+<circle cx="28.632" cy="-13.570" r="0.15"/>
+<circle cx="30.162" cy="0.858" r="0.15"/>
+<circle cx="35.403" cy="-6.356" r="0.15"/>
+<circle cx="26.922" cy="-3.600" r="0.15"/>
+<circle cx="26.922" cy="-9.111" r="0.15"/>
+<circle cx="32.164" cy="-1.897" r="0.15"/>
+<circle cx="32.164" cy="-10.814" r="0.15"/>
+<circle cx="37.405" cy="-9.111" r="0.15"/>
+<circle cx="28.924" cy="-6.356" r="0.15"/>
+<circle cx="37.405" cy="-3.600" r="0.15"/>
+<circle cx="34.166" cy="0.858" r="0.15"/>
+<circle cx="34.166" cy="-8.059" r="0.15"/>
+<circle cx="28.924" cy="-0.845" r="0.15"/>
+<circle cx="25.685" cy="-5.303" r="0.15"/>
+<circle cx="34.166" cy="-2.548" r="0.15"/>
+<circle cx="28.924" cy="-9.762" r="0.15"/>
+<circle cx="34.166" cy="-11.465" r="0.15"/>
+<circle cx="28.924" cy="-4.251" r="0.15"/>
+<circle cx="37.405" cy="-7.006" r="0.15"/>
+<circle cx="37.405" cy="-1.495" r="0.15"/>
+<circle cx="37.405" cy="-11.713" r="0.15"/>
+<circle cx="28.924" cy="-8.958" r="0.15"/>
+<circle cx="37.405" cy="-6.202" r="0.15"/>
+<circle cx="34.166" cy="-1.744" r="0.15"/>
+<circle cx="34.166" cy="-10.661" r="0.15"/>
+<circle cx="28.924" cy="-3.447" r="0.15"/>
+<circle cx="25.685" cy="-7.905" r="0.15"/>
+<circle cx="34.166" cy="-5.150" r="0.15"/>
+<circle cx="28.924" cy="-12.364" r="0.15"/>
+<circle cx="34.166" cy="-14.067" r="0.15"/>
+<circle cx="28.924" cy="-6.853" r="0.15"/>
+<circle cx="37.405" cy="-9.608" r="0.15"/>
+<circle cx="37.405" cy="-4.097" r="0.15"/>
+<circle cx="32.164" cy="-11.311" r="0.15"/>
+<circle cx="32.164" cy="-2.394" r="0.15"/>
+<circle cx="26.922" cy="-4.097" r="0.15"/>
+<circle cx="35.403" cy="-6.853" r="0.15"/>
+<circle cx="26.922" cy="-9.608" r="0.15"/>
+<circle cx="30.162" cy="-14.067" r="0.15"/>
+<circle cx="37.113" cy="-5.800" r="0.15"/>
+<circle cx="28.632" cy="-8.556" r="0.15"/>
+<circle cx="33.873" cy="-1.342" r="0.15"/>
+<circle cx="33.873" cy="-10.259" r="0.15"/>
+<circle cx="28.632" cy="-3.045" r="0.15"/>
+<circle cx="28.632" cy="0.361" r="0.15"/>
+<circle cx="24.156" cy="-5.800" r="0.15"/>
+<circle cx="32.636" cy="-3.045" r="0.15"/>
+<circle cx="27.395" cy="-10.259" r="0.15"/>
+<circle cx="32.636" cy="-11.962" r="0.15"/>
+<circle cx="27.395" cy="-4.748" r="0.15"/>
+<circle cx="35.875" cy="-7.503" r="0.15"/>
+<circle cx="35.875" cy="-1.992" r="0.15"/>
+<circle cx="30.634" cy="-9.206" r="0.15"/>
+<circle cx="30.634" cy="-0.289" r="0.15"/>
+<circle cx="25.393" cy="-1.992" r="0.15"/>
+<circle cx="33.873" cy="-4.748" r="0.15"/>
+<circle cx="25.393" cy="-7.503" r="0.15"/>
+<circle cx="28.632" cy="-11.962" r="0.15"/>
+<circle cx="37.585" cy="-7.255" r="0.15"/>
+<circle cx="29.105" cy="-10.010" r="0.15"/>
+<circle cx="34.346" cy="-2.796" r="0.15"/>
+<circle cx="34.346" cy="-11.713" r="0.15"/>
+<circle cx="29.105" cy="-4.499" r="0.15"/>
+<circle cx="29.105" cy="-1.093" r="0.15"/>
+<circle cx="34.346" cy="-8.307" r="0.15"/>
+<circle cx="25.866" cy="-5.552" r="0.15"/>
+<circle cx="25.866" cy="-11.063" r="0.15"/>
+<circle cx="24.628" cy="-7.255" r="0.15"/>
+<circle cx="33.109" cy="-4.499" r="0.15"/>
+<circle cx="27.868" cy="-11.713" r="0.15"/>
+<circle cx="33.109" cy="-13.416" r="0.15"/>
+<circle cx="27.868" cy="-6.202" r="0.15"/>
+<circle cx="36.348" cy="-8.958" r="0.15"/>
+<circle cx="36.348" cy="-3.447" r="0.15"/>
+<circle cx="31.107" cy="-10.661" r="0.15"/>
+<circle cx="31.107" cy="-1.744" r="0.15"/>
+<circle cx="25.866" cy="-3.447" r="0.15"/>
+<circle cx="34.346" cy="-6.202" r="0.15"/>
+<circle cx="25.866" cy="-8.958" r="0.15"/>
+<circle cx="29.105" cy="-13.416" r="0.15"/>
+<circle cx="39.587" cy="-7.905" r="0.15"/>
+<circle cx="36.348" cy="-12.364" r="0.15"/>
+<circle cx="31.107" cy="-5.150" r="0.15"/>
+<circle cx="38.350" cy="-11.713" r="0.15"/>
+<circle cx="35.111" cy="-14.067" r="0.15"/>
+<circle cx="29.870" cy="-6.853" r="0.15"/>
+<circle cx="38.350" cy="-9.608" r="0.15"/>
+<circle cx="38.350" cy="-4.097" r="0.15"/>
+<circle cx="33.109" cy="-11.311" r="0.15"/>
+<circle cx="33.109" cy="-2.394" r="0.15"/>
+<circle cx="27.868" cy="-4.097" r="0.15"/>
+<circle cx="36.348" cy="-6.853" r="0.15"/>
+<circle cx="27.868" cy="-9.608" r="0.15"/>
+<circle cx="31.107" cy="-14.067" r="0.15"/>
+<circle cx="37.585" cy="-5.954" r="0.15"/>
+<circle cx="29.105" cy="-8.709" r="0.15"/>
+<circle cx="34.346" cy="-1.495" r="0.15"/>
+<circle cx="34.346" cy="-10.412" r="0.15"/>
+<circle cx="29.105" cy="-3.198" r="0.15"/>
+<circle cx="29.105" cy="0.208" r="0.15"/>
+<circle cx="34.346" cy="-7.006" r="0.15"/>
+<circle cx="25.866" cy="-4.251" r="0.15"/>
+<circle cx="25.866" cy="-9.762" r="0.15"/>
+<circle cx="31.107" cy="-2.548" r="0.15"/>
+<circle cx="31.107" cy="-11.465" r="0.15"/>
+<circle cx="36.348" cy="-9.762" r="0.15"/>
+<circle cx="27.868" cy="-7.006" r="0.15"/>
+<circle cx="36.348" cy="-4.251" r="0.15"/>
+<circle cx="33.109" cy="0.208" r="0.15"/>
+<circle cx="33.109" cy="-8.709" r="0.15"/>
+<circle cx="27.868" cy="-1.495" r="0.15"/>
+<circle cx="24.628" cy="-5.954" r="0.15"/>
+<circle cx="25.866" cy="-2.146" r="0.15"/>
+<circle cx="34.346" cy="-4.901" r="0.15"/>
+<circle cx="25.866" cy="-7.657" r="0.15"/>
+<circle cx="29.105" cy="-12.115" r="0.15"/>
+<circle cx="39.587" cy="-5.303" r="0.15"/>
+<circle cx="31.107" cy="-8.059" r="0.15"/>
+<circle cx="36.348" cy="-0.845" r="0.15"/>
+<circle cx="31.107" cy="0.858" r="0.15"/>
+<circle cx="36.348" cy="-6.356" r="0.15"/>
+<circle cx="27.868" cy="-3.600" r="0.15"/>
+<circle cx="27.868" cy="-9.111" r="0.15"/>
+<circle cx="33.109" cy="-1.897" r="0.15"/>
+<circle cx="33.109" cy="-10.814" r="0.15"/>
+<circle cx="38.350" cy="-9.111" r="0.15"/>
+<circle cx="29.870" cy="-6.356" r="0.15"/>
+<circle cx="38.350" cy="-3.600" r="0.15"/>
+<circle cx="35.111" cy="0.858" r="0.15"/>
+<circle cx="38.350" cy="-1.495" r="0.15"/>
+<circle cx="27.868" cy="-0.194" r="0.15"/>
+<circle cx="33.109" cy="-7.408" r="0.15"/>
+<circle cx="24.628" cy="-4.653" r="0.15"/>
+<circle cx="24.628" cy="-10.164" r="0.15"/>
+<circle cx="29.870" cy="-2.950" r="0.15"/>
+<circle cx="29.870" cy="-11.867" r="0.15"/>
+<circle cx="35.111" cy="-10.164" r="0.15"/>
+<circle cx="26.630" cy="-7.408" r="0.15"/>
+<circle cx="35.111" cy="-4.653" r="0.15"/>
+<circle cx="31.871" cy="-0.194" r="0.15"/>
+<circle cx="31.871" cy="-9.111" r="0.15"/>
+<circle cx="26.630" cy="-1.897" r="0.15"/>
+<circle cx="23.391" cy="-6.356" r="0.15"/>
+<circle cx="24.628" cy="-2.548" r="0.15"/>
+<circle cx="33.109" cy="-5.303" r="0.15"/>
+<circle cx="24.628" cy="-8.059" r="0.15"/>
+<circle cx="27.868" cy="-12.517" r="0.15"/>
+<circle cx="38.350" cy="-5.705" r="0.15"/>
+<circle cx="29.870" cy="-8.461" r="0.15"/>
+<circle cx="35.111" cy="-1.247" r="0.15"/>
+<circle cx="29.870" cy="0.456" r="0.15"/>
+<circle cx="35.111" cy="-6.758" r="0.15"/>
+<circle cx="26.630" cy="-4.002" r="0.15"/>
+<circle cx="26.630" cy="-9.513" r="0.15"/>
+<circle cx="31.871" cy="-2.299" r="0.15"/>
+<circle cx="31.871" cy="-11.216" r="0.15"/>
+<circle cx="37.113" cy="-9.513" r="0.15"/>
+<circle cx="28.632" cy="-6.758" r="0.15"/>
+<circle cx="37.113" cy="-4.002" r="0.15"/>
+<circle cx="33.873" cy="0.456" r="0.15"/>
+<circle cx="37.113" cy="-1.897" r="0.15"/>
+<circle cx="39.115" cy="-6.758" r="0.15"/>
+<circle cx="30.634" cy="-9.513" r="0.15"/>
+<circle cx="35.875" cy="-2.299" r="0.15"/>
+<circle cx="30.634" cy="-0.596" r="0.15"/>
+<circle cx="35.875" cy="-7.810" r="0.15"/>
+<circle cx="27.395" cy="-5.055" r="0.15"/>
+<circle cx="27.395" cy="-10.566" r="0.15"/>
+<circle cx="32.636" cy="-3.352" r="0.15"/>
+<circle cx="32.636" cy="-12.269" r="0.15"/>
+<circle cx="37.877" cy="-10.566" r="0.15"/>
+<circle cx="29.397" cy="-7.810" r="0.15"/>
+<circle cx="37.877" cy="-5.055" r="0.15"/>
+<circle cx="34.638" cy="-0.596" r="0.15"/>
+<circle cx="34.638" cy="-9.513" r="0.15"/>
+<circle cx="29.397" cy="-2.299" r="0.15"/>
+<circle cx="26.158" cy="-6.758" r="0.15"/>
+<circle cx="34.638" cy="-4.002" r="0.15"/>
+<circle cx="29.397" cy="-11.216" r="0.15"/>
+<circle cx="34.638" cy="-12.919" r="0.15"/>
+<circle cx="29.397" cy="-5.705" r="0.15"/>
+<circle cx="37.877" cy="-8.461" r="0.15"/>
+<circle cx="37.877" cy="-2.950" r="0.15"/>
+<circle cx="26.158" cy="-12.269" r="0.15"/>
+<circle cx="31.399" cy="-5.055" r="0.15"/>
+<circle cx="31.399" cy="-13.972" r="0.15"/>
+<circle cx="36.640" cy="-12.269" r="0.15"/>
+<circle cx="28.160" cy="-9.513" r="0.15"/>
+<circle cx="36.640" cy="-6.758" r="0.15"/>
+<circle cx="33.401" cy="-2.299" r="0.15"/>
+<circle cx="33.401" cy="-11.216" r="0.15"/>
+<circle cx="28.160" cy="-4.002" r="0.15"/>
+<circle cx="24.920" cy="-8.461" r="0.15"/>
+<circle cx="33.401" cy="-5.705" r="0.15"/>
+<circle cx="28.160" cy="-12.919" r="0.15"/>
+<circle cx="33.401" cy="-14.622" r="0.15"/>
+<circle cx="29.397" cy="-14.622" r="0.15"/>
+<circle cx="39.879" cy="-5.705" r="0.15"/>
+<circle cx="31.399" cy="-8.461" r="0.15"/>
+<circle cx="36.640" cy="-1.247" r="0.15"/>
+<circle cx="31.399" cy="0.456" r="0.15"/>
+<circle cx="38.642" cy="-9.513" r="0.15"/>
+<circle cx="30.162" cy="-6.758" r="0.15"/>
+<circle cx="38.642" cy="-4.002" r="0.15"/>
+<circle cx="35.403" cy="0.456" r="0.15"/>
+<circle cx="35.403" cy="-8.461" r="0.15"/>
+<circle cx="30.162" cy="-1.247" r="0.15"/>
+<circle cx="26.922" cy="-5.705" r="0.15"/>
+<circle cx="35.403" cy="-2.950" r="0.15"/>
+<circle cx="30.162" cy="-10.164" r="0.15"/>
+<circle cx="35.403" cy="-11.867" r="0.15"/>
+<circle cx="30.162" cy="-4.653" r="0.15"/>
+<circle cx="38.642" cy="-7.408" r="0.15"/>
+<circle cx="38.642" cy="-1.897" r="0.15"/>
+<circle cx="26.922" cy="-11.216" r="0.15"/>
+<circle cx="32.164" cy="-4.002" r="0.15"/>
+<circle cx="32.164" cy="-12.919" r="0.15"/>
+<circle cx="37.405" cy="-11.216" r="0.15"/>
+<circle cx="28.924" cy="-8.461" r="0.15"/>
+<circle cx="37.405" cy="-5.705" r="0.15"/>
+<circle cx="34.166" cy="-1.247" r="0.15"/>
+<circle cx="34.166" cy="-10.164" r="0.15"/>
+<circle cx="28.924" cy="-2.950" r="0.15"/>
+<circle cx="25.685" cy="-7.408" r="0.15"/>
+<circle cx="34.166" cy="-4.653" r="0.15"/>
+<circle cx="28.924" cy="-11.867" r="0.15"/>
+<circle cx="34.166" cy="-13.570" r="0.15"/>
+<circle cx="30.162" cy="-13.570" r="0.15"/>
+<circle cx="25.685" cy="-10.814" r="0.15"/>
+<circle cx="30.926" cy="-3.600" r="0.15"/>
+<circle cx="30.926" cy="-12.517" r="0.15"/>
+<circle cx="36.168" cy="-10.814" r="0.15"/>
+<circle cx="27.687" cy="-8.059" r="0.15"/>
+<circle cx="36.168" cy="-5.303" r="0.15"/>
+<circle cx="32.928" cy="-0.845" r="0.15"/>
+<circle cx="32.928" cy="-9.762" r="0.15"/>
+<circle cx="27.687" cy="-2.548" r="0.15"/>
+<circle cx="24.448" cy="-7.006" r="0.15"/>
+<circle cx="32.928" cy="-4.251" r="0.15"/>
+<circle cx="27.687" cy="-11.465" r="0.15"/>
+<circle cx="32.928" cy="-13.168" r="0.15"/>
+<circle cx="27.687" cy="-5.954" r="0.15"/>
+<circle cx="36.168" cy="-8.709" r="0.15"/>
+<circle cx="36.168" cy="-3.198" r="0.15"/>
+<circle cx="30.926" cy="-10.412" r="0.15"/>
+<circle cx="30.926" cy="-1.495" r="0.15"/>
+<circle cx="25.685" cy="-3.198" r="0.15"/>
+<circle cx="34.166" cy="-5.954" r="0.15"/>
+<circle cx="25.685" cy="-8.709" r="0.15"/>
+<circle cx="28.924" cy="-13.168" r="0.15"/>
+<circle cx="28.924" cy="1.260" r="0.15"/>
+<circle cx="32.928" cy="1.260" r="0.15"/>
+<circle cx="32.928" cy="-7.657" r="0.15"/>
+<circle cx="27.687" cy="-0.443" r="0.15"/>
+<circle cx="24.448" cy="-4.901" r="0.15"/>
+<circle cx="32.928" cy="-2.146" r="0.15"/>
+<circle cx="27.687" cy="-9.360" r="0.15"/>
+<circle cx="32.928" cy="-11.063" r="0.15"/>
+<circle cx="27.687" cy="-3.849" r="0.15"/>
+<circle cx="36.168" cy="-6.604" r="0.15"/>
+<circle cx="36.168" cy="-1.093" r="0.15"/>
+<circle cx="30.926" cy="-8.307" r="0.15"/>
+<circle cx="30.926" cy="0.610" r="0.15"/>
+<circle cx="25.685" cy="-1.093" r="0.15"/>
+<circle cx="25.685" cy="-12.115" r="0.15"/>
+<circle cx="30.926" cy="-4.901" r="0.15"/>
+<circle cx="30.926" cy="-13.818" r="0.15"/>
+<circle cx="36.168" cy="-12.115" r="0.15"/>
+<circle cx="24.448" cy="-8.307" r="0.15"/>
+<circle cx="32.928" cy="-5.552" r="0.15"/>
+<circle cx="27.687" cy="-12.766" r="0.15"/>
+<circle cx="32.928" cy="-14.469" r="0.15"/>
+<circle cx="27.687" cy="-7.255" r="0.15"/>
+<circle cx="36.168" cy="-10.010" r="0.15"/>
+<circle cx="36.168" cy="-4.499" r="0.15"/>
+<circle cx="30.926" cy="-11.713" r="0.15"/>
+<circle cx="30.926" cy="-2.796" r="0.15"/>
+<circle cx="25.685" cy="-4.499" r="0.15"/>
+<circle cx="34.166" cy="-7.255" r="0.15"/>
+<circle cx="25.685" cy="-10.010" r="0.15"/>
+<circle cx="28.924" cy="-14.469" r="0.15"/>
+<circle cx="28.924" cy="-0.041" r="0.15"/>
+<circle cx="32.928" cy="-0.041" r="0.15"/>
+<circle cx="32.928" cy="-8.958" r="0.15"/>
+<circle cx="27.687" cy="-1.744" r="0.15"/>
+<circle cx="24.448" cy="-6.202" r="0.15"/>
+<circle cx="32.928" cy="-3.447" r="0.15"/>
+<circle cx="27.687" cy="-10.661" r="0.15"/>
+<circle cx="32.928" cy="-12.364" r="0.15"/>
+<circle cx="27.687" cy="-5.150" r="0.15"/>
+<circle cx="36.168" cy="-7.905" r="0.15"/>
+<circle cx="36.168" cy="-2.394" r="0.15"/>
+<circle cx="30.926" cy="-9.608" r="0.15"/>
+<circle cx="30.926" cy="-0.691" r="0.15"/>
+<circle cx="25.685" cy="-2.394" r="0.15"/>
+<circle cx="38.642" cy="-5.800" r="0.15"/>
+<circle cx="30.162" cy="-8.556" r="0.15"/>
+<circle cx="35.403" cy="-1.342" r="0.15"/>
+<circle cx="35.403" cy="-10.259" r="0.15"/>
+<circle cx="30.162" cy="-3.045" r="0.15"/>
+<circle cx="30.162" cy="0.361" r="0.15"/>
+<circle cx="34.166" cy="0.361" r="0.15"/>
+<circle cx="34.166" cy="-8.556" r="0.15"/>
+<circle cx="28.924" cy="-1.342" r="0.15"/>
+<circle cx="25.685" cy="-5.800" r="0.15"/>
+<circle cx="34.166" cy="-3.045" r="0.15"/>
+<circle cx="28.924" cy="-10.259" r="0.15"/>
+<circle cx="34.166" cy="-11.962" r="0.15"/>
+<circle cx="28.924" cy="-4.748" r="0.15"/>
+<circle cx="37.405" cy="-7.503" r="0.15"/>
+<circle cx="37.405" cy="-1.992" r="0.15"/>
+<circle cx="32.164" cy="-9.206" r="0.15"/>
+<circle cx="32.164" cy="-0.289" r="0.15"/>
+<circle cx="26.922" cy="-1.992" r="0.15"/>
+<circle cx="35.403" cy="-4.748" r="0.15"/>
+<circle cx="26.922" cy="-7.503" r="0.15"/>
+<circle cx="30.162" cy="-11.962" r="0.15"/>
+<circle cx="39.879" cy="-7.503" r="0.15"/>
+<circle cx="36.640" cy="-11.962" r="0.15"/>
+<circle cx="31.399" cy="-4.748" r="0.15"/>
+<circle cx="38.642" cy="-11.311" r="0.15"/>
+<circle cx="35.403" cy="-13.665" r="0.15"/>
+<circle cx="30.162" cy="-6.451" r="0.15"/>
+<circle cx="38.642" cy="-9.206" r="0.15"/>
+<circle cx="38.642" cy="-3.695" r="0.15"/>
+<circle cx="33.401" cy="-10.909" r="0.15"/>
+<circle cx="33.401" cy="-1.992" r="0.15"/>
+<circle cx="28.160" cy="-3.695" r="0.15"/>
+<circle cx="36.640" cy="-6.451" r="0.15"/>
+<circle cx="28.160" cy="-9.206" r="0.15"/>
+<circle cx="31.399" cy="-13.665" r="0.15"/>
+<circle cx="37.877" cy="-4.748" r="0.15"/>
+<circle cx="29.397" cy="-7.503" r="0.15"/>
+<circle cx="34.638" cy="-0.289" r="0.15"/>
+<circle cx="34.638" cy="-9.206" r="0.15"/>
+<circle cx="29.397" cy="-1.992" r="0.15"/>
+<circle cx="29.397" cy="1.414" r="0.15"/>
+<circle cx="33.401" cy="1.414" r="0.15"/>
+<circle cx="33.401" cy="-7.503" r="0.15"/>
+<circle cx="28.160" cy="-0.289" r="0.15"/>
+<circle cx="24.920" cy="-4.748" r="0.15"/>
+<circle cx="36.640" cy="-0.940" r="0.15"/>
+<circle cx="31.399" cy="-8.154" r="0.15"/>
+<circle cx="31.399" cy="0.763" r="0.15"/>
+<circle cx="26.158" cy="-0.940" r="0.15"/>
+<circle cx="34.638" cy="-3.695" r="0.15"/>
+<circle cx="26.158" cy="-6.451" r="0.15"/>
+<circle cx="29.397" cy="-10.909" r="0.15"/>
+<circle cx="39.115" cy="-6.451" r="0.15"/>
+<circle cx="35.875" cy="-10.909" r="0.15"/>
+<circle cx="30.634" cy="-3.695" r="0.15"/>
+<circle cx="37.877" cy="-10.259" r="0.15"/>
+<circle cx="34.638" cy="-12.612" r="0.15"/>
+<circle cx="29.397" cy="-5.398" r="0.15"/>
+<circle cx="37.877" cy="-8.154" r="0.15"/>
+<circle cx="37.877" cy="-2.643" r="0.15"/>
+<circle cx="32.636" cy="-9.857" r="0.15"/>
+<circle cx="32.636" cy="-0.940" r="0.15"/>
+<circle cx="27.395" cy="-2.643" r="0.15"/>
+<circle cx="35.875" cy="-5.398" r="0.15"/>
+<circle cx="27.395" cy="-8.154" r="0.15"/>
+<circle cx="30.634" cy="-12.612" r="0.15"/>
+<circle cx="27.868" cy="-0.691" r="0.15"/>
+<circle cx="33.109" cy="-7.905" r="0.15"/>
+<circle cx="24.628" cy="-5.150" r="0.15"/>
+<circle cx="24.628" cy="-10.661" r="0.15"/>
+<circle cx="23.391" cy="-6.853" r="0.15"/>
+<circle cx="31.871" cy="-4.097" r="0.15"/>
+<circle cx="26.630" cy="-11.311" r="0.15"/>
+<circle cx="31.871" cy="-13.014" r="0.15"/>
+<circle cx="26.630" cy="-5.800" r="0.15"/>
+<circle cx="35.111" cy="-8.556" r="0.15"/>
+<circle cx="35.111" cy="-3.045" r="0.15"/>
+<circle cx="29.870" cy="-10.259" r="0.15"/>
+<circle cx="29.870" cy="-1.342" r="0.15"/>
+<circle cx="24.628" cy="-3.045" r="0.15"/>
+<circle cx="33.109" cy="-5.800" r="0.15"/>
+<circle cx="24.628" cy="-8.556" r="0.15"/>
+<circle cx="27.868" cy="-13.014" r="0.15"/>
+<circle cx="38.350" cy="-7.503" r="0.15"/>
+<circle cx="35.111" cy="-11.962" r="0.15"/>
+<circle cx="29.870" cy="-4.748" r="0.15"/>
+<circle cx="37.113" cy="-11.311" r="0.15"/>
+<circle cx="33.873" cy="-13.665" r="0.15"/>
+<circle cx="28.632" cy="-6.451" r="0.15"/>
+<circle cx="37.113" cy="-9.206" r="0.15"/>
+<circle cx="37.113" cy="-3.695" r="0.15"/>
+<circle cx="31.871" cy="-10.909" r="0.15"/>
+<circle cx="31.871" cy="-1.992" r="0.15"/>
+<circle cx="26.630" cy="-3.695" r="0.15"/>
+<circle cx="35.111" cy="-6.451" r="0.15"/>
+<circle cx="26.630" cy="-9.206" r="0.15"/>
+<circle cx="29.870" cy="-13.665" r="0.15"/>
+<circle cx="38.823" cy="-7.657" r="0.15"/>
+<circle cx="30.342" cy="-10.412" r="0.15"/>
+<circle cx="35.583" cy="-3.198" r="0.15"/>
+<circle cx="35.583" cy="-12.115" r="0.15"/>
+<circle cx="30.342" cy="-4.901" r="0.15"/>
+<circle cx="30.342" cy="-1.495" r="0.15"/>
+<circle cx="35.583" cy="-8.709" r="0.15"/>
+<circle cx="27.103" cy="-5.954" r="0.15"/>
+<circle cx="27.103" cy="-11.465" r="0.15"/>
+<circle cx="32.344" cy="-4.251" r="0.15"/>
+<circle cx="32.344" cy="-13.168" r="0.15"/>
+<circle cx="37.585" cy="-11.465" r="0.15"/>
+<circle cx="34.346" cy="-13.818" r="0.15"/>
+<circle cx="29.105" cy="-6.604" r="0.15"/>
+<circle cx="37.585" cy="-9.360" r="0.15"/>
+<circle cx="37.585" cy="-3.849" r="0.15"/>
+<circle cx="32.344" cy="-11.063" r="0.15"/>
+<circle cx="32.344" cy="-2.146" r="0.15"/>
+<circle cx="27.103" cy="-3.849" r="0.15"/>
+<circle cx="35.583" cy="-6.604" r="0.15"/>
+<circle cx="27.103" cy="-9.360" r="0.15"/>
+<circle cx="30.342" cy="-13.818" r="0.15"/>
+<circle cx="38.823" cy="-5.552" r="0.15"/>
+<circle cx="30.342" cy="-8.307" r="0.15"/>
+<circle cx="35.583" cy="-1.093" r="0.15"/>
+<circle cx="35.583" cy="-10.010" r="0.15"/>
+<circle cx="30.342" cy="-2.796" r="0.15"/>
+<circle cx="30.342" cy="0.610" r="0.15"/>
+<circle cx="34.346" cy="0.610" r="0.15"/>
+<circle cx="37.585" cy="-1.744" r="0.15"/>
+<circle cx="32.344" cy="-8.958" r="0.15"/>
+<circle cx="32.344" cy="-0.041" r="0.15"/>
+<circle cx="27.103" cy="-1.744" r="0.15"/>
+<circle cx="35.583" cy="-4.499" r="0.15"/>
+<circle cx="27.103" cy="-7.255" r="0.15"/>
+<circle cx="30.342" cy="-11.713" r="0.15"/>
+<circle cx="38.350" cy="-7.810" r="0.15"/>
+<circle cx="29.870" cy="-10.566" r="0.15"/>
+<circle cx="35.111" cy="-3.352" r="0.15"/>
+<circle cx="35.111" cy="-12.269" r="0.15"/>
+<circle cx="29.870" cy="-5.055" r="0.15"/>
+<circle cx="29.870" cy="-1.649" r="0.15"/>
+<circle cx="35.111" cy="-8.863" r="0.15"/>
+<circle cx="26.630" cy="-6.107" r="0.15"/>
+<circle cx="26.630" cy="-11.618" r="0.15"/>
+<circle cx="31.871" cy="-4.404" r="0.15"/>
+<circle cx="31.871" cy="-13.321" r="0.15"/>
+<circle cx="37.113" cy="-11.618" r="0.15"/>
+<circle cx="28.632" cy="-8.863" r="0.15"/>
+<circle cx="37.113" cy="-6.107" r="0.15"/>
+<circle cx="33.873" cy="-1.649" r="0.15"/>
+<circle cx="33.873" cy="-10.566" r="0.15"/>
+<circle cx="28.632" cy="-3.352" r="0.15"/>
+<circle cx="25.393" cy="-7.810" r="0.15"/>
+<circle cx="33.873" cy="-5.055" r="0.15"/>
+<circle cx="28.632" cy="-12.269" r="0.15"/>
+<circle cx="33.873" cy="-13.972" r="0.15"/>
+<circle cx="29.870" cy="-13.972" r="0.15"/>
+<circle cx="28.632" cy="0.054" r="0.15"/>
+<circle cx="33.873" cy="-7.160" r="0.15"/>
+<circle cx="25.393" cy="-4.404" r="0.15"/>
+<circle cx="25.393" cy="-9.915" r="0.15"/>
+<circle cx="30.634" cy="-2.701" r="0.15"/>
+<circle cx="30.634" cy="-11.618" r="0.15"/>
+<circle cx="35.875" cy="-9.915" r="0.15"/>
+<circle cx="27.395" cy="-7.160" r="0.15"/>
+<circle cx="35.875" cy="-4.404" r="0.15"/>
+<circle cx="32.636" cy="0.054" r="0.15"/>
+<circle cx="32.636" cy="-8.863" r="0.15"/>
+<circle cx="27.395" cy="-1.649" r="0.15"/>
+<circle cx="24.156" cy="-6.107" r="0.15"/>
+<circle cx="25.393" cy="-2.299" r="0.15"/>
+<circle cx="28.924" cy="0.456" r="0.15"/>
+<circle cx="34.166" cy="-6.758" r="0.15"/>
+<circle cx="25.685" cy="-4.002" r="0.15"/>
+<circle cx="25.685" cy="-9.513" r="0.15"/>
+<circle cx="30.926" cy="-2.299" r="0.15"/>
+<circle cx="30.926" cy="-11.216" r="0.15"/>
+<circle cx="36.168" cy="-9.513" r="0.15"/>
+<circle cx="27.687" cy="-6.758" r="0.15"/>
+<circle cx="36.168" cy="-4.002" r="0.15"/>
+<circle cx="32.928" cy="0.456" r="0.15"/>
+<circle cx="32.928" cy="-8.461" r="0.15"/>
+<circle cx="27.687" cy="-1.247" r="0.15"/>
+<circle cx="24.448" cy="-5.705" r="0.15"/>
+<circle cx="32.928" cy="-2.950" r="0.15"/>
+<circle cx="27.687" cy="-10.164" r="0.15"/>
+<circle cx="32.928" cy="-11.867" r="0.15"/>
+<circle cx="27.687" cy="-4.653" r="0.15"/>
+<circle cx="36.168" cy="-7.408" r="0.15"/>
+<circle cx="36.168" cy="-1.897" r="0.15"/>
+<circle cx="30.926" cy="-9.111" r="0.15"/>
+<circle cx="30.926" cy="-0.194" r="0.15"/>
+<circle cx="25.685" cy="-1.897" r="0.15"/>
+<circle cx="39.407" cy="-6.356" r="0.15"/>
+<circle cx="38.170" cy="-10.164" r="0.15"/>
+<circle cx="29.689" cy="-7.408" r="0.15"/>
+<circle cx="38.170" cy="-4.653" r="0.15"/>
+<circle cx="34.930" cy="-0.194" r="0.15"/>
+<circle cx="34.930" cy="-9.111" r="0.15"/>
+<circle cx="29.689" cy="-1.897" r="0.15"/>
+<circle cx="26.450" cy="-6.356" r="0.15"/>
+<circle cx="34.930" cy="-3.600" r="0.15"/>
+<circle cx="29.689" cy="-10.814" r="0.15"/>
+<circle cx="34.930" cy="-12.517" r="0.15"/>
+<circle cx="29.689" cy="-5.303" r="0.15"/>
+<circle cx="38.170" cy="-8.059" r="0.15"/>
+<circle cx="38.170" cy="-2.548" r="0.15"/>
+<circle cx="39.407" cy="-6.853" r="0.15"/>
+<circle cx="36.168" cy="-11.311" r="0.15"/>
+<circle cx="30.926" cy="-4.097" r="0.15"/>
+<circle cx="38.170" cy="-10.661" r="0.15"/>
+<circle cx="29.689" cy="-7.905" r="0.15"/>
+<circle cx="38.170" cy="-5.150" r="0.15"/>
+<circle cx="34.930" cy="-0.691" r="0.15"/>
+<circle cx="34.930" cy="-9.608" r="0.15"/>
+<circle cx="29.689" cy="-2.394" r="0.15"/>
+<circle cx="26.450" cy="-6.853" r="0.15"/>
+<circle cx="34.930" cy="-4.097" r="0.15"/>
+<circle cx="29.689" cy="-11.311" r="0.15"/>
+<circle cx="34.930" cy="-13.014" r="0.15"/>
+<circle cx="29.689" cy="-5.800" r="0.15"/>
+<circle cx="38.170" cy="-8.556" r="0.15"/>
+<circle cx="38.170" cy="-3.045" r="0.15"/>
+<circle cx="32.928" cy="-10.259" r="0.15"/>
+<circle cx="32.928" cy="-1.342" r="0.15"/>
+<circle cx="27.687" cy="-3.045" r="0.15"/>
+<circle cx="36.168" cy="-5.800" r="0.15"/>
+<circle cx="27.687" cy="-8.556" r="0.15"/>
+<circle cx="30.926" cy="-13.014" r="0.15"/>
+<circle cx="25.685" cy="-11.311" r="0.15"/>
+<circle cx="24.448" cy="-7.503" r="0.15"/>
+<circle cx="32.928" cy="-4.748" r="0.15"/>
+<circle cx="27.687" cy="-11.962" r="0.15"/>
+<circle cx="32.928" cy="-13.665" r="0.15"/>
+<circle cx="27.687" cy="-6.451" r="0.15"/>
+<circle cx="36.168" cy="-9.206" r="0.15"/>
+<circle cx="36.168" cy="-3.695" r="0.15"/>
+<circle cx="30.926" cy="-10.909" r="0.15"/>
+<circle cx="30.926" cy="-1.992" r="0.15"/>
+<circle cx="25.685" cy="-3.695" r="0.15"/>
+<circle cx="34.166" cy="-6.451" r="0.15"/>
+<circle cx="25.685" cy="-9.206" r="0.15"/>
+<circle cx="28.924" cy="-13.665" r="0.15"/>
+<circle cx="37.113" cy="-7.101" r="0.15"/>
+<circle cx="28.632" cy="-9.857" r="0.15"/>
+<circle cx="33.873" cy="-2.643" r="0.15"/>
+<circle cx="33.873" cy="-11.560" r="0.15"/>
+<circle cx="28.632" cy="-4.346" r="0.15"/>
+<circle cx="28.632" cy="-0.940" r="0.15"/>
+<circle cx="33.873" cy="-8.154" r="0.15"/>
+<circle cx="25.393" cy="-5.398" r="0.15"/>
+<circle cx="25.393" cy="-10.909" r="0.15"/>
+<circle cx="24.156" cy="-7.101" r="0.15"/>
+<circle cx="32.636" cy="-4.346" r="0.15"/>
+<circle cx="27.395" cy="-11.560" r="0.15"/>
+<circle cx="32.636" cy="-13.263" r="0.15"/>
+<circle cx="27.395" cy="-6.049" r="0.15"/>
+<circle cx="35.875" cy="-8.804" r="0.15"/>
+<circle cx="35.875" cy="-3.293" r="0.15"/>
+<circle cx="30.634" cy="-10.507" r="0.15"/>
+<circle cx="30.634" cy="-1.590" r="0.15"/>
+<circle cx="25.393" cy="-3.293" r="0.15"/>
+<circle cx="33.873" cy="-6.049" r="0.15"/>
+<circle cx="25.393" cy="-8.804" r="0.15"/>
+<circle cx="28.632" cy="-13.263" r="0.15"/>
+<circle cx="38.350" cy="-5.398" r="0.15"/>
+<circle cx="29.870" cy="-8.154" r="0.15"/>
+<circle cx="35.111" cy="-0.940" r="0.15"/>
+<circle cx="35.111" cy="-9.857" r="0.15"/>
+<circle cx="29.870" cy="-2.643" r="0.15"/>
+<circle cx="29.870" cy="0.763" r="0.15"/>
+<circle cx="33.873" cy="0.763" r="0.15"/>
+<circle cx="37.113" cy="-1.590" r="0.15"/>
+<circle cx="31.871" cy="-8.804" r="0.15"/>
+<circle cx="31.871" cy="0.113" r="0.15"/>
+<circle cx="26.630" cy="-1.590" r="0.15"/>
+<circle cx="35.111" cy="-4.346" r="0.15"/>
+<circle cx="26.630" cy="-7.101" r="0.15"/>
+<circle cx="29.870" cy="-11.560" r="0.15"/>
+<circle cx="37.585" cy="-8.556" r="0.15"/>
+<circle cx="29.105" cy="-11.311" r="0.15"/>
+<circle cx="34.346" cy="-4.097" r="0.15"/>
+<circle cx="34.346" cy="-13.014" r="0.15"/>
+<circle cx="29.105" cy="-5.800" r="0.15"/>
+<circle cx="29.105" cy="-2.394" r="0.15"/>
+<circle cx="34.346" cy="-9.608" r="0.15"/>
+<circle cx="25.866" cy="-6.853" r="0.15"/>
+<circle cx="25.866" cy="-12.364" r="0.15"/>
+<circle cx="33.109" cy="-14.717" r="0.15"/>
+<circle cx="27.868" cy="-7.503" r="0.15"/>
+<circle cx="36.348" cy="-10.259" r="0.15"/>
+<circle cx="36.348" cy="-4.748" r="0.15"/>
+<circle cx="31.107" cy="-11.962" r="0.15"/>
+<circle cx="31.107" cy="-3.045" r="0.15"/>
+<circle cx="25.866" cy="-4.748" r="0.15"/>
+<circle cx="34.346" cy="-7.503" r="0.15"/>
+<circle cx="25.866" cy="-10.259" r="0.15"/>
+<circle cx="29.105" cy="-14.717" r="0.15"/>
+<circle cx="37.585" cy="-4.653" r="0.15"/>
+<circle cx="29.105" cy="-7.408" r="0.15"/>
+<circle cx="34.346" cy="-0.194" r="0.15"/>
+<circle cx="34.346" cy="-9.111" r="0.15"/>
+<circle cx="29.105" cy="-1.897" r="0.15"/>
+<circle cx="29.105" cy="1.509" r="0.15"/>
+<circle cx="34.346" cy="-5.705" r="0.15"/>
+<circle cx="25.866" cy="-2.950" r="0.15"/>
+<circle cx="25.866" cy="-8.461" r="0.15"/>
+<circle cx="31.107" cy="-1.247" r="0.15"/>
+<circle cx="31.107" cy="-10.164" r="0.15"/>
+<circle cx="36.348" cy="-8.461" r="0.15"/>
+<circle cx="27.868" cy="-5.705" r="0.15"/>
+<circle cx="36.348" cy="-2.950" r="0.15"/>
+<circle cx="33.109" cy="1.509" r="0.15"/>
+<circle cx="25.866" cy="-0.845" r="0.15"/>
+<circle cx="34.346" cy="-3.600" r="0.15"/>
+<circle cx="25.866" cy="-6.356" r="0.15"/>
+<circle cx="29.105" cy="-10.814" r="0.15"/>
+<circle cx="39.879" cy="-7.810" r="0.15"/>
+<circle cx="31.399" cy="-10.566" r="0.15"/>
+<circle cx="36.640" cy="-3.352" r="0.15"/>
+<circle cx="31.399" cy="-1.649" r="0.15"/>
+<circle cx="36.640" cy="-8.863" r="0.15"/>
+<circle cx="28.160" cy="-6.107" r="0.15"/>
+<circle cx="28.160" cy="-11.618" r="0.15"/>
+<circle cx="33.401" cy="-4.404" r="0.15"/>
+<circle cx="33.401" cy="-13.321" r="0.15"/>
+<circle cx="38.642" cy="-11.618" r="0.15"/>
+<circle cx="30.162" cy="-8.863" r="0.15"/>
+<circle cx="38.642" cy="-6.107" r="0.15"/>
+<circle cx="35.403" cy="-1.649" r="0.15"/>
+<circle cx="35.403" cy="-10.566" r="0.15"/>
+<circle cx="30.162" cy="-3.352" r="0.15"/>
+<circle cx="26.922" cy="-7.810" r="0.15"/>
+<circle cx="35.403" cy="-5.055" r="0.15"/>
+<circle cx="30.162" cy="-12.269" r="0.15"/>
+<circle cx="35.403" cy="-13.972" r="0.15"/>
+<circle cx="24.448" cy="-10.412" r="0.15"/>
+<circle cx="29.689" cy="-3.198" r="0.15"/>
+<circle cx="29.689" cy="-12.115" r="0.15"/>
+<circle cx="34.930" cy="-10.412" r="0.15"/>
+<circle cx="26.450" cy="-7.657" r="0.15"/>
+<circle cx="34.930" cy="-4.901" r="0.15"/>
+<circle cx="31.691" cy="-0.443" r="0.15"/>
+<circle cx="31.691" cy="-9.360" r="0.15"/>
+<circle cx="26.450" cy="-2.146" r="0.15"/>
+<circle cx="23.210" cy="-6.604" r="0.15"/>
+<circle cx="31.691" cy="-3.849" r="0.15"/>
+<circle cx="26.450" cy="-11.063" r="0.15"/>
+<circle cx="31.691" cy="-12.766" r="0.15"/>
+<circle cx="26.450" cy="-5.552" r="0.15"/>
+<circle cx="34.930" cy="-8.307" r="0.15"/>
+<circle cx="34.930" cy="-2.796" r="0.15"/>
+<circle cx="29.689" cy="-10.010" r="0.15"/>
+<circle cx="29.689" cy="-1.093" r="0.15"/>
+<circle cx="24.448" cy="-2.796" r="0.15"/>
+<circle cx="39.879" cy="-5.398" r="0.15"/>
+<circle cx="36.640" cy="-9.857" r="0.15"/>
+<circle cx="31.399" cy="-2.643" r="0.15"/>
+<circle cx="35.403" cy="0.763" r="0.15"/>
+<circle cx="35.403" cy="-8.154" r="0.15"/>
+<circle cx="30.162" cy="-0.940" r="0.15"/>
+<circle cx="26.922" cy="-5.398" r="0.15"/>
+<circle cx="35.403" cy="-2.643" r="0.15"/>
+<circle cx="30.162" cy="-9.857" r="0.15"/>
+<circle cx="35.403" cy="-11.560" r="0.15"/>
+<circle cx="30.162" cy="-4.346" r="0.15"/>
+<circle cx="38.642" cy="-7.101" r="0.15"/>
+<circle cx="38.642" cy="-1.590" r="0.15"/>
+<circle cx="33.401" cy="-8.804" r="0.15"/>
+<circle cx="33.401" cy="0.113" r="0.15"/>
+<circle cx="28.160" cy="-1.590" r="0.15"/>
+<circle cx="36.640" cy="-4.346" r="0.15"/>
+<circle cx="28.160" cy="-7.101" r="0.15"/>
+<circle cx="31.399" cy="-11.560" r="0.15"/>
+</g>
+<g fill="#e8629a">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="25.393" cy="-8.307" r="0.28"/>
+<circle cx="33.873" cy="-5.552" r="0.28"/>
+<circle cx="33.873" cy="-14.469" r="0.28"/>
+<circle cx="28.632" cy="-7.255" r="0.28"/>
+<circle cx="37.113" cy="-4.499" r="0.28"/>
+<circle cx="31.871" cy="-11.713" r="0.28"/>
+<circle cx="26.630" cy="-4.499" r="0.28"/>
+<circle cx="35.111" cy="-1.744" r="0.28"/>
+<circle cx="35.111" cy="-10.661" r="0.28"/>
+<circle cx="29.870" cy="-3.447" r="0.28"/>
+<circle cx="29.870" cy="-12.364" r="0.28"/>
+<circle cx="38.350" cy="-9.608" r="0.28"/>
+<circle cx="33.109" cy="-2.394" r="0.28"/>
+<circle cx="33.109" cy="-11.311" r="0.28"/>
+</g>
+<g fill="#3fc7c0">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="25.393" cy="-8.307" r="0.28"/>
+<circle cx="33.873" cy="-5.552" r="0.28"/>
+<circle cx="33.873" cy="-14.469" r="0.28"/>
+<circle cx="28.632" cy="-7.255" r="0.28"/>
+<circle cx="37.113" cy="-4.499" r="0.28"/>
+<circle cx="31.871" cy="-11.713" r="0.28"/>
+<circle cx="31.871" cy="-2.796" r="0.28"/>
+<circle cx="26.630" cy="-10.010" r="0.28"/>
+<circle cx="35.111" cy="-7.255" r="0.28"/>
+<circle cx="29.870" cy="-0.041" r="0.28"/>
+<circle cx="29.870" cy="-8.958" r="0.28"/>
+<circle cx="38.350" cy="-6.202" r="0.28"/>
+<circle cx="33.109" cy="-13.416" r="0.28"/>
+<circle cx="27.868" cy="-6.202" r="0.28"/>
+</g>
+<g fill="#b07ae0">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="25.393" cy="-8.307" r="0.28"/>
+<circle cx="33.873" cy="-5.552" r="0.28"/>
+<circle cx="33.873" cy="-14.469" r="0.28"/>
+<circle cx="28.632" cy="-7.255" r="0.28"/>
+<circle cx="37.113" cy="-10.010" r="0.28"/>
+<circle cx="31.871" cy="-2.796" r="0.28"/>
+<circle cx="31.871" cy="-11.713" r="0.28"/>
+<circle cx="26.630" cy="-4.499" r="0.28"/>
+<circle cx="35.111" cy="-1.744" r="0.28"/>
+<circle cx="29.870" cy="-8.958" r="0.28"/>
+<circle cx="38.350" cy="-6.202" r="0.28"/>
+<circle cx="33.109" cy="-13.416" r="0.28"/>
+<circle cx="27.868" cy="-6.202" r="0.28"/>
+<circle cx="36.348" cy="-3.447" r="0.28"/>
+</g>
+<g fill="#e0574a">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="25.393" cy="-8.307" r="0.28"/>
+<circle cx="33.873" cy="-5.552" r="0.28"/>
+<circle cx="28.632" cy="-12.766" r="0.28"/>
+<circle cx="37.113" cy="-10.010" r="0.28"/>
+<circle cx="31.871" cy="-2.796" r="0.28"/>
+<circle cx="31.871" cy="-11.713" r="0.28"/>
+<circle cx="26.630" cy="-4.499" r="0.28"/>
+<circle cx="35.111" cy="-1.744" r="0.28"/>
+<circle cx="29.870" cy="-8.958" r="0.28"/>
+<circle cx="38.350" cy="-6.202" r="0.28"/>
+<circle cx="33.109" cy="-13.416" r="0.28"/>
+<circle cx="27.868" cy="-6.202" r="0.28"/>
+<circle cx="36.348" cy="-3.447" r="0.28"/>
+<circle cx="31.107" cy="-10.661" r="0.28"/>
+</g>
+<g fill="#5cc06e">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="30.634" cy="-10.010" r="0.28"/>
+<circle cx="39.115" cy="-7.255" r="0.28"/>
+<circle cx="30.634" cy="-4.499" r="0.28"/>
+<circle cx="30.634" cy="-13.416" r="0.28"/>
+<circle cx="25.393" cy="-6.202" r="0.28"/>
+<circle cx="33.873" cy="-3.447" r="0.28"/>
+<circle cx="33.873" cy="-12.364" r="0.28"/>
+<circle cx="28.632" cy="-5.150" r="0.28"/>
+<circle cx="37.113" cy="-2.394" r="0.28"/>
+<circle cx="31.871" cy="-9.608" r="0.28"/>
+<circle cx="26.630" cy="-2.394" r="0.28"/>
+<circle cx="26.630" cy="-11.311" r="0.28"/>
+<circle cx="35.111" cy="-8.556" r="0.28"/>
+<circle cx="29.870" cy="-1.342" r="0.28"/>
+</g>
+<g fill="#4aa3e0">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="27.395" cy="-2.146" r="0.28"/>
+<circle cx="35.875" cy="-4.901" r="0.28"/>
+<circle cx="30.634" cy="-12.115" r="0.28"/>
+<circle cx="25.393" cy="-4.901" r="0.28"/>
+<circle cx="33.873" cy="-7.657" r="0.28"/>
+<circle cx="28.632" cy="-0.443" r="0.28"/>
+<circle cx="37.113" cy="-3.198" r="0.28"/>
+<circle cx="31.871" cy="-10.412" r="0.28"/>
+<circle cx="26.630" cy="-3.198" r="0.28"/>
+<circle cx="35.111" cy="-5.954" r="0.28"/>
+<circle cx="29.870" cy="-13.168" r="0.28"/>
+<circle cx="29.870" cy="-4.251" r="0.28"/>
+<circle cx="38.350" cy="-7.006" r="0.28"/>
+<circle cx="33.109" cy="0.208" r="0.28"/>
+<circle cx="27.868" cy="-7.006" r="0.28"/>
+<circle cx="36.348" cy="-9.762" r="0.28"/>
+</g>
+<g fill="#ffffff">
+<circle cx="27.395" cy="-11.063" r="0.28"/>
+<circle cx="35.875" cy="-8.307" r="0.28"/>
+<circle cx="30.634" cy="-1.093" r="0.28"/>
+<circle cx="25.393" cy="-8.307" r="0.28"/>
+<circle cx="33.873" cy="-5.552" r="0.28"/>
+<circle cx="33.873" cy="-14.469" r="0.28"/>
+<circle cx="28.632" cy="-7.255" r="0.28"/>
+<circle cx="37.113" cy="-4.499" r="0.28"/>
+<circle cx="31.871" cy="-11.713" r="0.28"/>
+<circle cx="26.630" cy="-4.499" r="0.28"/>
+<circle cx="35.111" cy="-1.744" r="0.28"/>
+<circle cx="29.870" cy="-8.958" r="0.28"/>
+<circle cx="38.350" cy="-6.202" r="0.28"/>
+<circle cx="33.109" cy="-13.416" r="0.28"/>
+<circle cx="27.868" cy="-6.202" r="0.28"/>
+<circle cx="36.348" cy="-3.447" r="0.28"/>
+<circle cx="31.107" cy="-10.661" r="0.28"/>
+</g>
+<g font-family="system-ui" font-size="0.95">
+<text x="-0.47" y="-17.32" fill="#ffffff">基準</text>
+<text x="-0.47" y="-16.07" fill="#4aa3e0">1桁目で分岐</text>
+<text x="-0.47" y="-14.82" fill="#5cc06e">3桁目で分岐</text>
+<text x="-0.47" y="-13.57" fill="#e0574a">5桁目で分岐</text>
+<text x="-0.47" y="-12.32" fill="#b07ae0">7桁目で分岐</text>
+<text x="-0.47" y="-11.07" fill="#3fc7c0">9桁目で分岐</text>
+<text x="-0.47" y="-9.82" fill="#e8629a">11桁目で分岐</text>
+</g>
+<g fill="#8a93a2" font-family="system-ui" font-size="1.05">
+<text x="-0.87" y="7.01">実空間　同じ場所から流した7本の軌跡</text>
+<text x="-0.87" y="8.61">灰の輪 ＝ 2本以上が通った頂点（19個）　実空間の半径 18.09</text>
+<text x="22.21" y="7.01">残渣　同じ7本</text>
+<text x="22.21" y="8.61">残渣の半径 1.7382（担体の窓の中）</text>
+</g></svg>
