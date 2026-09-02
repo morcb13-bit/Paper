@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>双曲回転 ── 一歩を重ねる</title>
+<style>
+  :root{
+    --ink:#0b0f12;
+    --panel:#131a1f;
+    --line:#26323a;
+    --text:#e2e7e6;
+    --dim:#8d9aa1;
+    --null:#f0c04a;      /* 光円錐（境界） */
+    --sheet:#4f9a92;     /* 原点からの間隔が一定の面 */
+    --orbit:#e2694a;     /* 一歩目 */
+    --second:#7fa3d1;    /* 二歩目 */
+    --sect:#c3b0dd;      /* 切り口 */
+    --warn:#d4694f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--text)}
+  body{
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    font-size:15px;line-height:1.7;-webkit-text-size-adjust:100%;
+  }
+  .num{font-family:"SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  header{padding:28px 24px 10px;max-width:1180px;margin:0 auto}
+  h1{margin:0;font-size:30px;font-weight:600;letter-spacing:.04em}
+  header p{margin:.6em 0 0;color:var(--dim);max-width:62ch}
+  main{max-width:1180px;margin:0 auto;padding:12px 24px 48px;display:grid;gap:18px;
+       grid-template-columns:minmax(0,1fr) 316px}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  #c3d{display:block;width:100%;height:520px;touch-action:none;cursor:grab}
+  #c3d:active{cursor:grabbing}
+  .legend{position:absolute;left:14px;top:12px;font-size:12.5px;color:var(--dim);line-height:1.9}
+  .legend i{display:inline-block;width:20px;height:2px;vertical-align:middle;margin-right:8px}
+  .hint{position:absolute;left:14px;bottom:12px;font-size:12.5px;color:var(--dim);max-width:46ch}
+  aside{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px}
+  .knob{margin-bottom:16px}
+  .knob label{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);margin-bottom:5px}
+  .knob label b{font-weight:500;color:var(--text)}
+  input[type=range]{width:100%;accent-color:var(--orbit);height:22px}
+  .k2 input[type=range]{accent-color:var(--second)}
+  .k3 input[type=range]{accent-color:var(--sect)}
+  .sectread{font-size:13px;color:var(--sect);margin-top:2px}
+  .rule{height:1px;background:var(--line);margin:18px 0}
+  .checks{display:grid;gap:7px;font-size:13.5px;color:var(--dim)}
+  .checks label{display:flex;gap:9px;align-items:center;cursor:pointer}
+  input[type=checkbox]{accent-color:var(--sheet);width:15px;height:15px}
+  button{font:inherit;font-size:13.5px;background:transparent;color:var(--text);
+         border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer}
+  button:hover{border-color:var(--dim)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--sheet);outline-offset:2px}
+  .ledger,.flat{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px 20px}
+  .ledger h2,.flat h2{margin:0 0 10px;font-size:15px;font-weight:600;letter-spacing:.03em}
+  .ledger p,.flat p{color:var(--dim);font-size:13.5px;margin:.5em 0 0;max-width:60ch}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;color:var(--dim);font-weight:400}
+  thead th{color:var(--dim);font-weight:400;font-size:12.5px}
+  td.o{color:var(--orbit)}
+  td.s{color:var(--second)}
+  .verdict{margin-top:12px;font-size:14px}
+  .ok{color:var(--sheet)}
+  .no{color:var(--warn)}
+  #c2d{display:block;width:100%;height:300px}
+  .ladder{margin-top:10px;font-size:13px;color:var(--dim)}
+  @media (max-width:900px){
+    main{grid-template-columns:minmax(0,1fr)}
+    #c3d{height:400px}
+    header{padding-top:20px}
+    h1{font-size:24px}
+  }
+  @media (prefers-reduced-motion:reduce){ :root{--spin-default:0} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>双曲回転 ── 一歩を重ねる</h1>
+  <p>光円錐の内側に、原点からの間隔が一定の面がある。その面の上を一歩ずつ進む。歩幅がラピディティ φ。二歩重ねたとき、何が足し算になって何がならないかを、つまみで確かめる。</p>
+</header>
+
+<main>
+  <section class="stage">
+    <canvas id="c3d"></canvas>
+    <div class="legend">
+      <div><i style="background:#f0c04a"></i>光円錐（境界）</div>
+      <div><i style="background:#4f9a92"></i>間隔一定の面 τ=1</div>
+      <div><i style="background:#e2694a"></i>一歩目とその段</div>
+      <div><i style="background:#7fa3d1"></i>二歩目</div>
+      <div><i style="background:#c3b0dd"></i>切り口</div>
+    </div>
+    <div class="hint" id="hint"></div>
+  </section>
+
+  <aside>
+    <div class="knob">
+      <label><b>一歩目の歩幅 φ₁</b><span class="num" id="l-phi1"></span></label>
+      <input type="range" id="phi1" min="0" max="2.4" step="0.01" value="0.8">
+    </div>
+    <div class="knob">
+      <label><b>一歩目の向き</b><span class="num" id="l-a1"></span></label>
+      <input type="range" id="a1" min="0" max="360" step="1" value="0">
+    </div>
+    <div class="knob k2">
+      <label><b>二歩目の歩幅 φ₂</b><span class="num" id="l-phi2"></span></label>
+      <input type="range" id="phi2" min="0" max="2.4" step="0.01" value="0.6">
+    </div>
+    <div class="knob k2">
+      <label><b>二歩目の向き</b><span class="num" id="l-a2"></span></label>
+      <input type="range" id="a2" min="0" max="360" step="1" value="0">
+    </div>
+    <div class="knob">
+      <label><b>一歩目を何段押すか</b><span class="num" id="l-n"></span></label>
+      <input type="range" id="n" min="1" max="7" step="1" value="4">
+    </div>
+    <div class="knob k3">
+      <label><b>切る面の傾き β</b><span class="num" id="l-beta"></span></label>
+      <input type="range" id="beta" min="0" max="3" step="0.005" value="0.6">
+      <div class="sectread num" id="sect-read"></div>
+    </div>
+    <div class="rule"></div>
+    <div class="checks">
+      <label><input type="checkbox" id="sect" checked>切り口を描く</label>
+      <label><input type="checkbox" id="cone" checked>光円錐を描く</label>
+      <label><input type="checkbox" id="sheet" checked>間隔一定の面を描く</label>
+      <label><input type="checkbox" id="ladder" checked>段の目盛りを描く</label>
+      <label><input type="checkbox" id="spin" checked>回し続ける</label>
+    </div>
+    <div class="rule"></div>
+    <button id="align">二歩目の向きを揃える</button>
+  </aside>
+
+  <section class="ledger">
+    <h2>重ねた結果</h2>
+    <table>
+      <thead><tr><th></th><th>一歩目</th><th>二歩目</th><th>重ねた結果</th><th>一歩目 ⊕ 二歩目</th></tr></thead>
+      <tbody>
+        <tr><td>歩幅 φ</td><td class="num o" id="t-p1"></td><td class="num s" id="t-p2"></td><td class="num" id="t-p12"></td><td class="num" id="t-psum"></td></tr>
+        <tr><td>速さ v/c = tanh φ</td><td class="num o" id="t-v1"></td><td class="num s" id="t-v2"></td><td class="num" id="t-v12"></td><td class="num" id="t-vsum"></td></tr>
+        <tr><td>伸び k = e<sup>φ</sup></td><td class="num o" id="t-k1"></td><td class="num s" id="t-k2"></td><td class="num" id="t-k12"></td><td class="num" id="t-kprod"></td></tr>
+        <tr><td>γ = cosh φ</td><td class="num o" id="t-g1"></td><td class="num s" id="t-g2"></td><td class="num" id="t-g12"></td><td class="num"></td></tr>
+        <tr><td>残った回転</td><td class="num"></td><td class="num"></td><td class="num" id="t-rot"></td><td class="num"></td></tr>
+      </tbody>
+    </table>
+    <div class="verdict" id="verdict"></div>
+    <div class="ladder" id="rungs"></div>
+  </section>
+
+  <section class="flat">
+    <h2>光円錐座標で見る</h2>
+    <canvas id="c2d"></canvas>
+    <p id="flat-read" class="num" style="color:var(--text)"></p>
+    <p>境界の二本を軸に取ると、一歩は伸ばし縮めになる。片側が k 倍、もう片側が 1/k 倍。面積は変わらない。二歩重ねるのは k を掛けること。</p>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ 状態 ============ */
+var S = {phi1:0.80, a1:0, phi2:0.60, a2:0, n:4, beta:0.6,
+         cone:true, sheet:true, ladder:true, spin:true, sect:true};
+var yaw = 0.65, pitch = 0.30, dragging = false, lastX = 0, lastY = 0;
+
+/* ============ 3x3 行列（順は t, x, y） ============ */
+function boost(phi, alpha){
+  var c = Math.cosh(phi), s = Math.sinh(phi);
+  var nx = Math.cos(alpha), ny = Math.sin(alpha), d = c - 1;
+  return [ c,     s*nx,        s*ny,
+           s*nx,  1+d*nx*nx,   d*nx*ny,
+           s*ny,  d*nx*ny,     1+d*ny*ny ];
+}
+function mul(A,B){
+  var M = new Array(9);
+  for(var i=0;i<3;i++) for(var j=0;j<3;j++){
+    var v = 0;
+    for(var k=0;k<3;k++) v += A[i*3+k]*B[k*3+j];
+    M[i*3+j] = v;
+  }
+  return M;
+}
+function ap(M,v){
+  return [M[0]*v[0]+M[1]*v[1]+M[2]*v[2],
+          M[3]*v[0]+M[4]*v[1]+M[5]*v[2],
+          M[6]*v[0]+M[7]*v[1]+M[8]*v[2]];
+}
+/* M = boost(phi,alpha) * rotation を取り出す */
+function decompose(M){
+  var ch = Math.max(1, M[0]);
+  var phi = Math.acosh(ch);
+  var sh = Math.sinh(phi);
+  var al = (sh < 1e-12) ? 0 : Math.atan2(M[6], M[3]);
+  var R = mul(boost(-phi, al), M);
+  var th = Math.atan2(R[7], R[4]);
+  return {phi:phi, alpha:al, rot:th};
+}
+
+/* 世界座標は [x, y, ct]。ct が上。 */
+function tv(v){ return [v[1], v[2], v[0]]; }   /* (t,x,y) → 描画座標 */
+
+/* ============ 投影 ============ */
+var c3 = document.getElementById('c3d'), g3 = c3.getContext('2d');
+var VW = 0, VH = 0, SC = 1, F = 7.5;
+function fit(cv, ctx){
+  var r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width*dpr); cv.height = Math.round(r.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {w:r.width, h:r.height};
+}
+function proj(p){
+  var cy = Math.cos(yaw), sy = Math.sin(yaw);
+  var X = p[0]*cy - p[1]*sy;
+  var Y = p[0]*sy + p[1]*cy;
+  var Z = p[2];
+  var cp = Math.cos(pitch), sp = Math.sin(pitch);
+  var dep = Y*cp + Z*sp;
+  var up  = -Y*sp + Z*cp;
+  var f = F/(F + dep);
+  return {x: VW/2 + SC*X*f, y: VH*0.60 - SC*up*f, d: dep};
+}
+
+/* ============ 図形 ============ */
+var segs = [];
+function seg(a,b,col,w){
+  var A = proj(a), B = proj(b);
+  segs.push({ax:A.x, ay:A.y, bx:B.x, by:B.y, d:(A.d+B.d)/2, c:col, w:w});
+}
+function ring(r, h, col, w, n){
+  n = n || 40;
+  var prev = null;
+  for(var i=0;i<=n;i++){
+    var t = i*2*Math.PI/n, p = [r*Math.cos(t), r*Math.sin(t), h];
+    if(prev) seg(prev, p, col, w);
+    prev = p;
+  }
+}
+
+function buildCone(){
+  var R = 2.9, dirs = 24;
+  for(var i=0;i<dirs;i++){
+    var a = i*2*Math.PI/dirs;
+    seg([0,0,0],[R*Math.cos(a), R*Math.sin(a), R], 'rgba(240,192,74,.34)', 1);
+    seg([0,0,0],[R*Math.cos(a), R*Math.sin(a), -R], 'rgba(240,192,74,.13)', 1);
+  }
+  for(var h=1;h<=2.9;h+=0.95){
+    ring(h, h, 'rgba(240,192,74,.40)', 1.1);
+    ring(h, -h, 'rgba(240,192,74,.13)', 1);
+  }
+}
+function buildSheet(){
+  var tmax = 2.35, dirs = 24, i, t, prev, p;
+  for(i=0;i<dirs;i++){
+    var a = i*2*Math.PI/dirs;
+    prev = null;
+    for(t=0;t<=tmax+1e-9;t+=0.13){
+      p = [Math.sinh(t)*Math.cos(a), Math.sinh(t)*Math.sin(a), Math.cosh(t)];
+      if(prev) seg(prev,p,'rgba(79,154,146,.30)',1);
+      prev = p;
+    }
+  }
+  for(t=0.45;t<=tmax+1e-9;t+=0.45){
+    ring(Math.sinh(t), Math.cosh(t), 'rgba(79,154,146,.55)', 1.2);
+  }
+  ring(0.012, 1, 'rgba(79,154,146,.9)', 2, 12);
+}
+
+/* 光円錐 (ct)²=x²+y² を 平面 ct = βx + 1 で切る */
+function buildSection(){
+  var b = S.beta, R = 2.9, col = 'rgba(195,176,221,.95)';
+  var side, i, prev, x, D, ct, y, r;
+  for(side=-1;side<=1;side+=2){
+    prev = null;
+    for(i=0;i<=900;i++){
+      x = -9 + 18*i/900;
+      D = (b*b-1)*x*x + 2*b*x + 1;
+      ct = b*x + 1;
+      if(D < 0 || ct <= 0 || ct > R){ prev = null; continue; }
+      y = side*Math.sqrt(D);
+      r = Math.sqrt(x*x + y*y);
+      if(r > R){ prev = null; continue; }
+      var p = [x, y, ct];
+      if(prev) seg(prev, p, col, 2.4);
+      prev = p;
+    }
+  }
+}
+
+/* ============ 読み値 ============ */
+function state(){
+  var B1 = boost(S.phi1, S.a1), B2 = boost(S.phi2, S.a2);
+  var M  = mul(B2, B1);
+  var dc = decompose(M);
+  var P1 = ap(B1, [1,0,0]);
+  var P12 = ap(M, [1,0,0]);
+  return {B1:B1, B2:B2, M:M, dc:dc, P1:P1, P12:P12};
+}
+
+function draw3d(st){
+  var d = fit(c3, g3); VW = d.w; VH = d.h; SC = Math.min(VW, VH)*0.185;
+  g3.clearRect(0,0,VW,VH);
+  segs.length = 0;
+
+  if(S.cone) buildCone();
+  if(S.sheet) buildSheet();
+  if(S.sect) buildSection();
+
+  /* 一歩目の軌道（双曲線） */
+  var prev = null, t, p;
+  for(t=-2.4;t<=2.4001;t+=0.06){
+    p = tv(ap(boost(t, S.a1), [1,0,0]));
+    if(prev) seg(prev, p, 'rgba(226,105,74,.85)', 2);
+    prev = p;
+  }
+  /* 二歩目の道すじ（一歩目の到達点から） */
+  prev = null;
+  for(t=0;t<=S.phi2+1e-9;t+=Math.max(0.02, S.phi2/60)){
+    p = tv(ap(boost(t, S.a2), st.P1));
+    if(prev) seg(prev, p, 'rgba(127,163,209,.95)', 2.4);
+    prev = p;
+  }
+
+  segs.sort(function(a,b){ return b.d - a.d; });
+  for(var i=0;i<segs.length;i++){
+    var s = segs[i];
+    g3.strokeStyle = s.c; g3.lineWidth = s.w;
+    g3.beginPath(); g3.moveTo(s.ax,s.ay); g3.lineTo(s.bx,s.by); g3.stroke();
+  }
+
+  /* 段の目盛り（同じ一歩を n 回） */
+  if(S.ladder){
+    var v = [1,0,0];
+    for(var k=0;k<=S.n;k++){
+      var q = proj(tv(v));
+      g3.fillStyle = (k===0) ? 'rgba(226,231,230,.9)' : 'rgba(226,105,74,.95)';
+      g3.beginPath(); g3.arc(q.x,q.y, k===0?3.5:3, 0, 6.2832); g3.fill();
+      v = ap(st.B1, v);
+    }
+  }
+  /* 到達点 */
+  var a = proj(tv(st.P1)), b = proj(tv(st.P12));
+  g3.fillStyle = '#e2694a'; g3.beginPath(); g3.arc(a.x,a.y,5,0,6.2832); g3.fill();
+  g3.fillStyle = '#7fa3d1'; g3.beginPath(); g3.arc(b.x,b.y,6,0,6.2832); g3.fill();
+  g3.strokeStyle = 'rgba(255,255,255,.55)'; g3.lineWidth = 1;
+  g3.beginPath(); g3.arc(b.x,b.y,9,0,6.2832); g3.stroke();
+}
+
+/* ============ 光円錐座標のパネル ============ */
+var c2 = document.getElementById('c2d'), g2 = c2.getContext('2d');
+function draw2d(st){
+  var d = fit(c2, g2), W = d.w, H = d.h;
+  g2.clearRect(0,0,W,H);
+  var ox = W/2, oy = H*0.80, sc = Math.min(W/6.2, H/3.4);
+  function X(ct,x){ return [ox + sc*x, oy - sc*ct]; }
+  function line(p,q,col,w,dash){
+    g2.strokeStyle = col; g2.lineWidth = w;
+    g2.setLineDash(dash||[]);
+    g2.beginPath(); g2.moveTo(p[0],p[1]); g2.lineTo(q[0],q[1]); g2.stroke();
+    g2.setLineDash([]);
+  }
+  /* 軸 */
+  line(X(0,-3.2), X(0,3.2), 'rgba(141,154,161,.35)', 1);
+  line(X(-0.4,0), X(3.2,0), 'rgba(141,154,161,.35)', 1);
+  /* 光円錐（境界の二本） */
+  line(X(0,0), X(3.2,3.2), 'rgba(240,192,74,.75)', 1.6);
+  line(X(0,0), X(3.2,-3.2), 'rgba(240,192,74,.75)', 1.6);
+  /* 双曲線 τ=1 */
+  g2.strokeStyle = 'rgba(79,154,146,.8)'; g2.lineWidth = 1.6; g2.beginPath();
+  for(var t=-2.3,first=true;t<=2.3001;t+=0.04){
+    var q = X(Math.cosh(t), Math.sinh(t));
+    if(first){ g2.moveTo(q[0],q[1]); first=false; } else g2.lineTo(q[0],q[1]);
+  }
+  g2.stroke();
+
+  /* 面内の歩幅（向きが揃っていないときは一歩目の向きの成分で描く） */
+  var p1 = S.phi1, p2 = S.phi1 + S.phi2*Math.cos(S.a2 - S.a1);
+  function box(phi, col, fill){
+    var u = Math.exp(phi), w = Math.exp(-phi);
+    var O = X(0,0), A = X(u/2, u/2), P = X(Math.cosh(phi), Math.sinh(phi)), B = X(w/2, -w/2);
+    g2.fillStyle = fill;
+    g2.beginPath(); g2.moveTo(O[0],O[1]); g2.lineTo(A[0],A[1]); g2.lineTo(P[0],P[1]); g2.lineTo(B[0],B[1]); g2.closePath(); g2.fill();
+    g2.strokeStyle = col; g2.lineWidth = 1.6; g2.stroke();
+    g2.fillStyle = col; g2.beginPath(); g2.arc(P[0],P[1],4,0,6.2832); g2.fill();
+    return {u:u, w:w};
+  }
+  var r2 = box(p2, 'rgba(127,163,209,.9)', 'rgba(127,163,209,.13)');
+  var r1 = box(p1, 'rgba(226,105,74,.9)', 'rgba(226,105,74,.16)');
+
+  /* 段の目盛り */
+  if(S.ladder){
+    for(var k=1;k<=S.n;k++){
+      var pk = X(Math.cosh(k*S.phi1), Math.sinh(k*S.phi1));
+      g2.fillStyle = 'rgba(226,105,74,.85)';
+      g2.beginPath(); g2.arc(pk[0],pk[1],2.6,0,6.2832); g2.fill();
+    }
+  }
+  g2.fillStyle = 'rgba(141,154,161,.9)';
+  g2.font = '12px system-ui, sans-serif';
+  g2.fillText('u = ct + x', X(0.15,2.35)[0], X(0.15,2.35)[1]);
+  g2.fillText('w = ct − x', X(0.15,-3.05)[0], X(0.15,-3.05)[1]);
+
+  document.getElementById('flat-read').textContent =
+    'u₁ = ' + r1.u.toFixed(4) + ' 　 w₁ = ' + r1.w.toFixed(4) + ' 　 u₁w₁ = ' + (r1.u*r1.w).toFixed(4) +
+    ' 　／　 u₂ = ' + r2.u.toFixed(4) + ' 　 w₂ = ' + r2.w.toFixed(4) + ' 　 u₂w₂ = ' + (r2.u*r2.w).toFixed(4);
+}
+
+/* ============ 表 ============ */
+function T(id, v){ document.getElementById(id).textContent = v; }
+function drawTable(st){
+  var p1 = S.phi1, p2 = S.phi2, p12 = st.dc.phi;
+  var v1 = Math.tanh(p1), v2 = Math.tanh(p2);
+  T('t-p1', p1.toFixed(4)); T('t-p2', p2.toFixed(4));
+  T('t-p12', p12.toFixed(4)); T('t-psum', (p1+p2).toFixed(4));
+  T('t-v1', v1.toFixed(4)); T('t-v2', v2.toFixed(4));
+  T('t-v12', Math.tanh(p12).toFixed(4)); T('t-vsum', (v1+v2).toFixed(4));
+  T('t-k1', Math.exp(p1).toFixed(4)); T('t-k2', Math.exp(p2).toFixed(4));
+  T('t-k12', Math.exp(p12).toFixed(4)); T('t-kprod', (Math.exp(p1)*Math.exp(p2)).toFixed(4));
+  T('t-g1', Math.cosh(p1).toFixed(4)); T('t-g2', Math.cosh(p2).toFixed(4));
+  T('t-g12', Math.cosh(p12).toFixed(4));
+  var rot = st.dc.rot*180/Math.PI;
+  T('t-rot', rot.toFixed(3) + '°');
+
+  var gap = Math.abs(p12 - (p1+p2));
+  var vd = document.getElementById('verdict');
+  if(gap < 1e-9){
+    vd.innerHTML = '<span class="ok">φ は足し算。k は掛け算。v は足し算にならない（差 ' +
+      Math.abs(v1+v2 - Math.tanh(p12)).toFixed(4) + '）。</span>';
+  }else{
+    vd.innerHTML = '<span class="no">向きが揃っていない。φ の足し算が ' + gap.toFixed(4) +
+      ' だけ足りず、代わりに ' + Math.abs(rot).toFixed(2) + '° の回転が残っている。</span>';
+  }
+  var out = [], k;
+  for(k=0;k<=S.n;k++) out.push(Math.tanh(k*S.phi1).toFixed(4));
+  document.getElementById('rungs').textContent =
+    '段ごとの v/c（歩幅は同じ φ₁ ずつ）： ' + out.join('  ');
+
+  var b = S.beta, ecc = b*Math.sqrt(2/(1+b*b));
+  var name = (b < 1e-6) ? '円' : (Math.abs(ecc-1) < 5e-4 ? '放物線' : (ecc < 1 ? '楕円' : '双曲線'));
+  document.getElementById('sect-read').textContent =
+    'e = ' + ecc.toFixed(4) + ' 　' + name +
+    (b < 1 ? ' 　（速さ β の観測者の同時刻面）' : (b > 1 ? ' 　（どの観測者の同時刻面でもない）' : ' 　（光そのもの）')) +
+    ' 　／一歩目の観測者は β = ' + Math.tanh(S.phi1).toFixed(4);
+
+  document.getElementById('hint').textContent =
+    (Math.abs(S.a1-S.a2) < 1e-9)
+      ? '一本指で転がす。向きを揃えているあいだ、φ₁+φ₂ は必ず重ねた結果と一致する。'
+      : '二歩目の向きがずれている。重ねた結果は「ずれた向きの一歩」＋「回転」に分かれ、φ はもう足せない。';
+}
+
+/* ============ ループ ============ */
+function render(){
+  var st = state();
+  draw3d(st); draw2d(st); drawTable(st);
+}
+var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){ S.spin = false; document.getElementById('spin').checked = false; }
+function tick(){
+  if(S.spin && !dragging) yaw += 0.0032;
+  render();
+  requestAnimationFrame(tick);
+}
+
+/* ============ 入力 ============ */
+function bindRange(id, key, fmt, scale){
+  var el = document.getElementById(id), lab = document.getElementById('l-'+id);
+  function upd(){
+    var v = parseFloat(el.value);
+    S[key] = scale ? v*scale : v;
+    lab.textContent = fmt(v);
+  }
+  el.addEventListener('input', upd); upd();
+}
+var D = Math.PI/180;
+bindRange('phi1','phi1', function(v){ return v.toFixed(2); });
+bindRange('phi2','phi2', function(v){ return v.toFixed(2); });
+bindRange('a1','a1', function(v){ return v.toFixed(0)+'°'; }, D);
+bindRange('a2','a2', function(v){ return v.toFixed(0)+'°'; }, D);
+bindRange('n','n', function(v){ return v.toFixed(0)+' 段'; });
+bindRange('beta','beta', function(v){ return v.toFixed(3); });
+
+['cone','sheet','ladder','spin','sect'].forEach(function(id){
+  var el = document.getElementById(id);
+  el.addEventListener('change', function(){ S[id] = el.checked; });
+});
+document.getElementById('align').addEventListener('click', function(){
+  var a1 = document.getElementById('a1').value;
+  var a2 = document.getElementById('a2');
+  a2.value = a1; a2.dispatchEvent(new Event('input'));
+});
+
+function down(x,y){ dragging = true; lastX = x; lastY = y; }
+function move(x,y){
+  if(!dragging) return;
+  yaw += (x-lastX)*0.008;
+  pitch = Math.max(-1.35, Math.min(1.35, pitch + (y-lastY)*0.006));
+  lastX = x; lastY = y;
+}
+c3.addEventListener('pointerdown', function(e){ c3.setPointerCapture(e.pointerId); down(e.clientX,e.clientY); });
+c3.addEventListener('pointermove', function(e){ move(e.clientX,e.clientY); });
+c3.addEventListener('pointerup', function(){ dragging = false; });
+c3.addEventListener('pointercancel', function(){ dragging = false; });
+window.addEventListener('resize', render);
+
+tick();
+})();
+</script>
+</body>
+</html>
