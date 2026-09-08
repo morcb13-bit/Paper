@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回る二焦点 ── 交点が作る波</title>
+<style>
+  :root{
+    --ink:#dfe9f0;
+    --dim:#7e93a3;
+    --line:#1b2d3a;
+    --plus:#5ad6ff;
+    --minus:#ffab4a;
+    --zero:#ffffff;
+    --bg:#04070c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif;}
+  .stage{position:relative;width:100%;max-width:900px;margin:0 auto;}
+  canvas{display:block;width:100%;height:auto;background:var(--bg);touch-action:manipulation}
+  .readout{position:absolute;left:14px;top:12px;font-size:13px;line-height:1.7;
+    color:var(--dim);letter-spacing:.02em;pointer-events:none}
+  .readout b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .swatch{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:1px}
+  .panel{max-width:900px;margin:10px auto 28px;padding:0 14px;
+    display:grid;gap:10px 22px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim)}
+  .row label{white-space:nowrap}
+  input[type=range]{flex:1;min-width:80px;accent-color:#5ad6ff;background:transparent}
+  input[type=checkbox]{accent-color:#5ad6ff;width:15px;height:15px}
+  button{font:inherit;font-size:13px;color:var(--ink);background:#0c151d;
+    border:1px solid var(--line);padding:6px 12px;cursor:pointer;border-radius:2px}
+  button:hover{border-color:#33627d}
+  button:focus-visible{outline:2px solid var(--plus);outline-offset:2px}
+  button[aria-pressed=true]{background:#122a38;border-color:#33627d}
+  .grp{display:flex;gap:6px;flex-wrap:wrap}
+  @media (prefers-reduced-motion:reduce){}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <canvas id="cv" width="900" height="560"></canvas>
+  <div class="readout">
+    <div>累積回転 <b id="deg">0°</b></div>
+    <div id="legend">
+      <span class="swatch" style="background:var(--plus)"></span>差 &gt; 0<br>
+      <span class="swatch" style="background:var(--minus)"></span>差 &lt; 0<br>
+      <span class="swatch" style="background:var(--zero)"></span>差 = 0
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="row grp">
+    <button id="play" aria-pressed="true">止める</button>
+    <button id="half">180°進める</button>
+    <button id="full">360°進める</button>
+  </div>
+  <div class="row grp">
+    <button id="vTilt" aria-pressed="true">斜めから</button>
+    <button id="vTop" aria-pressed="false">真上から</button>
+  </div>
+  <div class="row"><label for="sOmega">回る速さ</label><input id="sOmega" type="range" min="10" max="160" value="70"></div>
+  <div class="row"><label for="sC">波の速さ</label><input id="sC" type="range" min="30" max="150" value="70"></div>
+  <div class="row"><label for="sK">腕の本数</label><input id="sK" type="range" min="1" max="9" value="5"></div>
+  <div class="row"><label for="sAmp">波の高さ</label><input id="sAmp" type="range" min="0" max="80" value="30"></div>
+  <div class="row"><label for="cSign"><input id="cSign" type="checkbox"> 符号を分ける</label></div>
+  <div class="row"><label for="cCirc"><input id="cCirc" type="checkbox" checked> 円を出す</label></div>
+  <div class="row"><label for="cArm"><input id="cArm" type="checkbox" checked> 交点をつなぐ</label></div>
+</div>
+
+<script>
+(() => {
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const degEl = document.getElementById('deg');
+const legend = document.getElementById('legend');
+
+let W = 900, H = 560, DPR = 1;
+function resize(){
+  const rect = cv.getBoundingClientRect();
+  const w = Math.max(280, rect.width);
+  const h = Math.round(w * 0.62);
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = w; H = h;
+  cv.style.height = h + 'px';
+  cv.width  = Math.round(w * DPR);
+  cv.height = Math.round(h * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+
+// ---- 状態 -------------------------------------------------
+let t = 6;            // 現在時刻
+let running = true;
+let view = 'tilt';    // 'top' | 'tilt'
+let omega = 0.70;     // 回る速さ（rad/秒）
+let cWave = 0.70;     // 波の速さ（世界単位/秒）
+let K = 5;            // |差| の上限
+let showCircles = true, showArms = true;
+let ampWave = 0.30;   // 波の高さ
+let splitSign = false; // 二つの源に別の符号を持たせる
+
+const Rorb = 0.16;    // 二焦点の軌道半径
+const dtE  = 0.34;    // 一段の時間の刻み（円が一つ外へ出る間隔）
+const RMAX = 1.25;    // 描く範囲
+
+const posA = tt => [Rorb * Math.cos(omega * tt),  Rorb * Math.sin(omega * tt)];
+const posB = tt => [-Rorb * Math.cos(omega * tt), -Rorb * Math.sin(omega * tt)];
+
+// ---- 円の一覧（段 i、一段で一つ外へ）----------------------
+function shells(tt){
+  const out = [];
+  const i0 = Math.floor(tt / dtE);
+  for(let i = i0; i >= 0; i--){
+    const te = i * dtE;
+    const r = cWave * (tt - te);
+    if(r > RMAX) break;
+    if(r <= 0.001) continue;
+    out.push({i, r, A: posA(te), B: posB(te)});
+  }
+  return out;
+}
+
+// 円と円の交点（2点）
+function meet(cA, rA, cB, rB){
+  const dx = cB[0]-cA[0], dy = cB[1]-cA[1];
+  const d = Math.hypot(dx, dy);
+  if(d < 1e-9) return null;
+  if(d > rA + rB || d < Math.abs(rA - rB)) return null;
+  const a = (rA*rA - rB*rB + d*d) / (2*d);
+  const h2 = rA*rA - a*a;
+  if(h2 < 0) return null;
+  const h = Math.sqrt(h2);
+  const mx = cA[0] + a*dx/d, my = cA[1] + a*dy/d;
+  const ux = -dy/d, uy = dx/d;
+  return [[mx + h*ux, my + h*uy], [mx - h*ux, my - h*uy]];
+}
+
+// ---- 投影 --------------------------------------------------
+function projector(){
+  const S = Math.min(W, H) * 0.42;
+  const cx = W/2, cy = H/2;
+  if(view === 'top'){
+    return (x, y, h) => [cx + x*S, cy + y*S];
+  }
+  const tilt = 0.44, lift = S*0.30;
+  return (x, y, h) => [cx + x*S*1.16, cy + y*S*tilt + H*0.06 - (h||0)*lift];
+}
+
+// ---- 面の高さ（沈みの位置が回り、その向きが遅れて外へ伝わる）----
+function height(x, y, tt){
+  const r  = Math.hypot(x, y);
+  const th = Math.atan2(y, x);
+  const thRet = omega * (tt - r/cWave);   // ここに届いている向きは、遅れた時刻の向き
+  const m = splitSign ? 1 : 2;            // 符号を分けると腕は一本
+  const shape = (r/(0.30 + r)) * (0.55/(0.30 + r));
+  const ripple = ampWave * shape * Math.cos(m * (thRet - th));
+  const well = 0.50 / (0.30 + 3.6*r);     // 中央の沈み（時間によらない）
+  return ripple - well;
+}
+
+// ---- 描画 --------------------------------------------------
+function draw(){
+  ctx.fillStyle = '#04070c';
+  ctx.fillRect(0, 0, W, H);
+  const P = projector();
+
+  if(view === 'tilt') drawSurface(P);
+  else drawTop(P);
+
+  drawMasses(P);
+  degEl.textContent = Math.round(omega * t * 180 / Math.PI % 3600) + '°';
+}
+
+function drawTop(P){
+  const sh = shells(t);
+  const S = Math.min(W, H) * 0.42;
+
+  if(showCircles){
+    ctx.lineWidth = 1;
+    for(const s of sh){
+      const fade = 0.60 * (1 - s.r/RMAX) + 0.10;
+      for(const [c, col] of [[s.A, '90,214,255'], [s.B, '255,171,74']]){
+        ctx.strokeStyle = `rgba(${col},${fade})`;
+        ctx.beginPath();
+        const p = P(c[0], c[1], 0);
+        ctx.arc(p[0], p[1], s.r*S, 0, 6.2832);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // 段の差 k ごとの腕。刻みのあいだも同じ差の位置を拾って曲線にする
+  const i0 = Math.floor(t / dtE);
+  const SUB = 6;                       // 一段を何分割して拾うか
+  for(let k = -K; k <= K; k++){
+    const lines = [[], []];            // 枝ごとの、途切れで分かれた線
+    const dots  = [[], []];
+    let cur = [[], []];
+    for(let n = 0; ; n++){
+      const sA = (i0 - n/SUB) * dtE;
+      const rA = cWave * (t - sA);
+      if(rA > RMAX) break;
+      if(rA <= 0.001) continue;
+      const sB = sA - k * dtE;
+      const rB = cWave * (t - sB);
+      let pts = null;
+      if(rB > 0.001 && rB <= RMAX) pts = meet(posA(sA), rA, posB(sB), rB);
+      if(pts){
+        for(let b = 0; b < 2; b++){
+          cur[b].push(pts[b]);
+          if(n % SUB === 0) dots[b].push(pts[b]);
+        }
+      }else{
+        for(let b = 0; b < 2; b++){
+          if(cur[b].length > 1) lines[b].push(cur[b]);
+          cur[b] = [];
+        }
+      }
+    }
+    for(let b = 0; b < 2; b++) if(cur[b].length > 1) lines[b].push(cur[b]);
+
+    const col = k > 0 ? '90,214,255' : (k < 0 ? '255,171,74' : '255,255,255');
+    const w = k === 0 ? 1.7 : 1.3;
+    for(let b = 0; b < 2; b++){
+      if(showArms){
+        ctx.strokeStyle = `rgba(${col},0.42)`;
+        ctx.lineWidth = w;
+        ctx.lineJoin = 'round';
+        for(const seg of lines[b]){
+          ctx.beginPath();
+          seg.forEach((q, n) => {
+            const p = P(q[0], q[1], 0);
+            n ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+          });
+          ctx.stroke();
+        }
+      }
+      ctx.fillStyle = `rgba(${col},0.55)`;
+      for(const q of dots[b]){
+        const p = P(q[0], q[1], 0);
+        ctx.fillRect(p[0]-1.3, p[1]-1.3, 2.6, 2.6);
+      }
+    }
+  }
+}
+
+function drawSurface(P){
+  const N = 44, L = 1.22;
+  const grid = [];
+  for(let iy = 0; iy <= N; iy++){
+    const row = [];
+    for(let ix = 0; ix <= N; ix++){
+      const x = -L + 2*L*ix/N, y = -L + 2*L*iy/N;
+      row.push(P(x, y, height(x, y, t)));
+    }
+    grid.push(row);
+  }
+  ctx.lineWidth = 1;
+  for(let iy = 0; iy <= N; iy++){
+    ctx.strokeStyle = `rgba(46,230,242,${0.20 + 0.34*iy/N})`;
+    ctx.beginPath();
+    grid[iy].forEach((p, ix) => ix ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+    ctx.stroke();
+  }
+  for(let ix = 0; ix <= N; ix++){
+    ctx.strokeStyle = 'rgba(46,230,242,0.30)';
+    ctx.beginPath();
+    for(let iy = 0; iy <= N; iy++){
+      const p = grid[iy][ix];
+      iy ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]);
+    }
+    ctx.stroke();
+  }
+}
+
+function drawMasses(P){
+  const S = Math.min(W, H) * 0.42;
+  const rad = Math.max(6, S*0.055);
+  for(const [pos, tint] of [[posA(t), '#cfefff'], [posB(t), '#ffe0bd']]){
+    const h = view === 'tilt' ? height(pos[0], pos[1], t) : 0;
+    const p = P(pos[0], pos[1], h);
+    const g = ctx.createRadialGradient(p[0]-rad*0.3, p[1]-rad*0.3, rad*0.1, p[0], p[1], rad);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(1, tint);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], rad, 0, 6.2832);
+    ctx.fill();
+  }
+}
+
+// ---- ループ ------------------------------------------------
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now - last)/1000);
+  last = now;
+  if(running) t += dt;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ---- 操作 --------------------------------------------------
+const $ = id => document.getElementById(id);
+$('play').onclick = e => {
+  running = !running;
+  e.target.textContent = running ? '止める' : '進める';
+  e.target.setAttribute('aria-pressed', running);
+};
+$('half').onclick = () => { t += Math.PI/omega; };
+$('full').onclick = () => { t += 2*Math.PI/omega; };
+function setView(v){
+  view = v;
+  $('vTop').setAttribute('aria-pressed', v === 'top');
+  $('vTilt').setAttribute('aria-pressed', v === 'tilt');
+  legend.style.visibility = v === 'top' ? 'visible' : 'hidden';
+}
+$('vTop').onclick = () => setView('top');
+$('vTilt').onclick = () => setView('tilt');
+$('sOmega').oninput = e => { omega = e.target.value/100; };
+$('sC').oninput = e => { cWave = e.target.value/100; };
+$('sK').oninput = e => { K = +e.target.value; };
+$('sAmp').oninput = e => { ampWave = e.target.value/100; };
+$('cSign').onchange = e => { splitSign = e.target.checked; };
+$('cCirc').onchange = e => { showCircles = e.target.checked; };
+$('cArm').onchange = e => { showArms = e.target.checked; };
+
+resize();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
