@@ -1,0 +1,21 @@
+{
+ "ring": 15,
+ "layers": 10,
+ "rot": 4,
+ "step": [
+  2,
+  2,
+  2,
+  0,
+  1,
+  -1
+ ],
+ "rise": 4.683281572999747,
+ "lateral": 2.3416407864998736,
+ "contacts_per_layer": 6,
+ "screw_period": 5,
+ "pitch": 23.416407864998742,
+ "pitch_exact": "4+12phi",
+ "rt_total": 150,
+ "overlaps": 0
+}
