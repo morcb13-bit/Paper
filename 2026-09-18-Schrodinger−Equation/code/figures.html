@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>割り算のない波 ― 図</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6;
+  --rule:#C9D8D2;
+  --rule-strong:#9CB6AD;
+  --ink:#1F2A2E;
+  --ink-soft:#5E6E71;
+  --curve:#2E5E4E;
+  --mark:#C2453A;
+  --edge:#8A6A1F;
+  --field:#EDF2EF;
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --paper:#131A19;
+    --rule:#26403A;
+    --rule-strong:#3D625A;
+    --ink:#E6EAE6;
+    --ink-soft:#9AA8A5;
+    --curve:#7FC8A9;
+    --mark:#E8836F;
+    --edge:#D4B15E;
+    --field:#1B2523;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131A19; --rule:#26403A; --rule-strong:#3D625A;
+  --ink:#E6EAE6; --ink-soft:#9AA8A5; --curve:#7FC8A9;
+  --mark:#E8836F; --edge:#D4B15E; --field:#1B2523;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  font-size:15px; line-height:1.75;
+  padding:28px 20px 56px;
+}
+.wrap{max-width:740px; margin:0 auto}
+h1{
+  font-family:"Shippori Mincho",serif; font-weight:600;
+  font-size:26px; line-height:1.4; margin:0 0 4px; letter-spacing:.02em;
+}
+h2{
+  font-family:"Shippori Mincho",serif; font-weight:500;
+  font-size:19px; margin:44px 0 6px; letter-spacing:.02em;
+}
+p{margin:.5em 0; max-width:62ch}
+.sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:26px}
+.num{font-family:ui-monospace,"SFMono-Regular",Menlo,monospace; font-size:13px}
+figure{margin:16px 0 0}
+svg{width:100%; height:auto; display:block; background:var(--field); border:1px solid var(--rule)}
+.controls{
+  display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center;
+  margin-top:12px; padding:12px 14px; border:1px solid var(--rule); background:var(--field);
+}
+.controls label{font-size:13px; color:var(--ink-soft); display:flex; gap:8px; align-items:center}
+select,button{
+  font:inherit; font-size:13px; color:var(--ink); background:var(--paper);
+  border:1px solid var(--rule-strong); padding:4px 10px; cursor:pointer;
+}
+button:hover{background:var(--rule)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--mark); outline-offset:2px}
+.verdict{
+  margin-top:10px; padding:9px 13px; border-left:3px solid var(--curve);
+  background:var(--field); font-size:13.5px;
+}
+.verdict.bad{border-left-color:var(--mark)}
+.readout{margin-top:10px; font-size:13px; color:var(--ink-soft); overflow-x:auto}
+table{border-collapse:collapse; font-size:12.5px}
+td,th{padding:2px 10px 2px 0; text-align:right; font-family:ui-monospace,monospace}
+th{color:var(--ink-soft); font-weight:400}
+td.l,th.l{text-align:left}
+.key{display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-soft); margin-top:8px}
+.key i{display:inline-block; width:22px; height:0; border-top:2px solid; vertical-align:middle; margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>割り算のない波</h1>
+<p class="sub">五芒星グラフの上の一歩。曲線は式から描き、点は実際に走らせた数列から打っています。点が曲線から外れたら、式のほうが誤りです。</p>
+
+<h2>図1　伸びるか縮むかを決める放物線</h2>
+<p>一歩で二乗和がどう動くかは <span class="num">A′ = L²·A + c(k)·Q</span> で決まります。<span class="num">Q ≥ 0</span> なので、符号を決めているのは <span class="num">c(k) = d·k² − 2L·k</span> だけ。根は <span class="num">k = 0</span> と <span class="num">k = 2L/d</span> の二つで、内側が縮む側、外側が伸びる側、根の上だけが保存です。</p>
+
+<figure>
+<svg id="fig1" viewBox="0 0 700 380" role="img" aria-label="c(k) の放物線と実測点"></svg>
+</figure>
+<div class="controls">
+  <label>グラフ
+    <select id="g1">
+      <option value="6">五芒星（次数6）</option>
+      <option value="3">正十二面体の稜（次数3）</option>
+      <option value="2">円（次数2）</option>
+    </select>
+  </label>
+  <label>L <select id="L1"></select></label>
+  <button id="reroll">別の初期値で打ち直す</button>
+</div>
+<div class="verdict" id="v1"></div>
+<div class="readout" id="r1"></div>
+
+<h2>図2　番地の対が乗る円錐曲線</h2>
+<p>番地に入る辺の和 <span class="num">S</span> は、番地の上で二階の漸化式になります ── <span class="num">s<sub>n+2</sub> = λ·s<sub>n+1</sub> − L²·s<sub>n</sub></span>。隣り合う二項の対には整数の二次形式 <span class="num">q(a,b) = b² − λ·a·b + L²·a²</span> が乗り、一歩ごとに <span class="num">L²</span> 倍になります。判別式は <span class="num">D = λ² − 4L²</span>。</p>
+
+<figure>
+<svg id="fig2" viewBox="0 0 700 420" role="img" aria-label="対 (s_n, s_{n+1}) が乗る円錐曲線"></svg>
+</figure>
+<div class="controls">
+  <label>固有値 λ
+    <select id="lam">
+      <option value="6">6（D = 0）</option>
+      <option value="2" selected>2（D = −32）</option>
+      <option value="1">1（D = −35）</option>
+      <option value="-2">−2（D = −32）</option>
+      <option value="-3">−3（D = −27）</option>
+    </select>
+  </label>
+  <button id="stepBtn">一歩すすめる</button>
+  <button id="resetBtn">最初へ</button>
+</div>
+<div class="key">
+  <span><i style="border-color:var(--curve)"></i>q(a,b) = q₀ の曲線</span>
+  <span><i style="border-color:var(--mark)"></i>(s<sub>n</sub>, s<sub>n+1</sub>) を L<sup>n</sup> で割った点</span>
+</div>
+<div class="verdict" id="v2"></div>
+<div class="readout" id="r2"></div>
+
+</div>
+
+<script>
+/* ---------- Z[phi] の整数対で正十二面体を組む ---------- */
+const zadd=(x,y)=>[x[0]+y[0],x[1]+y[1]];
+const zsub=(x,y)=>[x[0]-y[0],x[1]-y[1]];
+const zmul=(x,y)=>[x[0]*y[0]+x[1]*y[1], x[0]*y[1]+x[1]*y[0]+x[1]*y[1]];
+const verts=[];
+for(const sx of[1,-1])for(const sy of[1,-1])for(const sz of[1,-1])verts.push([[sx,0],[sy,0],[sz,0]]);
+for(const s1 of[1,-1])for(const s2 of[1,-1]){
+  const inv=[-s1,s1], ph=[0,s2];
+  verts.push([[0,0],inv,ph]); verts.push([inv,ph,[0,0]]); verts.push([ph,[0,0],inv]);
+}
+function d2(p,q){let s=[0,0];for(let i=0;i<3;i++){const t=zsub(p[i],q[i]);s=zadd(s,zmul(t,t));}return s;}
+function buildGraph(target){
+  const adj=Array.from({length:20},()=>[]);
+  for(let i=0;i<20;i++)for(let j=i+1;j<20;j++){
+    const t=d2(verts[i],verts[j]);
+    if(t[0]===target[0]&&t[1]===target[1]){adj[i].push(j);adj[j].push(i);}
+  }
+  return adj;
+}
+const GRAPHS={
+  6:buildGraph([4,0]),
+  3:buildGraph([8,-4]),
+  2:Array.from({length:20},(_,i)=>[(i+19)%20,(i+1)%20])
+};
+
+function arcs(adj){
+  const darcs=[],index=new Map();
+  adj.forEach((ns,u)=>ns.forEach(v=>{index.set(u+","+v,darcs.length);darcs.push([u,v]);}));
+  return {darcs,index};
+}
+function measure(d,k,L){
+  const adj=GRAPHS[d], {darcs,index}=arcs(adj), N=darcs.length;
+  const psi=Array.from({length:N},()=>Math.floor(Math.random()*9)-4);
+  const S=adj.map((ns,u)=>ns.reduce((a,w)=>a+psi[index.get(w+","+u)],0));
+  const next=darcs.map(([u,v])=>k*S[u]-L*psi[index.get(v+","+u)]);
+  const A=psi.reduce((a,x)=>a+x*x,0), A2=next.reduce((a,x)=>a+x*x,0);
+  const Q=S.reduce((a,x)=>a+x*x,0);
+  return {A,A2,Q,N,c_meas:Q===0?null:(A2-L*L*A)/Q};
+}
+
+/* ---------- 図1 ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+function el(n,at){const e=document.createElementNS(SVGNS,n);for(const k in at)e.setAttribute(k,at[k]);return e;}
+const Lchoices={6:[3,6,9,12],3:[3,6,9],2:[1,2,3]};
+const g1=document.getElementById("g1"), L1=document.getElementById("L1");
+function fillL(){
+  const d=+g1.value; L1.innerHTML="";
+  Lchoices[d].forEach(L=>{const o=document.createElement("option");o.value=L;o.textContent=L;L1.appendChild(o);});
+}
+fillL();
+
+function drawFig1(){
+  const d=+g1.value, L=+L1.value, svg=document.getElementById("fig1");
+  svg.innerHTML="";
+  const W=700,H=380,PL=58,PR=24,PT=22,PB=44;
+  const root2=2*L/d;
+  const kmin=Math.min(-1,root2-1)-0.4, kmax=Math.max(1,root2+1)+0.4;
+  const cf=k=>d*k*k-2*L*k;
+  let ys=[];for(let k=kmin;k<=kmax;k+=0.02)ys.push(cf(k));
+  const ymin=Math.min(...ys,0), ymax=Math.max(...ys,0);
+  const pad=(ymax-ymin)*0.12||1;
+  const X=k=>PL+(k-kmin)/(kmax-kmin)*(W-PL-PR);
+  const Y=v=>H-PB-(v-(ymin-pad))/((ymax+pad)-(ymin-pad))*(H-PT-PB);
+
+  // 方眼
+  for(let k=Math.ceil(kmin);k<=Math.floor(kmax);k++)
+    svg.appendChild(el("line",{x1:X(k),y1:PT,x2:X(k),y2:H-PB,stroke:"var(--rule)","stroke-width":1}));
+  svg.appendChild(el("line",{x1:PL,y1:Y(0),x2:W-PR,y2:Y(0),stroke:"var(--rule-strong)","stroke-width":1.5}));
+
+  // 縮む帯
+  if(root2>0){
+    svg.appendChild(el("rect",{x:X(0),y:PT,width:X(root2)-X(0),height:H-PT-PB,
+      fill:"var(--curve)","fill-opacity":.07}));
+  }
+  // 放物線
+  let dpath="";
+  for(let k=kmin;k<=kmax;k+=0.01) dpath+=(dpath?"L":"M")+X(k).toFixed(1)+" "+Y(cf(k)).toFixed(1);
+  svg.appendChild(el("path",{d:dpath,fill:"none",stroke:"var(--curve)","stroke-width":2}));
+
+  // 根
+  [0,root2].forEach(r=>{
+    svg.appendChild(el("line",{x1:X(r),y1:PT,x2:X(r),y2:H-PB,stroke:"var(--edge)","stroke-width":1.5,"stroke-dasharray":"5 4"}));
+    const t=el("text",{x:X(r),y:PT-6,fill:"var(--edge)","font-size":12,"text-anchor":"middle"});
+    t.textContent="k = "+(Number.isInteger(r)?r:r.toFixed(2)); svg.appendChild(t);
+  });
+
+  // 目盛
+  for(let k=Math.ceil(kmin);k<=Math.floor(kmax);k++){
+    const t=el("text",{x:X(k),y:H-PB+17,fill:"var(--ink-soft)","font-size":12,"text-anchor":"middle"});
+    t.textContent=k; svg.appendChild(t);
+  }
+  [ymin,0,ymax].forEach(v=>{
+    const t=el("text",{x:PL-8,y:Y(v)+4,fill:"var(--ink-soft)","font-size":12,"text-anchor":"end"});
+    t.textContent=Math.round(v); svg.appendChild(t);
+  });
+  const xl=el("text",{x:W-PR,y:H-8,fill:"var(--ink-soft)","font-size":12,"text-anchor":"end"});
+  xl.textContent="k"; svg.appendChild(xl);
+  const yl=el("text",{x:PL-8,y:PT+2,fill:"var(--ink-soft)","font-size":12,"text-anchor":"end"});
+  yl.textContent="c(k)"; svg.appendChild(yl);
+  const bl=el("text",{x:X(Math.max(0,root2)/2),y:H-PB-8,fill:"var(--curve)","font-size":12,"text-anchor":"middle"});
+  bl.textContent = root2>=1 ? "縮む" : ""; svg.appendChild(bl);
+
+  // 実測点
+  const rows=[]; let allOn=true;
+  for(let k=Math.ceil(kmin);k<=Math.floor(kmax);k++){
+    const m=measure(d,k,L);
+    if(m.c_meas===null) continue;
+    const on=Math.abs(m.c_meas-cf(k))<1e-9;
+    if(!on) allOn=false;
+    svg.appendChild(el("circle",{cx:X(k),cy:Y(m.c_meas),r:5,fill:"var(--mark)"}));
+    rows.push({k,c:cf(k),meas:m.c_meas,A:m.A,A2:m.A2,Q:m.Q,on});
+  }
+  const v1=document.getElementById("v1");
+  v1.className="verdict"+(allOn?"":" bad");
+  v1.textContent = allOn
+    ? "実測点はすべて曲線の上。A′ = L²·A + c(k)·Q が成り立っています。"
+    : "曲線から外れた点があります。式のほうが誤りです。";
+  let html="<table><tr><th class='l'>k</th><th>c(k) 式</th><th>実測 (A′−L²A)/Q</th><th>A</th><th>A′</th><th>Q</th></tr>";
+  rows.forEach(r=>{html+=`<tr><td class='l'>${r.k}</td><td>${r.c}</td><td>${r.meas}</td><td>${r.A}</td><td>${r.A2}</td><td>${r.Q}</td></tr>`;});
+  document.getElementById("r1").innerHTML=html+"</table>";
+}
+g1.addEventListener("change",()=>{fillL();drawFig1();});
+L1.addEventListener("change",drawFig1);
+document.getElementById("reroll").addEventListener("click",drawFig1);
+
+/* ---------- 図2 ---------- */
+const Lc=3;
+let step2=0;
+function orbit(lam,n){
+  let a=1,b=0; const out=[[a,b]];
+  for(let i=0;i<n;i++){const a2=b,b2=lam*b-Lc*Lc*a; a=a2;b=b2; out.push([a,b]);}
+  return out;
+}
+const qf=(a,b,lam)=>b*b-lam*a*b+Lc*Lc*a*a;
+
+function drawFig2(){
+  const lam=+document.getElementById("lam").value;
+  const svg=document.getElementById("fig2"); svg.innerHTML="";
+  const W=700,H=420,CX=350,CY=205;
+  const q0=qf(1,0,lam);
+  const D=lam*lam-4*Lc*Lc;
+  const SC=78;
+  const X=a=>CX+a*SC, Y=b=>CY-b*SC;
+
+  // 整数格子（L^n で割る前の整数点の網ではなく、単位の目安）
+  for(let i=-4;i<=4;i++){
+    svg.appendChild(el("line",{x1:X(i),y1:0,x2:X(i),y2:H,stroke:"var(--rule)","stroke-width":i===0?1.5:1}));
+    svg.appendChild(el("line",{x1:0,y1:Y(i),x2:W,y2:Y(i),stroke:"var(--rule)","stroke-width":i===0?1.5:1}));
+  }
+  const ax=el("text",{x:W-12,y:CY-8,fill:"var(--ink-soft)","font-size":12,"text-anchor":"end"});
+  ax.textContent="sₙ / Lⁿ"; svg.appendChild(ax);
+  const ay=el("text",{x:CX+8,y:16,fill:"var(--ink-soft)","font-size":12});
+  ay.textContent="sₙ₊₁ / Lⁿ"; svg.appendChild(ay);
+
+  // 曲線 q(a,b) = q0
+  if(D===0){
+    // (b - (lam/2) a)^2 = q0  → 平行二直線
+    const r=Math.sqrt(q0), m=lam/2;
+    [r,-r].forEach(off=>{
+      svg.appendChild(el("line",{x1:X(-4),y1:Y(m*-4+off),x2:X(4),y2:Y(m*4+off),
+        stroke:"var(--curve)","stroke-width":2}));
+    });
+  }else{
+    const amax=Math.sqrt(4*q0/(4*Lc*Lc-lam*lam));
+    let up="",dn="";
+    const n=240;
+    for(let i=0;i<=n;i++){
+      const a=-amax+2*amax*i/n;
+      const disc=lam*lam*a*a-4*(Lc*Lc*a*a-q0);
+      const s=disc>0?Math.sqrt(disc):0;
+      const b1=(lam*a+s)/2, b2=(lam*a-s)/2;
+      up+=(up?"L":"M")+X(a).toFixed(1)+" "+Y(b1).toFixed(1);
+      dn+=(dn?"L":"M")+X(a).toFixed(1)+" "+Y(b2).toFixed(1);
+    }
+    svg.appendChild(el("path",{d:up+dn.replace("M","L")+"Z",fill:"var(--curve)","fill-opacity":.06,
+      stroke:"var(--curve)","stroke-width":2}));
+  }
+
+  // 軌道
+  const pts=orbit(lam,10);
+  let allOn=true;
+  const shown=[];
+  for(let n=0;n<=step2 && n<pts.length;n++){
+    const [s0,s1]=pts[n];
+    const den=Math.pow(Lc,n);
+    const a=s0/den, b=s1/den;
+    const on=Math.abs(qf(s0,s1,lam)-Math.pow(Lc,2*n)*q0)<1e-6;
+    if(!on) allOn=false;
+    shown.push({n,s0,s1,q:qf(s0,s1,lam),want:Math.pow(Lc,2*n)*q0,on});
+    if(n>0){
+      const p=pts[n-1], dp=Math.pow(Lc,n-1);
+      svg.appendChild(el("line",{x1:X(p[0]/dp),y1:Y(p[1]/dp),x2:X(a),y2:Y(b),
+        stroke:"var(--mark)","stroke-width":1,"stroke-opacity":.45}));
+    }
+    svg.appendChild(el("circle",{cx:X(a),cy:Y(b),r:n===step2?6:4,
+      fill:n===step2?"var(--mark)":"var(--paper)",stroke:"var(--mark)","stroke-width":2}));
+    if(n===step2){
+      const t=el("text",{x:X(a)+11,y:Y(b)-9,fill:"var(--mark)","font-size":12});
+      t.textContent="n = "+n; svg.appendChild(t);
+    }
+  }
+
+  const v2=document.getElementById("v2");
+  v2.className="verdict"+(allOn?"":" bad");
+  v2.textContent = (D===0 ? "λ = 6 は判別式が 0。曲線は退化して平行二直線になり、点は回らずに直線の上を滑ります。"
+                          : "判別式が負。点は楕円の上を跳びます。")
+    + (allOn ? " q は一歩ごとにちょうど L² 倍です。" : " 曲線から外れました。");
+
+  let html="<table><tr><th class='l'>n</th><th>sₙ</th><th>sₙ₊₁</th><th>q(sₙ, sₙ₊₁)</th><th>L²ⁿ·q₀</th></tr>";
+  shown.forEach(r=>{html+=`<tr><td class='l'>${r.n}</td><td>${r.s0}</td><td>${r.s1}</td><td>${r.q}</td><td>${r.want}</td></tr>`;});
+  document.getElementById("r2").innerHTML=html+"</table>";
+}
+document.getElementById("lam").addEventListener("change",()=>{step2=0;drawFig2();});
+document.getElementById("stepBtn").addEventListener("click",()=>{step2=Math.min(step2+1,9);drawFig2();});
+document.getElementById("resetBtn").addEventListener("click",()=>{step2=0;drawFig2();});
+
+drawFig1(); drawFig2();
+</script>
+</body>
+</html>
