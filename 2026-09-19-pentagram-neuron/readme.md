@@ -128,10 +128,25 @@ b13_chain_units.py    単位を規則から直接組む。Paper/2026-07-26-penro
 ## ファイル
 
 ```
-code/
-  pentagram_neuron.py    検定DF1〜DF13 / NE0〜NE3 / IF1〜IF2
-  wind_core.py           担体（スキル penrose-recognition から持ってくる）
-  b13_chain_units.py     単位（Paper/2026-07-26-penrose/code/ から持ってくる）
+2026-09-19-pentagram-neuron/
+  article_pentagon_neuron.md   記事
+  readme.md                    ディレクトリの説明
+  fig_solid3d.html             立体図（担体に正十二面体を伏せる）
+  fig_plant.html               成長の図（光へ伸びる）
+  code/
+    pentagram_neuron.py   DF・NE・IF     本体
+    mirror_pairs.py       MR1〜MR3       左右の対・軸の残渣・三つめの焦点
+    theta_step.py         NE5            θ の周期と一歩
+    assign_zero.py        NE4            札から0番と向きを決める
+    auto_run.py           AU1〜AU3       符牒を差し込んで走らせる
+    amoeba.py             AM1〜AM3       濃さの山を追う
+    am4.py / am5.py / am6.py / am7.py    隣の広げ方と逆フィボナッチの梯子
+    plant.py              PL6〜PL8       発火と二葉
+    cg1_hex.py / cg1_seeds.py  CG1       六角との突き合わせ
+    mkdata.py / mk3d.py                  図のデータを作る
+    carrier.json / solid3d.json          図が読むデータ
+    wind_core.py / b13_chain_units.py / mg_lib.py   担体と単位と追跡の道具
+
 ```
 
 ---
