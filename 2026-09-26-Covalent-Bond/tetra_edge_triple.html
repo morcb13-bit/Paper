@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>辺のまわりに三つで閉じる ― 正四面体の2と3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Shippori+Mincho:wght@600&display=swap" rel="stylesheet">
+<style>:root{--bg:#eef1f4;--panel:#f8fafb;--ink:#26303b;--sub:#5d6875;--edge:#6f7b88;--line:#d5dbe1;
+  --ta:#2d56b3;--tb:#b5443a;--tc:#2f8a5b;--axis:#b8862b;--hit:#d23b2f;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161b22;--panel:#1d242d;--ink:#dfe5eb;--sub:#9aa5b1;--edge:#8e99a6;--line:#2c3541;
+  --ta:#7fa3ea;--tb:#e8877c;--tc:#6cc596;--axis:#d3a444;--hit:#ff6b5e}}
+:root[data-theme="dark"]{--bg:#161b22;--panel:#1d242d;--ink:#dfe5eb;--sub:#9aa5b1;--edge:#8e99a6;--line:#2c3541;
+  --ta:#7fa3ea;--tb:#e8877c;--tc:#6cc596;--axis:#d3a444;--hit:#ff6b5e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;line-height:1.7}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 40px}
+h1{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:600;font-size:clamp(1.35rem,3.6vw,1.9rem);line-height:1.35;margin:0 0 6px}
+.lead{color:var(--sub);max-width:64ch;margin:0 0 18px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+@media (max-width:800px){.stage{grid-template-columns:1fr}}
+.view{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none}
+canvas{display:block;width:100%;height:auto}
+#cv{cursor:grab}
+.caption{position:absolute;left:14px;top:10px;right:14px;font-size:.9rem;color:var(--sub)}
+.side{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;font-size:.9rem}
+.side h2{font-size:.95rem;margin:0 0 8px}
+.side h2+*{margin-top:0}
+.side .blk+.blk{margin-top:14px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:4px 2px;text-align:left;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right}
+.big{font-family:"Shippori Mincho",serif;font-size:2rem;line-height:1.1}
+.controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px}
+button{font:inherit;font-size:.9rem;padding:6px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ta);outline-offset:2px}
+input[type=range]{flex:1 1 200px;accent-color:var(--ta)}
+.note{font-size:.85rem;color:var(--sub);max-width:72ch;margin-top:16px}
+.inset{margin-top:10px;background:var(--bg);border-radius:4px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<main>
+<h1>辺のまわりに三つで閉じる ― 正四面体の2と3</h1>
+<p class="lead">二つの正四面体が1本の辺を共有しています。共有辺を軸に、二つ目を開いていきます。机に置いた形（開き 109.47°）から、互いの外接球が相手の中心を通る形（開き 120°）まで開くと、三つ目の席がちょうど一つ空きます。</p>
+<div class="stage">
+  <div class="view">
+    <canvas id="cv" width="900" height="640" aria-label="共有辺のまわりに並ぶ正四面体"></canvas>
+    <div class="caption" id="cap"></div>
+  </div>
+  <aside class="side">
+    <div class="blk">
+      <h2>3 × 中心間の二乗</h2>
+      <div class="big" id="d2">8.000</div>
+      <div id="d2note" style="color:var(--sub)"></div>
+    </div>
+    <div class="blk">
+      <h2>共有辺の向こうから見た図</h2>
+      <canvas id="top" class="inset" width="560" height="560" aria-label="共有辺の方向から見た楔と隙間"></canvas>
+    </div>
+    <div class="blk">
+      <table id="gaps"></table>
+    </div>
+  </aside>
+</div>
+<div class="controls">
+  <button id="play" aria-pressed="false">再生</button>
+  <span style="font-size:.9rem;color:var(--sub)">開き</span>
+  <input type="range" id="phi" min="0" max="1000" value="0" aria-label="共有辺のまわりの開き">
+  <button id="third" aria-pressed="false">三つ目を入れる</button>
+  <button id="sph" aria-pressed="false">外接球</button>
+</div>
+<p class="note">正四面体は外接球の半径の二乗を 3 とした大きさで描いています。机に置いた形では 3 × 中心間の二乗が 8（＝2³）、互いの外接球が相手の中心を通る形では 9（＝3²）です。その間の開き 10.53° は、正四面体の二面角 70.53° から 60° を引いた角と同じです。120° まで開いたときだけ三つ目が入り、隙間が 49.47° ずつ揃って一周が閉じます。ドラッグで回せます。</p>
+</main>
+<script>
+const P0=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+const sub=(a,b)=>a.map((x,i)=>x-b[i]),add=(a,b)=>a.map((x,i)=>x+b[i]),mul=(a,s)=>a.map(x=>x*s),dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const E0=P0[0],E1=P0[1],M=mul(add(E0,E1),.5);let AX=sub(E1,E0);AX=mul(AX,1/Math.hypot(...AX));
+function rot(p,th){const q=sub(p,M),c=Math.cos(th),s=Math.sin(th);return add(M,add(add(mul(q,c),mul(cross(AX,q),s)),mul(AX,dot(AX,q)*(1-c))));}
+const FLAT=Math.acos(-1/3),OPEN=2*Math.PI/3;
+let t=0,third=false,thirdA=0,sph=false,playing=false,yaw=0.9,pitch=0.25;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+// 表示の座標：共有辺を縦に
+const e2=(()=>{let v=sub([0,0,0],M);v=sub(v,mul(AX,dot(AX,v)));return mul(v,1/Math.hypot(...v));})();
+const e3=cross(AX,e2);
+const L=p=>{const q=sub(p,M);return[dot(q,e2),dot(q,AX),dot(q,e3)];};
+const cv=document.getElementById("cv"),g=cv.getContext("2d"),tp=document.getElementById("top"),h=tp.getContext("2d");
+const col=()=>{const s=getComputedStyle(document.documentElement),v=n=>s.getPropertyValue(n).trim();return{ink:v("--ink"),sub:v("--sub"),edge:v("--edge"),line:v("--line"),panel:v("--panel"),bg:v("--bg"),t:[v("--ta"),v("--tb"),v("--tc")],axis:v("--axis")};};
+function proj(p){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  let x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy,y=p[1]*cp-z*sp;z=p[1]*sp+z*cp;
+  const s=Math.min(cv.width,cv.height)*0.2,f=9/(9+z);return[cv.width/2+x*s*f,cv.height*0.52-y*s*f,z];}
+function tetra(th){return P0.map(p=>L(rot(p,th)));}
+const faces=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+function drawTets(list,C){
+  const polys=[];
+  list.forEach(([V,ci,a])=>{const pr=V.map(proj);faces.forEach(f=>{const z=(pr[f[0]][2]+pr[f[1]][2]+pr[f[2]][2])/3;polys.push({pr,f,z,ci,a});});});
+  polys.sort((p,q)=>q.z-p.z);
+  for(const p of polys){g.globalAlpha=0.16*p.a;g.fillStyle=C.t[p.ci];g.beginPath();p.f.forEach((k,i)=>{const q=p.pr[k];i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.closePath();g.fill();
+    g.globalAlpha=p.a;g.strokeStyle=C.t[p.ci];g.lineWidth=1.6*devicePixelRatio;g.stroke();}
+  g.globalAlpha=1;}
+function sphere(c,C){g.strokeStyle=C.sub;g.globalAlpha=0.35;g.lineWidth=1*devicePixelRatio;g.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);
+  const R=Math.sqrt(3);for(let m=0;m<4;m++){const ps=m*Math.PI/4;g.beginPath();for(let k=0;k<=64;k++){const th=k/64*2*Math.PI;const p=proj([c[0]+R*Math.cos(th)*Math.cos(ps),c[1]+R*Math.sin(th),c[2]+R*Math.cos(th)*Math.sin(ps)]);k?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]);}g.stroke();}
+  g.setLineDash([]);g.globalAlpha=1;}
+function phiNow(){return FLAT+(OPEN-FLAT)*t;}
+function draw(){
+  const C=col(),W=cv.width,H=cv.height;g.clearRect(0,0,W,H);
+  const phi=phiNow();
+  const list=[[tetra(0),0,1],[tetra(phi),1,1]];
+  if(third)list.push([tetra(-OPEN+(1-thirdA)*0.9),2,thirdA]);
+  // 軸
+  const a0=proj(L(E0)),a1=proj(L(E1));
+  const cA=L([0,0,0]),cB=L(rot([0,0,0],phi));
+  if(sph){sphere(cA,C);}
+  drawTets(list,C);
+  g.strokeStyle=C.axis;g.lineWidth=4*devicePixelRatio;g.beginPath();g.moveTo(a0[0],a0[1]);g.lineTo(a1[0],a1[1]);g.stroke();
+  for(const [c,ci,lab] of [[cA,0,"A"],[cB,1,"B"]].concat(third&&thirdA>0.99?[[L(rot([0,0,0],-OPEN)),2,"C"]]:[])){const p=proj(c);g.fillStyle=C.t[ci];g.beginPath();g.arc(p[0],p[1],4.5*devicePixelRatio,0,7);g.fill();
+    g.font=`${12*devicePixelRatio}px "BIZ UDPGothic",sans-serif`;g.fillText("中心"+lab,p[0]+7*devicePixelRatio,p[1]-7*devicePixelRatio);}
+  const deg=phi*180/Math.PI,v=6*(1-Math.cos(phi));
+  document.getElementById("d2").textContent=v.toFixed(3);
+  document.getElementById("d2note").textContent=t<0.001?"机に置いた形：8 ＝ 2³":t>0.999?"互いの中心を通る形：9 ＝ 3²":`開き ${deg.toFixed(2)}°（机から ${(deg-109.4712).toFixed(2)}° 折り上げ）`;
+  document.getElementById("cap").textContent=third&&thirdA>0.99?"三つで一周が閉じる：隙間は 49.47° ずつ":t>0.999?"開き 120°：三つ目の席が一つ空く":`開き ${deg.toFixed(2)}°`;
+  drawTop(C,phi);}
+function drawTop(C,phi){
+  const W=tp.width,H=tp.height,cx=W/2,cy=H/2,R=W*0.4;h.clearRect(0,0,W,H);
+  h.strokeStyle=C.line;h.lineWidth=1*devicePixelRatio;h.beginPath();h.arc(cx,cy,R,0,7);h.stroke();
+  const half=Math.acos(1/3)/2;
+  const wedges=[[0,0,1],[phi,1,1]];if(third)wedges.push([-OPEN,2,thirdA]);
+  for(const [c,ci,a] of wedges){const base=-Math.PI/2;h.globalAlpha=0.3*a;h.fillStyle=C.t[ci];h.beginPath();h.moveTo(cx,cy);h.arc(cx,cy,R,base+c-half,base+c+half);h.closePath();h.fill();
+    h.globalAlpha=a;h.strokeStyle=C.t[ci];h.lineWidth=2*devicePixelRatio;h.stroke();
+    const px=cx+R*0.62*Math.cos(base+c),py=cy+R*0.62*Math.sin(base+c);h.fillStyle=C.t[ci];h.beginPath();h.arc(px,py,4*devicePixelRatio,0,7);h.fill();}
+  h.globalAlpha=1;h.fillStyle=C.axis;h.beginPath();h.arc(cx,cy,5*devicePixelRatio,0,7);h.fill();
+  const tw=70.5288,deg=phi*180/Math.PI;let rows;
+  if(third&&thirdA>0.99)rows=[["A と B の間","49.47°"],["B と C の間","49.47°"],["C と A の間","49.47°"]];
+  else rows=[["楔ひとつ","70.53°"],["A と B の間（狭い側）",(deg-tw).toFixed(2)+"°"],["A と B の間（広い側）",(360-deg-tw).toFixed(2)+"°"]];
+  document.getElementById("gaps").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td class="r">${r[1]}</td></tr>`).join("");}
+function fit(){for(const c of [cv,tp]){const w=c.clientWidth;c.width=Math.round(w*devicePixelRatio);c.height=Math.round(w*(c===cv?0.71:1)*devicePixelRatio);}}
+addEventListener("resize",()=>{fit();draw();});
+const sl=document.getElementById("phi");sl.oninput=()=>{t=sl.value/1000;if(t<0.999){third=false;tb.setAttribute("aria-pressed",false);}};
+const tb=document.getElementById("third");tb.onclick=()=>{if(t<0.999){t=1;sl.value=1000;}third=!third;thirdA=reduce?1:0;tb.setAttribute("aria-pressed",third);};
+const sb=document.getElementById("sph");sb.onclick=()=>{sph=!sph;sb.setAttribute("aria-pressed",sph);};
+const pb=document.getElementById("play");let ph=0;
+pb.onclick=()=>{playing=!playing;pb.setAttribute("aria-pressed",playing);pb.textContent=playing?"止める":"再生";if(playing){ph=0;t=0;third=false;}};
+let drag=null;cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch+=(e.clientY-drag[1])*0.01;pitch=Math.max(-1.4,Math.min(1.4,pitch));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+let last=performance.now();
+function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(playing){ph+=dt;if(ph<1.2)t=0;else if(ph<4.2)t=Math.min(1,(ph-1.2)/3);else if(ph<5)t=1;else if(ph<5.1){if(!third){third=true;thirdA=0;}}else if(ph>9){ph=0;t=0;third=false;}
+    sl.value=Math.round(t*1000);tb.setAttribute("aria-pressed",third);}
+  if(third&&thirdA<1)thirdA=Math.min(1,thirdA+dt/1.5);
+  if(!drag&&!reduce)yaw+=0.002;draw();requestAnimationFrame(loop);}
+fit();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
