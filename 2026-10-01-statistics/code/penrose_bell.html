@@ -1,0 +1,209 @@
+<title>ペンローズの正規分布</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 計測器の画面：上に担体の上の道の数（釣鐘の丘）、下に断面（番地ごとの点と照合用の釣鐘）と数表 */
+:root{
+  --paper:#f2f4f6; --panel:#ffffff; --ink:#18212c; --muted:#5b6674; --rule:#d5dbe2; --edge:#d0d6dd;
+  --hill:#2a49c9; --src:#b3261e; --ref:#18212c;
+  --d3:#c0760f; --d4:#1f8a7a; --d5:#2a49c9; --d6:#a3317a; --d7:#5b6674;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440; --edge:#2b3541;
+  --hill:#8aa2ff; --src:#ff7a6e; --ref:#e3e9ef;
+  --d3:#e8a642; --d4:#4fc2ad; --d5:#8aa2ff; --d6:#e07bbd; --d7:#b3bdc8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440; --edge:#2b3541;
+  --hill:#8aa2ff; --src:#ff7a6e; --ref:#e3e9ef;
+  --d3:#e8a642; --d4:#4fc2ad; --d5:#8aa2ff; --d6:#e07bbd; --d7:#b3bdc8; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);line-height:1.7;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-size:clamp(1.5rem,3.6vw,2.3rem);line-height:1.3;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group .lbl{font-size:.78rem;color:var(--muted);letter-spacing:.06em;margin-right:2px}
+button{font:inherit;font-size:.86rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:5px 11px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--hill);outline-offset:2px}
+.stage{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:10px}
+canvas{display:block;width:100%;max-width:100%}
+.row{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px;align-items:start}
+@media (max-width:720px){.row{grid-template-columns:minmax(0,1fr)}}
+.panelTitle{font-size:.78rem;color:var(--muted);letter-spacing:.06em;margin:0 0 4px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;font-family:var(--mono);font-size:.84rem;font-variant-numeric:tabular-nums}
+.stats div{min-width:0;overflow-wrap:anywhere}
+.stats b{display:block;font-family:var(--body);font-weight:400;font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dash{display:inline-block;width:18px;border-top:2px dashed var(--ref);margin-right:5px;vertical-align:middle}
+.text{display:flex;flex-direction:column;gap:10px;max-width:68ch}
+.text h2{font-family:var(--display);font-size:1.15rem;margin:6px 0 0}
+.text p{margin:0}
+.rule{font-family:var(--mono);font-size:.86rem;background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:8px 12px;overflow-x:auto;white-space:pre}
+.note{font-size:.82rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ペンローズの正規分布</h1>
+    <p>源に1を置き、1刻ごとに「自分の数と隣の数をすべて足す」だけを繰り返します。道の数がペンローズの床の上に丘を作り、その断面が釣鐘の形になります。</p>
+  </header>
+
+  <div class="bar">
+    <div class="group">
+      <button id="play" aria-pressed="true">止める</button>
+      <button id="restart">最初から</button>
+    </div>
+    <div class="group" role="group" aria-label="源の位置">
+      <span class="lbl">源</span>
+      <button id="srcA" data-src="0">五回対称の中心</button>
+      <button id="srcB" data-src="1">中心からずらす</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="cv" aria-label="ペンローズの床の上の道の数"></canvas>
+    <div class="row">
+      <div>
+        <p class="panelTitle">断面：番地ごとの道の数（横は源からの距離）</p>
+        <canvas id="sec" aria-label="断面の散布図"></canvas>
+        <div class="legend" style="margin-top:6px">
+          <span><i class="sw" style="background:var(--d3)"></i>隣が3つ</span>
+          <span><i class="sw" style="background:var(--d4)"></i>4つ</span>
+          <span><i class="sw" style="background:var(--d5)"></i>5つ</span>
+          <span><i class="sw" style="background:var(--d6)"></i>6つ</span>
+          <span><i class="sw" style="background:var(--d7)"></i>7つ</span>
+          <span><i class="dash"></i>照合用の釣鐘（観察者側）</span>
+        </div>
+      </div>
+      <div class="stats">
+        <div><b>刻</b><span id="stT">0</span></div>
+        <div><b>丘に乗った番地</b><span id="stV">1</span></div>
+        <div><b>道の総数（2進の桁）</b><span id="stS">1</span></div>
+        <div><b>広がり σ（辺の長さ＝1）</b><span id="stG">–</span></div>
+        <div><b>横の断面で ±σ の内側（百万分率）</b><span id="stI">–</span></div>
+        <div><b>照合：観察者側の正規分布</b><span>682689</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text">
+    <h2>型紙はひとつ</h2>
+    <div class="rule">次の刻の数 ＝ 自分の数 ＋ 隣の番地の数をすべて</div>
+    <p>その場に留まる道と、隣へ移る道を数えています。番地を一列に並べれば、同じ規則は 1 → 1,1,1 → 1,2,3,2,1 と進む三つ足しの三角形になります。パスカルの三角形の仲間です。ペンローズの床では、隣の数が番地ごとに3から7まで違うだけです。</p>
+    <h2>釣鐘と残渣</h2>
+    <p>丘の外形は、どの向きにもほぼ同じ釣鐘です。そのうえで、番地ごとの高さは隣の数で決まった段に分かれます。断面の点が色ごとに層になっているのがそれです。隣が多い番地ほど道が集まり、少ない番地ほど低く出ます。釣鐘の外形からのこのずれは、番地の景色が決める残渣です。</p>
+    <p class="note">どの数も整数の足し算だけで作っています。丘の濃さと断面の高さを最大値に合わせるのは、描くときだけです。σ と ±σ の内側の割合は、この表から後で計算した観察者側の整理です。破線の釣鐘は、その σ で描いた照合用の曲線です。</p>
+  </div>
+</div>
+
+<script>
+(()=>{
+const PHI=(1+Math.sqrt(5))/2, TMAX=90;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const sc=document.getElementById('sec'), sx=sc.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function penrose(n){let tris=[];for(let i=0;i<10;i++){let b=[Math.cos((2*i-1)*Math.PI/10),Math.sin((2*i-1)*Math.PI/10)];let c=[Math.cos((2*i+1)*Math.PI/10),Math.sin((2*i+1)*Math.PI/10)];if(i%2===0){const t=b;b=c;c=t;}tris.push([0,[0,0],b,c]);}
+  for(let k=0;k<n;k++){const out=[];for(const [col,A,B,C] of tris){if(col===0){const P=[A[0]+(B[0]-A[0])/PHI,A[1]+(B[1]-A[1])/PHI];out.push([0,C,P,B],[1,P,C,A]);}else{const Q=[B[0]+(A[0]-B[0])/PHI,B[1]+(A[1]-B[1])/PHI];const R=[B[0]+(C[0]-B[0])/PHI,B[1]+(C[1]-B[1])/PHI];out.push([1,R,C,A],[1,Q,R,B],[0,R,Q,A]);}}tris=out;}return tris;}
+function carrier(){const tris=penrose(8);const e0=tris[0];const s=1/Math.hypot(e0[2][0]-e0[1][0],e0[2][1]-e0[1][1]);
+  const WH=Math.min(34,Math.floor(s*0.72)),HH=Math.round(WH*0.6);const idx=new Map(),X=[],Y=[],edges=new Set();
+  const inR=p=>Math.abs(p[0]*s)<=WH&&Math.abs(p[1]*s)<=HH;
+  const vid=p=>{const k=Math.round(p[0]*s*1e3)+','+Math.round(p[1]*s*1e3);let i=idx.get(k);if(i===undefined){i=X.length;idx.set(k,i);X.push(p[0]*s);Y.push(p[1]*s);}return i;};
+  for(const [,A,B,C] of tris)for(const Q of [B,C]){if(!inR(A)||!inR(Q))continue;const a=vid(A),b=vid(Q);edges.add(a<b?a+'_'+b:b+'_'+a);}
+  const n=X.length,adj=Array.from({length:n},()=>[]),E=[];for(const e of edges){const [a,b]=e.split('_').map(Number);adj[a].push(b);adj[b].push(a);E.push([a,b]);}
+  return {n,X,Y,adj,E,WH,HH};}
+const car=carrier();
+
+/* 型紙：次の刻の数 = 自分 + 隣すべて（整数の足し算） */
+function step(W){const V=new Array(car.n);for(let v=0;v<car.n;v++){let t=W[v];for(const w of car.adj[v])t+=W[w];V[v]=t;}return V;}
+
+let srcMode=1, src=0, frames=[], T=0, playing=!reduce, col={};
+function pickSrc(){const [tx,ty]=srcMode===0?[0,0]:[5.3,2.1];let bd=1e9;for(let v=0;v<car.n;v++){const d=Math.hypot(car.X[v]-tx,car.Y[v]-ty);if(d<bd){bd=d;src=v;}}}
+function frame(t){while(frames.length<=t)frames.push(step(frames[frames.length-1]));return frames[t];}
+function reset(){pickSrc();const W0=new Array(car.n).fill(0n);W0[src]=1n;frames=[W0];T=reduce?TMAX:0;}
+
+/* ---- 描画 ---- */
+let W=0,H=0,k=1,ox=0,oy=0,base=null,SW=0,SH=0;
+function readColors(){const cs=getComputedStyle(document.documentElement);for(const t of ['panel','ink','muted','rule','edge','hill','src','ref','d3','d4','d5','d6','d7'])col[t]=cs.getPropertyValue('--'+t).trim();}
+function layout(){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  W=cv.clientWidth; k=W/(2*car.WH+2); H=Math.round((2*car.HH+2)*k);
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+  ox=W/2; oy=H/2;
+  base=document.createElement('canvas'); base.width=cv.width; base.height=cv.height;
+  const b=base.getContext('2d'); b.setTransform(dpr,0,0,dpr,0,0);
+  b.strokeStyle=col.edge; b.lineWidth=Math.max(0.5,k*0.06); b.beginPath();
+  for(const [a,c] of car.E){b.moveTo(ox+car.X[a]*k,oy-car.Y[a]*k);b.lineTo(ox+car.X[c]*k,oy-car.Y[c]*k);} b.stroke();
+  SW=sc.clientWidth; SH=Math.round(Math.max(180,SW*0.52));
+  sc.width=Math.round(SW*dpr); sc.height=Math.round(SH*dpr); sc.style.height=SH+'px'; sx.setTransform(dpr,0,0,dpr,0,0);
+}
+function stats(Wt){
+  let S=0n,Sx2=0n,Sr2=0n,mx=0n,on=0;
+  const x0=car.X[src], y0=car.Y[src];
+  for(let v=0;v<car.n;v++){const w=Wt[v];if(w===0n)continue;on++;if(w>mx)mx=w;S+=w;
+    const dx=BigInt(Math.round((car.X[v]-x0)*1000)), dy=BigInt(Math.round((car.Y[v]-y0)*1000));
+    Sx2+=w*dx*dx; Sr2+=w*(dx*dx+dy*dy);}
+  const sigX=Math.sqrt(Number(Sx2*1000n/S)/1000)/1000;
+  const sig=Math.sqrt(Number(Sr2*1000n/S)/2000)/1000;
+  let inside=0n; for(let v=0;v<car.n;v++)if(Wt[v]!==0n&&Math.abs(car.X[v]-x0)<=sigX)inside+=Wt[v];
+  return {S,mx,on,sig,sigX,ppm:(inside*1000000n/S)};
+}
+const degCol=d=>col['d'+Math.max(3,Math.min(7,d))];
+function draw(){
+  const Wt=frame(T), st=stats(Wt);
+  ctx.clearRect(0,0,W,H); ctx.drawImage(base,0,0,W,H);
+  const r0=Math.max(1.3,k*0.2);
+  ctx.fillStyle=col.hill;
+  for(let v=0;v<car.n;v++){const w=Wt[v];if(w===0n)continue;
+    const f=Number(w*1000n/st.mx)/1000; if(f<0.004)continue;
+    ctx.globalAlpha=Math.min(1,0.1+0.9*f); ctx.beginPath(); ctx.arc(ox+car.X[v]*k,oy-car.Y[v]*k,r0*(0.7+1.5*f),0,7); ctx.fill();}
+  ctx.globalAlpha=1; ctx.fillStyle=col.src; ctx.beginPath(); ctx.arc(ox+car.X[src]*k,oy-car.Y[src]*k,Math.max(3,k*0.35),0,7); ctx.fill();
+  // 断面
+  sx.clearRect(0,0,SW,SH);
+  const pl=34,pr=8,pt=8,pb=26, gw=SW-pl-pr, gh=SH-pt-pb, R=16;
+  sx.strokeStyle=col.rule; sx.lineWidth=1; sx.beginPath(); sx.moveTo(pl,pt); sx.lineTo(pl,pt+gh); sx.lineTo(pl+gw,pt+gh); sx.stroke();
+  sx.fillStyle=col.muted; sx.font='11px '+getComputedStyle(document.body).fontFamily; sx.textAlign='center';
+  for(let r=0;r<=R;r+=4){const x=pl+gw*r/R; sx.fillText(String(r),x,pt+gh+15); sx.beginPath(); sx.moveTo(x,pt+gh); sx.lineTo(x,pt+gh+3); sx.stroke();}
+  sx.textAlign='right'; sx.fillText('1',pl-6,pt+8); sx.fillText('0',pl-6,pt+gh);
+  const x0=car.X[src], y0=car.Y[src];
+  for(let v=0;v<car.n;v++){const w=Wt[v];if(w===0n)continue;
+    const r=Math.hypot(car.X[v]-x0,car.Y[v]-y0); if(r>R)continue;
+    const f=Number(w*1000n/st.mx)/1000;
+    sx.fillStyle=degCol(car.adj[v].length); sx.beginPath(); sx.arc(pl+gw*r/R,pt+gh*(1-f),2.1,0,7); sx.fill();}
+  if(T>=3){sx.strokeStyle=col.ref; sx.setLineDash([5,4]); sx.lineWidth=1.4; sx.beginPath();
+    for(let i=0;i<=120;i++){const r=R*i/120, g=Math.exp(-r*r/(2*st.sig*st.sig)); const x=pl+gw*r/R, y=pt+gh*(1-g); i?sx.lineTo(x,y):sx.moveTo(x,y);} sx.stroke(); sx.setLineDash([]);}
+  document.getElementById('stT').textContent=T;
+  document.getElementById('stV').textContent=st.on.toLocaleString('ja-JP');
+  document.getElementById('stS').textContent=st.S.toString(2).length+' 桁';
+  document.getElementById('stG').textContent=T>=3?st.sig.toFixed(2):'–';
+  document.getElementById('stI').textContent=T>=3?st.ppm.toString():'–';
+}
+
+/* ---- 操作 ---- */
+const playBtn=document.getElementById('play');
+function setPlay(p){playing=p; playBtn.textContent=p?'止める':'動かす'; playBtn.setAttribute('aria-pressed',String(p));}
+playBtn.addEventListener('click',()=>{if(!playing&&T>=TMAX)T=0;setPlay(!playing);});
+document.getElementById('restart').addEventListener('click',()=>{T=0;setPlay(true);});
+function setSrc(m){srcMode=m;document.querySelectorAll('[data-src]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.src===m)));reset();draw();}
+document.querySelectorAll('[data-src]').forEach(b=>b.addEventListener('click',()=>setSrc(+b.dataset.src)));
+
+let acc=0,last=0;
+function tick(now){
+  const dt=now-last; last=now;
+  if(playing){acc+=dt; if(acc>110){acc=0; if(T<TMAX){T++;draw();} else {setPlay(false);}}}
+  requestAnimationFrame(tick);
+}
+const recolor=()=>{readColors();layout();draw();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',recolor);
+new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{layout();draw();},120);});
+readColors(); layout(); setSrc(1); if(reduce)setPlay(false);
+requestAnimationFrame(t=>{last=t;tick(t);});
+})();
+</script>

@@ -1,0 +1,384 @@
+<title>電子の着地と道の数</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 計測器の画面：左に担体（ペンローズの番地と塞いだ番地）、右に幕の上の度数。下に場面の説明と翻訳表 */
+:root{
+  --paper:#f2f4f6; --panel:#ffffff; --ink:#18212c; --muted:#5b6674; --rule:#d5dbe2;
+  --edge:#c3cbd4; --wall:#27313d; --land:#c0760f; --path:#2a49c9; --src:#b3261e;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440;
+  --edge:#34404d; --wall:#c9d2dc; --land:#e8a642; --path:#8aa2ff; --src:#ff7a6e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440;
+  --edge:#34404d; --wall:#c9d2dc; --land:#e8a642; --path:#8aa2ff; --src:#ff7a6e; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);line-height:1.7;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-size:clamp(1.5rem,3.6vw,2.3rem);line-height:1.3;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group .lbl{font-size:.78rem;color:var(--muted);letter-spacing:.06em;margin-right:2px}
+button{font:inherit;font-size:.86rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);
+  border-radius:4px;padding:5px 11px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--path);outline-offset:2px}
+.stage{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px}
+canvas{display:block;width:100%;max-width:100%}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;margin-top:8px;
+  font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums}
+.stats div{min-width:0;overflow-wrap:anywhere}
+.stats b{display:block;font-family:var(--body);font-weight:400;font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted);margin-top:6px}
+.sw{display:inline-block;width:14px;height:8px;margin-right:5px;vertical-align:middle}
+.cap{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline}
+.cap .no{font-family:var(--display);font-size:1.6rem;color:var(--muted)}
+.cap h2{font-family:var(--display);font-size:1.2rem;margin:0}
+.cap p{grid-column:2;margin:0;max-width:64ch;min-width:0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.88rem;min-width:520px}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:700;font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+td:first-child{font-weight:700;white-space:nowrap}
+td:last-child{color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted);max-width:70ch}
+h3{font-family:var(--display);font-size:1.1rem;margin:6px 0 0}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>統計とはなにか ― 電子を一体ずつ着地させる</h1>
+    <p>電子を一体ずつ担体の上に放ち、塞がれた番地を避けて進ませます。右端の幕に着地した個数を数えると表ができます。その表は、源から一度に足し込んだ道の数と同じ形に寄っていきます。</p>
+  </header>
+
+  <div class="bar">
+    <div class="group" role="group" aria-label="場面">
+      <span class="lbl">場面</span>
+      <button id="sc1" data-scene="1">1 一体ずつ</button>
+      <button id="sc2" data-scene="2">2 積む</button>
+      <button id="sc3" data-scene="3">3 全経路</button>
+      <button id="sc4" data-scene="4">4 重ねる</button>
+    </div>
+    <div class="group" role="group" aria-label="障害物">
+      <span class="lbl">障害物</span>
+      <button id="ob0" data-ob="0">なし</button>
+      <button id="ob1" data-ob="1">穴ひとつ</button>
+      <button id="ob2" data-ob="2">穴ふたつ</button>
+    </div>
+    <div class="group">
+      <button id="replay">最初から自動で</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="cv" aria-label="担体と幕の上の度数"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--src)"></i>源</span>
+      <span><i class="sw" style="background:var(--wall)"></i>塞いだ番地</span>
+      <span><i class="sw" style="background:var(--land)"></i>着地の個数</span>
+      <span><i class="sw" style="background:var(--path)"></i>道の数</span>
+    </div>
+    <div class="stats">
+      <div><b>放った電子</b><span id="stN">0</span></div>
+      <div><b>番地（床）</b><span id="stV">–</span></div>
+      <div><b>源から幕までの道の総数（2進の桁）</b><span id="stP">–</span></div>
+      <div><b>選んだ組（棒をなぞる）</b><span id="stB">―</span></div>
+    </div>
+  </div>
+
+  <div class="cap" aria-live="polite">
+    <span class="no" id="capNo">1</span>
+    <h2 id="capH">一体ずつ歩く</h2>
+    <p id="capP"></p>
+  </div>
+
+  <section>
+    <h3>翻訳表</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>B13の側</th><th>この図の中</th><th>観察者側の呼び名</th></tr></thead>
+        <tbody>
+          <tr><td>型紙</td><td>1刻に1歩、源から一層外の隣へ移り、塞がれた番地を避ける規則</td><td>模型・仮説</td></tr>
+          <tr><td>担体</td><td>ペンローズの番地の床と、塞いだ番地</td><td>空間・障害物（時空の歪み）</td></tr>
+          <tr><td>着地</td><td>幕の組ごとに数えた電子の個数（棒）</td><td>度数・分布・存在確率</td></tr>
+          <tr><td>道の数</td><td>源に1を置き、隣へ足し込んだ個数（線）</td><td>経路積分・期待度数</td></tr>
+          <tr><td>残渣</td><td>棒と線の食い違い</td><td>観測と期待の差・検定量</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">どの数も整数の足し算で作っています。棒と線の高さを同じ枠に合わせるのは、描くときだけです。電子が次の番地を選ぶくじは、その先から幕へ抜ける道の数を重みにした整数のくじです。道の符号（向きの折り返し）は入れていないので、この図に干渉の縞は出ません。</p>
+  </section>
+</div>
+
+<script>
+(()=>{
+const PHI=(1+Math.sqrt(5))/2;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- ペンローズ P3（ロビンソン三角形の分割） ---- */
+function penrose(n){
+  let tris=[];
+  for(let i=0;i<10;i++){
+    let b=[Math.cos((2*i-1)*Math.PI/10),Math.sin((2*i-1)*Math.PI/10)];
+    let c=[Math.cos((2*i+1)*Math.PI/10),Math.sin((2*i+1)*Math.PI/10)];
+    if(i%2===0){const t=b;b=c;c=t;}
+    tris.push([0,[0,0],b,c]);
+  }
+  for(let k=0;k<n;k++){
+    const out=[];
+    for(const [col,A,B,C] of tris){
+      if(col===0){
+        const P=[A[0]+(B[0]-A[0])/PHI,A[1]+(B[1]-A[1])/PHI];
+        out.push([0,C,P,B],[1,P,C,A]);
+      }else{
+        const Q=[B[0]+(A[0]-B[0])/PHI,B[1]+(A[1]-B[1])/PHI];
+        const R=[B[0]+(C[0]-B[0])/PHI,B[1]+(C[1]-B[1])/PHI];
+        out.push([1,R,C,A],[1,Q,R,B],[0,R,Q,A]);
+      }
+    }
+    tris=out;
+  }
+  return tris;
+}
+function buildCarrier(){
+  const tris=penrose(8);
+  const e0=tris[0]; const L=Math.hypot(e0[2][0]-e0[1][0],e0[2][1]-e0[1][1]);
+  const s=1/L, Rs=s;               // 外接半径（辺の長さを1とした単位）
+  const WH=Math.min(34,Math.floor(Rs*0.72)), HH=Math.round(WH*0.6);
+  const key=(p)=>Math.round(p[0]*s*1e3)+','+Math.round(p[1]*s*1e3);
+  const idx=new Map(), X=[], Y=[], edges=new Set();
+  const inRect=(p)=>Math.abs(p[0]*s)<=WH&&Math.abs(p[1]*s)<=HH;
+  const vid=(p)=>{const k=key(p);let i=idx.get(k);if(i===undefined){i=X.length;idx.set(k,i);X.push(p[0]*s);Y.push(p[1]*s);}return i;};
+  for(const [,A,B,C] of tris){
+    for(const Q of [B,C]){
+      if(!inRect(A)||!inRect(Q))continue;
+      const a=vid(A),b=vid(Q);
+      edges.add(a<b?a+'_'+b:b+'_'+a);
+    }
+  }
+  const n=X.length, adj=Array.from({length:n},()=>[]), E=[];
+  for(const e of edges){const [a,b]=e.split('_').map(Number);adj[a].push(b);adj[b].push(a);E.push([a,b]);}
+  return {n,X,Y,adj,E,WH,HH};
+}
+const car=buildCarrier();
+
+/* ---- 障害物と道の数（整数の足し算だけ） ---- */
+function buildModel(ob){
+  const {n,X,Y,adj,WH,HH}=car;
+  const wx=-WH*0.2;
+  const blocked=new Uint8Array(n);
+  const slits=ob===1?[0]:ob===2?[-4.2,4.2]:[];
+  if(ob>0)for(let v=0;v<n;v++){
+    if(Math.abs(X[v]-wx)<0.9&&!slits.some(sy=>Math.abs(Y[v]-sy)<1.25))blocked[v]=1;
+  }
+  let src=0,bd=1e9;
+  for(let v=0;v<n;v++){const d=Math.hypot(X[v]-(-WH+2),Y[v]);if(d<bd&&!blocked[v]){bd=d;src=v;}}
+  const screenX=WH-1.4;
+  const isScreen=new Uint8Array(n);for(let v=0;v<n;v++)if(X[v]>=screenX&&!blocked[v])isScreen[v]=1;
+  // 1刻に1歩、源から1層ずつ外へ広がる隣へ（引き返さない）。層の順に道の数を足し込む
+  const dist=new Int32Array(n).fill(-1), order=[src]; dist[src]=0;
+  for(let h=0;h<order.length;h++){
+    const u=order[h]; if(isScreen[u])continue;
+    for(const w of adj[u]){if(blocked[w]||dist[w]!==-1)continue;dist[w]=dist[u]+1;order.push(w);}
+  }
+  const fw=Array.from({length:n},()=>[]);
+  for(const u of order){if(isScreen[u])continue;for(const w of adj[u])if(!blocked[w]&&dist[w]===dist[u]+1)fw[u].push(w);}
+  const N=new Array(n).fill(0n); N[src]=1n;
+  for(const u of order){if(isScreen[u])continue;for(const w of fw[u])N[w]+=N[u];}
+  const B=new Array(n).fill(0n);
+  for(let i=order.length-1;i>=0;i--){const u=order[i];if(isScreen[u]){B[u]=1n;continue;}let t=0n;for(const w of fw[u])t+=B[w];B[u]=t;}
+  const bits=v=>N[v]===0n?0:N[v].toString(2).length;
+  const Nbits=new Int16Array(n); let maxBits=1;
+  for(const v of order){Nbits[v]=bits(v);if(Nbits[v]>maxBits)maxBits=Nbits[v];}
+  const Bbits=B.map(b=>b===0n?0:b.toString(2).length);
+  const nb=2*HH, binOf=y=>Math.max(0,Math.min(nb-1,Math.floor((y+HH)/(2*HH)*nb)));
+  const pathBin=new Array(nb).fill(0n);
+  for(const v of order)if(isScreen[v])pathBin[binOf(Y[v])]+=N[v];
+  let maxD=0; for(const v of order)if(dist[v]>maxD)maxD=dist[v];
+  return {blocked,src,isScreen,dist,order,fw,N,B,Nbits,maxBits,Bbits,nb,binOf,pathBin,maxD,wx,screenX,
+          floor:order.length, total:B[src]};
+}
+
+/* 整数のくじ：0 以上 M 未満 */
+function randBelow(M,bitsM){
+  if(M<=0n)return 0n;
+  const words=Math.ceil(bitsM/32), mask=(1n<<BigInt(bitsM))-1n, buf=new Uint32Array(words);
+  for(;;){crypto.getRandomValues(buf);let x=0n;for(const w of buf)x=(x<<32n)|BigInt(w);x&=mask;if(x<M)return x;}
+}
+function walk(m){
+  let v=m.src; const path=[v];
+  if(m.B[v]===0n)return path;
+  while(!m.isScreen[v]){
+    let r=randBelow(m.B[v],m.Bbits[v]);
+    for(const w of m.fw[v]){if(r<m.B[w]){v=w;break;}r-=m.B[w];}
+    path.push(v);
+  }
+  return path;
+}
+
+/* ---- 状態 ---- */
+let ob=2, scene=1, auto=true, model=buildModel(ob);
+let land=new Array(model.nb).fill(0), shot=0, trails=[], cur=null, curStep=0, reveal=-1, hoverBin=-1, t0=0, stepClock=0;
+function resetCounts(){land=new Array(model.nb).fill(0);shot=0;trails=[];cur=null;curStep=0;reveal=-1;}
+
+/* ---- 描画 ---- */
+let W=0,H=0,k=1,ox=0,oy=0,histX=0,histW=0,col={},base=null;
+function readColors(){const cs=getComputedStyle(document.documentElement);
+  for(const t of ['panel','ink','muted','rule','edge','wall','land','path','src'])col[t]=cs.getPropertyValue('--'+t).trim();}
+function layout(){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  W=cv.clientWidth; const carW=W*0.78;
+  k=carW/(2*car.WH+2); H=Math.round((2*car.HH+2)*k);
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ox=k*(car.WH+1); oy=H/2; histX=carW+W*0.02; histW=W-histX-4;
+  base=document.createElement('canvas'); base.width=cv.width; base.height=cv.height;
+  const b=base.getContext('2d'); b.setTransform(dpr,0,0,dpr,0,0);
+  b.strokeStyle=col.edge; b.lineWidth=Math.max(0.5,k*0.06); b.beginPath();
+  for(const [a,c] of car.E){b.moveTo(px(a),py(a));b.lineTo(px(c),py(c));} b.stroke();
+  b.fillStyle=col.wall; const s=Math.max(2,k*0.5);
+  for(let v=0;v<car.n;v++)if(model.blocked[v])b.fillRect(px(v)-s/2,py(v)-s/2,s,s);
+  const sx=ox+model.screenX*k; b.strokeStyle=col.muted; b.setLineDash([3,3]); b.lineWidth=1;
+  b.beginPath(); b.moveTo(sx,oy-car.HH*k); b.lineTo(sx,oy+car.HH*k); b.stroke(); b.setLineDash([]);
+  b.strokeStyle=col.rule; b.beginPath(); b.moveTo(histX,oy-car.HH*k); b.lineTo(histX,oy+car.HH*k); b.stroke();
+}
+const px=v=>ox+car.X[v]*k, py=v=>oy-car.Y[v]*k;
+function binY(i){const h=2*car.HH*k/model.nb;return {y:oy+car.HH*k-(i+1)*h,h};}
+function draw(){
+  ctx.clearRect(0,0,W,H); ctx.drawImage(base,0,0,W,H);
+  const r0=Math.max(1.2,k*0.12);
+  if(scene>=3&&reveal>=0){
+    for(const v of model.order){
+      if(model.dist[v]>reveal)break;
+      const f=model.Nbits[v]/model.maxBits;
+      ctx.globalAlpha=0.15+0.85*f; ctx.fillStyle=col.path;
+      ctx.beginPath(); ctx.arc(px(v),py(v),r0*(0.8+1.6*f),0,7); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+  if(scene<=2||scene===4){
+    trails.forEach((p,j)=>{ctx.globalAlpha=0.08+0.5*(j+1)/trails.length;drawPath(p,p.length);});
+    ctx.globalAlpha=1;
+    if(cur)drawPath(cur,curStep+1,true);
+  }
+  ctx.fillStyle=col.src; ctx.beginPath(); ctx.arc(px(model.src),py(model.src),Math.max(3,k*0.4),0,7); ctx.fill();
+  // 幕の上の度数
+  let maxL=1; for(const c of land)if(c>maxL)maxL=c;
+  let maxP=1n; for(const p of model.pathBin)if(p>maxP)maxP=p;
+  const showLand=scene!==3, showPath=scene>=3;
+  for(let i=0;i<model.nb;i++){
+    const {y,h}=binY(i);
+    if(showLand&&land[i]>0){ctx.fillStyle=col.land;ctx.fillRect(histX+1,y+0.5,histW*land[i]/maxL,Math.max(1,h-1));}
+    if(i===hoverBin){ctx.strokeStyle=col.ink;ctx.lineWidth=1;ctx.strokeRect(histX+0.5,y+0.5,histW-1,h-1);}
+  }
+  if(showPath){
+    ctx.strokeStyle=col.path; ctx.lineWidth=2; ctx.beginPath(); let started=false;
+    for(let i=0;i<model.nb;i++){
+      const {y,h}=binY(i);
+      const f=scene===3?revealedBin(i):model.pathBin[i];
+      const x=histX+histW*Number(f*1000n/maxP)/1000;
+      if(!started){ctx.moveTo(x,y+h/2);started=true;}else ctx.lineTo(x,y+h/2);
+    }
+    ctx.stroke();
+  }
+}
+let revealedCache=null,revealedAt=-2;
+function revealedBin(i){
+  if(revealedAt!==reveal){revealedCache=new Array(model.nb).fill(0n);
+    for(const v of model.order){if(model.dist[v]>reveal)break;if(model.isScreen[v])revealedCache[model.binOf(car.Y[v])]+=model.N[v];}
+    revealedAt=reveal;}
+  return revealedCache[i];
+}
+function drawPath(p,m,head){
+  ctx.strokeStyle=col.land; ctx.lineWidth=head?2.2:1.2; ctx.beginPath();
+  ctx.moveTo(px(p[0]),py(p[0])); for(let i=1;i<m;i++)ctx.lineTo(px(p[i]),py(p[i])); ctx.stroke();
+  if(head){const v=p[m-1];ctx.fillStyle=col.land;ctx.beginPath();ctx.arc(px(v),py(v),Math.max(3,k*0.38),0,7);ctx.fill();}
+}
+
+/* ---- 場面 ---- */
+const CAP={
+ 1:['一体ずつ歩く','電子を一体、左の源から放ちます。1刻に1歩、源から一層外へ広がる隣の番地のどれかへ移ります。引き返さず、塞がれた番地を避けて、右端の点線（幕）を越えた番地に着地します。着地した組の棒に1を足します。'],
+ 2:['着地を積む','同じ規則で何千体も放ちます。組ごとの着地の個数が積み上がっていきます。統計で分布や存在確率と呼んでいるものは、この個数の表そのものです。平均や散らばりは、あとからこの表で計算できます。'],
+ 3:['全経路を足し込む','今度は電子を放ちません。源に1を置き、1刻に1層ずつ、外側の隣の番地へ道の数を足し込んでいきます。点が濃いほど道の数の桁が大きい番地です。幕まで届いた道の数を組ごとに合わせたものが、青い線です。'],
+ 4:['重ねる','一体ずつ積んだ着地（棒）と、一度に足し込んだ道の数（線）を重ねます。電子を放つほど、棒は線の形に寄っていきます。統計の答えは、一体ずつの着地を積んだ表と、道を足し込んだ表が同じ形になることです。幕の端が高いのは、端ほど源から遠く、そこへ届く道が多いからです。']
+};
+function setScene(s,keepAuto){
+  scene=s; if(!keepAuto)auto=false;
+  document.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.scene===s)));
+  document.getElementById('capNo').textContent=s;
+  document.getElementById('capH').textContent=CAP[s][0];
+  document.getElementById('capP').textContent=CAP[s][1];
+  if(s===3){reveal=reduce?model.maxD:0;}
+  if(s===4){reveal=model.maxD; if(shot<3000)burst(3000-shot);}
+  if(s===1){cur=null;}
+}
+function setOb(o){
+  ob=o; model=buildModel(ob); resetCounts(); revealedAt=-2;
+  document.querySelectorAll('[data-ob]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.ob===o)));
+  document.getElementById('stV').textContent=model.floor+' 番地に届く';
+  document.getElementById('stP').textContent=model.total.toString(2).length+' 桁';
+  layout(); if(scene===3||scene===4)reveal=model.maxD; if(scene===4)burst(3000);
+  updateStats();
+}
+function burst(m){for(let i=0;i<m;i++){const p=walk(model);land[model.binOf(car.Y[p[p.length-1]])]++;shot++;if(i>=m-12){trails.push(p);if(trails.length>12)trails.shift();}}}
+function updateStats(){
+  document.getElementById('stN').textContent=shot.toLocaleString('ja-JP')+' 体';
+  if(hoverBin>=0){
+    const p=model.pathBin[hoverBin].toString();
+    document.getElementById('stB').textContent='組 '+(hoverBin+1)+'：着地 '+land[hoverBin]+' 体 ／ 道 '+p;
+  }
+}
+document.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>setScene(+b.dataset.scene)));
+document.querySelectorAll('[data-ob]').forEach(b=>b.addEventListener('click',()=>{setOb(+b.dataset.ob);}));
+document.getElementById('replay').addEventListener('click',()=>{resetCounts();auto=true;t0=performance.now();setScene(1,true);});
+cv.addEventListener('pointermove',e=>{
+  const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  if(x<histX){hoverBin=-1;return;}
+  const i=Math.floor((oy+car.HH*k-y)/(2*car.HH*k/model.nb));
+  hoverBin=(i>=0&&i<model.nb)?i:-1; updateStats();
+});
+cv.addEventListener('pointerleave',()=>{hoverBin=-1;});
+
+/* ---- 時計 ---- */
+let last=0;
+function tick(now){
+  const dt=now-last; last=now;
+  if(scene===1){
+    stepClock+=dt;
+    if(!cur){cur=walk(model);curStep=0;}
+    const stepMs=reduce?0:22;
+    while(stepClock>=stepMs&&cur){
+      stepClock-=stepMs||1; curStep++;
+      if(curStep>=cur.length-1){
+        land[model.binOf(car.Y[cur[cur.length-1]])]++;shot++;trails.push(cur);if(trails.length>12)trails.shift();cur=null;
+        if(auto&&shot>=4){setScene(2,true);break;}
+      }
+      if(stepMs===0)break;
+    }
+  }else if(scene===2){
+    cur=null; burst(reduce?4000:18);
+    if(auto&&shot>=4000)setScene(3,true);
+  }else if(scene===3){
+    if(reveal<model.maxD){stepClock+=dt;if(stepClock>60){stepClock=0;reveal++;}}
+    else if(auto){auto=false;setTimeout(()=>{if(scene===3)setScene(4,true);},1200);}
+  }
+  updateStats(); draw(); requestAnimationFrame(tick);
+}
+
+function init(){
+  readColors(); setOb(ob); setScene(1,true);
+  requestAnimationFrame(t=>{last=t;tick(t);});
+}
+const recolor=()=>{readColors();layout();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',recolor);
+new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(layout,120);});
+init();
+})();
+</script>
