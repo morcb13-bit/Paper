@@ -1,0 +1,238 @@
+<title>ペンローズのχ二乗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 計測器の画面：上段に床（着地）と組ごとの着地・型紙、下段に二つの判定を並べる。最後に判定の突き合わせ表 */
+:root{
+  --paper:#f2f4f6; --panel:#ffffff; --ink:#18212c; --muted:#5b6674; --rule:#d5dbe2; --edge:#d9dee4;
+  --obs:#18212c; --null:#8f9aa7; --yes:#1f7a4d; --no:#b3261e; --ref:#2a49c9;
+  --d3:#c0760f; --d4:#1f8a7a; --d5:#2a49c9; --d6:#a3317a; --d7:#5b6674;
+  --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440; --edge:#2b3541;
+  --obs:#e3e9ef; --null:#6d7986; --yes:#4fc28a; --no:#ff7a6e; --ref:#8aa2ff;
+  --d3:#e8a642; --d4:#4fc2ad; --d5:#8aa2ff; --d6:#e07bbd; --d7:#b3bdc8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f141a; --panel:#161d25; --ink:#e3e9ef; --muted:#9aa6b3; --rule:#2a3440; --edge:#2b3541;
+  --obs:#e3e9ef; --null:#6d7986; --yes:#4fc28a; --no:#ff7a6e; --ref:#8aa2ff;
+  --d3:#e8a642; --d4:#4fc2ad; --d5:#8aa2ff; --d6:#e07bbd; --d7:#b3bdc8; color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);line-height:1.7;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-size:clamp(1.5rem,3.6vw,2.3rem);line-height:1.3;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:66ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lbl{font-size:.78rem;color:var(--muted);letter-spacing:.06em;margin-right:2px}
+button{font:inherit;font-size:.86rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:5px 11px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--ref);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.card h2{font-family:var(--display);font-size:1.08rem;margin:0}
+.card .sub{font-size:.8rem;color:var(--muted);margin:0}
+canvas{display:block;width:100%;max-width:100%}
+.verdict{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;font-family:var(--mono);font-size:.9rem;font-variant-numeric:tabular-nums}
+.chip{font-family:var(--body);font-size:.8rem;padding:2px 10px;border-radius:999px;border:1.5px solid currentColor;font-weight:700}
+.chip.yes{color:var(--yes)} .chip.no{color:var(--no)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.sq{display:inline-block;width:12px;height:10px;margin-right:5px;vertical-align:middle}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.88rem;min-width:560px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:700;font-size:.78rem;color:var(--muted);letter-spacing:.06em}
+td.num{font-family:var(--mono)}
+.text{display:flex;flex-direction:column;gap:10px;max-width:70ch}
+.text h3{font-family:var(--display);font-size:1.1rem;margin:4px 0 0}
+.text p{margin:0}
+.note{font-size:.82rem;color:var(--muted)}
+.good{color:var(--yes);font-weight:700} .bad{color:var(--no);font-weight:700}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ペンローズのχ二乗</h1>
+    <p>電子2万体を源から30刻歩かせ、ペンローズの床の上の着地を数えました。問いは「着地の多さは番地の景色（隣の数）で決まるか」です。同じ着地の表を、ラベルを入れ替えて数える判定と、古典のχ²で判定し、違いを並べます。</p>
+  </header>
+
+  <div class="bar">
+    <div class="group" role="group" aria-label="ラベル">
+      <span class="lbl">番地につけるラベル</span>
+      <button id="labA" data-lab="0">隣の数</button>
+      <button id="labB" data-lab="1">隣の数を輪の中で入れ替えたもの（負の対照）</button>
+    </div>
+    <div class="group"><button id="again">入れ替えをもう一度見る</button></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>床と着地</h2>
+      <p class="sub">点の大きさ＝その番地の着地の数。色＝ラベル。薄い輪は源からの距離1ごとの輪。</p>
+      <canvas id="map" aria-label="床と着地"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--d3)"></i>3</span><span><i class="sw" style="background:var(--d4)"></i>4</span>
+        <span><i class="sw" style="background:var(--d5)"></i>5</span><span><i class="sw" style="background:var(--d6)"></i>6</span>
+        <span><i class="sw" style="background:var(--d7)"></i>7</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>組ごとの着地と型紙</h2>
+      <p class="sub">型紙＝「同じ輪の中なら、どの番地にも同じだけ着地する」としたときの個数。棒の差が残渣。</p>
+      <canvas id="bars" aria-label="組ごとの着地と型紙"></canvas>
+      <div class="legend">
+        <span><i class="sq" style="background:var(--obs)"></i>着地</span>
+        <span><i class="sq" style="border:1.5px solid var(--obs)"></i>型紙の個数</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>入れ替えを数える（離散）</h2>
+      <p class="sub">着地はそのまま。ラベルだけを同じ輪の中で200回入れ替え、残渣の絶対値の和を点で積む。縦線が実測。</p>
+      <canvas id="perm" aria-label="入れ替えの分布"></canvas>
+      <div class="verdict"><span>実測以上：<b id="kOut">0</b> / <span id="kDone">0</span></span><span id="chipP" class="chip"></span></div>
+    </div>
+    <div class="card">
+      <h2>古典のχ²（観察者側）</h2>
+      <p class="sub">期待値を型紙の個数に置いたχ²。曲線は自由度に合わせた照合用の分布。点線が5%の線。</p>
+      <canvas id="chi" aria-label="χ二乗分布と実測"></canvas>
+      <div class="verdict"><span>χ² = <b id="chiOut">–</b>（自由度 <span id="dofOut">–</span>、5%の線 <span id="critOut">–</span>）</span><span id="chipC" class="chip"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>判定の突き合わせ</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>ラベル</th><th>入れ替えを数える</th><th>古典のχ²</th><th>正しい答え</th></tr></thead>
+      <tbody id="sumBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="text">
+    <h3>どこで違いが出るか</h3>
+    <p>負の対照のラベルは、隣の数を同じ輪の中で入れ替えただけのものです。景色とは関係がないので、正しい判定なら「効いていない」と答えなければなりません。</p>
+    <p>入れ替えを数える判定は、そう答えます。古典のχ²は、負の対照でも5%の線を大きく越えて「効いている」と答えます。同じ輪の中でも、内側の番地は外側より多く着地します。床の景色のばらつきも重なります。型紙の個数はこの差を平らにならしてしまうので、χ²はどのラベルにも差を見つけてしまいます。</p>
+    <p>入れ替えを数える判定は、着地の表をそのまま使い、ラベルの置き方だけを比べます。輪の内と外の差も、景色のばらつきも、実測と入れ替えの両方に同じだけ入ります。判定に残るのは、ラベルが効いているかどうかだけです。</p>
+    <p class="note">着地・型紙・残渣・入れ替えの回数は、どれも整数の数え上げです。型紙の個数を棒の高さにするとき、χ²を計算するときにだけ割り算を使っています（観察者側の整理）。電子の着地は、30刻の「留まる／隣へ移る」道の中から一本ずつ整数のくじで引いたものです。</p>
+  </div>
+</div>
+
+<script>
+const DATA=__DATA__;
+(()=>{
+const V=DATA.V, E=DATA.E, NV=V.length, K=200;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const labels=[V.map(v=>v[2]), V.map(v=>v[5])];
+const shellOf=V.map(v=>v[3]), land=V.map(v=>v[4]);
+const byShell={}; V.forEach((v,i)=>{(byShell[v[3]]=byShell[v[3]]||[]).push(i);});
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function cells(lab){
+  const c=new Map(), sh=new Map();
+  for(let i=0;i<NV;i++){const key=shellOf[i]+'|'+lab[i];const x=c.get(key)||{s:shellOf[i],l:lab[i],o:0,m:0};x.o+=land[i];x.m++;c.set(key,x);
+    const t=sh.get(shellOf[i])||{No:0,ns:0};t.No+=land[i];t.ns++;sh.set(shellOf[i],t);}
+  return {c,sh};
+}
+function stat(lab){const {c,sh}=cells(lab);let S=0;for(const x of c.values()){const t=sh.get(x.s);S+=Math.abs(x.o*t.ns-t.No*x.m);}return S;}
+function chi2(lab){const {c,sh}=cells(lab);let chi=0,cells_=0;for(const x of c.values()){const t=sh.get(x.s);const e=t.No*x.m/t.ns;if(e>0){chi+=(x.o-e)*(x.o-e)/e;cells_++;}}return {chi,dof:cells_-sh.size};}
+function perms(lab,seed){const r=mulberry(seed),out=[];
+  for(let k=0;k<K;k++){const pl=lab.slice();
+    for(const vs of Object.values(byShell)){const ls=vs.map(i=>lab[i]);for(let j=ls.length-1;j>0;j--){const q=Math.floor(r()*(j+1));[ls[j],ls[q]]=[ls[q],ls[j]];}vs.forEach((i,j)=>pl[i]=ls[j]);}
+    out.push(stat(pl));}
+  return out;}
+function lgamma(z){const g=7,c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(z<0.5)return Math.log(Math.PI/Math.sin(Math.PI*z))-lgamma(1-z);z-=1;let x=c[0];for(let i=1;i<g+2;i++)x+=c[i]/(z+i);const t=z+g+0.5;return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);}
+const chiPdf=(x,k)=>x<=0?0:Math.exp((k/2-1)*Math.log(x)-x/2-(k/2)*Math.log(2)-lgamma(k/2));
+function chiCrit(k){let lo=0,hi=k*4+50;const cdf=x=>{let s=0,steps=2000,h=x/steps;for(let i=0;i<steps;i++){const a=i*h,b=a+h;s+=(chiPdf(a,k)+4*chiPdf((a+b)/2,k)+chiPdf(b,k))*h/6;}return s;};
+  for(let it=0;it<40;it++){const m=(lo+hi)/2;if(cdf(m)<0.95)lo=m;else hi=m;}return (lo+hi)/2;}
+
+const R=[0,1].map(li=>{const lab=labels[li];const obs=stat(lab);const nul=perms(lab,li?99:13);const {chi,dof}=chi2(lab);
+  return {obs,nul,k:nul.filter(s=>s>=obs).length,chi,dof};});
+const crit=chiCrit(R[0].dof);
+
+let cur=0, shown=0, col={};
+const $=id=>document.getElementById(id);
+function readColors(){const cs=getComputedStyle(document.documentElement);for(const t of ['panel','ink','muted','rule','edge','obs','null','yes','no','ref','d3','d4','d5','d6','d7'])col[t]=cs.getPropertyValue('--'+t).trim();}
+function sizeCanvas(cv,ratio){const dpr=Math.min(2,window.devicePixelRatio||1);const w=cv.clientWidth,h=Math.round(w*ratio);cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.height=h+'px';const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return {c,w,h};}
+const font=()=>'11px '+getComputedStyle(document.body).fontFamily;
+const labCol=l=>col['d'+Math.max(3,Math.min(7,l))];
+
+function drawMap(){
+  const {c,w,h}=sizeCanvas($('map'),0.82);const lab=labels[cur];
+  const k=Math.min(w,h)/23, ox=w/2, oy=h/2;
+  c.strokeStyle=col.rule;c.lineWidth=1;for(let r=1;r<=11;r++){c.beginPath();c.arc(ox,oy,r*k,0,7);c.stroke();}
+  c.strokeStyle=col.edge;c.beginPath();for(const [a,b] of E){c.moveTo(ox+V[a][0]*k,oy-V[a][1]*k);c.lineTo(ox+V[b][0]*k,oy-V[b][1]*k);}c.stroke();
+  let mx=0;for(const x of land)if(x>mx)mx=x;
+  for(let i=0;i<NV;i++){c.fillStyle=labCol(lab[i]);c.beginPath();c.arc(ox+V[i][0]*k,oy-V[i][1]*k,1.2+k*0.42*Math.sqrt(land[i]/mx),0,7);c.fill();}
+}
+function drawBars(){
+  const {c,w,h}=sizeCanvas($('bars'),0.62);const {c:cl,sh}=cells(labels[cur]);
+  const agg={};for(const x of cl.values()){const t=sh.get(x.s);const a=agg[x.l]||{o:0,e:0};a.o+=x.o;a.e+=t.No*x.m/t.ns;agg[x.l]=a;}
+  const ks=[3,4,5,6,7];let mx=1;for(const q of ks)if(agg[q])mx=Math.max(mx,agg[q].o,agg[q].e);
+  const pl=40,pb=40,pt=10,gw=w-pl-8,gh=h-pt-pb,slot=gw/ks.length,bw=Math.min(28,slot*0.32);
+  c.strokeStyle=col.rule;c.beginPath();c.moveTo(pl,pt+gh);c.lineTo(pl+gw,pt+gh);c.stroke();
+  c.font=font();c.fillStyle=col.muted;c.textAlign='right';
+  for(let t=0;t<=mx;t+=Math.ceil(mx/4/1000)*1000){const y=pt+gh*(1-t/mx);c.fillText(String(t),pl-6,y+4);c.strokeStyle=col.rule;c.globalAlpha=.5;c.beginPath();c.moveTo(pl,y);c.lineTo(pl+gw,y);c.stroke();c.globalAlpha=1;}
+  c.textAlign='center';
+  ks.forEach((q,i)=>{const a=agg[q];const x0=pl+slot*i+slot/2;
+    c.fillStyle=col.muted;c.fillText(cur===0?'隣'+q:'札'+q,x0,pt+gh+15);
+    if(!a)return;
+    const ho=gh*a.o/mx, he=gh*a.e/mx;
+    c.fillStyle=labCol(q);c.fillRect(x0-bw-1,pt+gh-ho,bw,ho);
+    c.strokeStyle=labCol(q);c.lineWidth=1.5;c.strokeRect(x0+1,pt+gh-he,bw,he);
+    const d=Math.round(a.o-a.e);c.fillStyle=d>=0?col.yes:col.no;c.fillText((d>=0?'+':'')+d,x0,pt+gh+30);
+  });
+}
+function drawPerm(){
+  const {c,w,h}=sizeCanvas($('perm'),0.56);const r=R[cur];
+  const all=r.nul.concat([r.obs]);const lo=Math.min(...all)*0.9, hi=Math.max(...all)*1.05;
+  const pl=10,pr=10,pt=10,pb=30,gw=w-pl-pr,gh=h-pt-pb;const X=v=>pl+gw*(v-lo)/(hi-lo);
+  c.strokeStyle=col.rule;c.beginPath();c.moveTo(pl,pt+gh);c.lineTo(pl+gw,pt+gh);c.stroke();
+  const nb=48,bins=new Array(nb).fill(0),dot=Math.max(2,Math.min(gw/nb/2.2,5));
+  for(let j=0;j<shown;j++){const s=r.nul[j];const b=Math.min(nb-1,Math.floor((s-lo)/(hi-lo)*nb));
+    const x=pl+gw*(b+0.5)/nb,y=pt+gh-dot-bins[b]*dot*2.1;bins[b]++;c.fillStyle=s>=r.obs?col.no:col.null;c.beginPath();c.arc(x,y,dot,0,7);c.fill();}
+  const xo=X(r.obs);c.strokeStyle=col.obs;c.lineWidth=2;c.beginPath();c.moveTo(xo,pt);c.lineTo(xo,pt+gh);c.stroke();
+  c.font=font();c.fillStyle=col.ink;c.textAlign=xo>w*0.7?'right':'left';c.fillText('実測 '+r.obs.toLocaleString('ja-JP'),xo+(xo>w*0.7?-6:6),pt+12);
+  c.fillStyle=col.muted;c.textAlign='left';c.fillText(Math.round(lo).toLocaleString('ja-JP'),pl,pt+gh+16);c.textAlign='right';c.fillText(Math.round(hi).toLocaleString('ja-JP'),pl+gw,pt+gh+16);
+  const k=r.nul.slice(0,shown).filter(s=>s>=r.obs).length;$('kOut').textContent=k;$('kDone').textContent=shown;
+  const chip=$('chipP');if(shown<K){chip.className='chip';chip.textContent='入れ替え中';chip.style.color=col.muted;}
+  else{chip.style.color='';const eff=r.k<=10;chip.className='chip '+(eff?'yes':'no');chip.textContent=eff?'効いている':'効いていない';}
+}
+function drawChi(){
+  const {c,w,h}=sizeCanvas($('chi'),0.56);const r=R[cur],k=r.dof;const XM=200;
+  const pl=10,pr=10,pt=10,pb=30,gw=w-pl-pr,gh=h-pt-pb;const X=v=>pl+gw*Math.min(v,XM)/XM;
+  let mx=0;for(let i=1;i<=400;i++)mx=Math.max(mx,chiPdf(i*XM/400,k));
+  c.strokeStyle=col.rule;c.beginPath();c.moveTo(pl,pt+gh);c.lineTo(pl+gw,pt+gh);c.stroke();
+  c.fillStyle=col.null;c.globalAlpha=.35;c.beginPath();c.moveTo(pl,pt+gh);for(let i=0;i<=400;i++){const x=i*XM/400;c.lineTo(X(x),pt+gh-gh*0.9*chiPdf(x,k)/mx);}c.lineTo(pl+gw,pt+gh);c.fill();c.globalAlpha=1;
+  const xc=X(crit);c.setLineDash([4,4]);c.strokeStyle=col.muted;c.lineWidth=1;c.beginPath();c.moveTo(xc,pt);c.lineTo(xc,pt+gh);c.stroke();c.setLineDash([]);
+  const xo=X(r.chi);c.strokeStyle=col.obs;c.lineWidth=2;c.beginPath();c.moveTo(xo,pt);c.lineTo(xo,pt+gh);c.stroke();
+  c.font=font();c.fillStyle=col.ink;c.textAlign=xo>w*0.7?'right':'left';c.fillText((r.chi>XM?'→ ':'')+'実測 '+r.chi.toFixed(1),xo+(xo>w*0.7?-6:6),pt+12);
+  c.fillStyle=col.muted;c.textAlign='left';c.fillText('0',pl,pt+gh+16);c.textAlign='right';c.fillText(String(XM)+(r.chi>XM?' 以上は右端に寄せて表示':''),pl+gw,pt+gh+16);
+  $('chiOut').textContent=r.chi.toFixed(1);$('dofOut').textContent=k;$('critOut').textContent=crit.toFixed(1);
+  const eff=r.chi>crit;const chip=$('chipC');chip.className='chip '+(eff?'yes':'no');chip.textContent=eff?'効いている':'効いていない';
+}
+function fillSummary(){
+  const names=['隣の数','入れ替えたラベル（負の対照）'],truth=['効いている','効いていない'];
+  $('sumBody').innerHTML=R.map((r,i)=>{const p=r.k<=10?'効いている':'効いていない',cl=r.chi>crit?'効いている':'効いていない';
+    const ok=s=>s===truth[i]?'good':'bad';
+    return `<tr><td>${names[i]}</td><td class="num"><span class="${ok(p)}">${p}</span>（${r.k}/${K}）</td><td class="num"><span class="${ok(cl)}">${cl}</span>（χ² ${r.chi.toFixed(1)}）</td><td>${truth[i]}${i?'（景色と無関係なラベル）':'（断面の層）'}</td></tr>`;}).join('');
+}
+function drawAll(){drawMap();drawBars();drawPerm();drawChi();}
+function setLab(i){cur=i;document.querySelectorAll('[data-lab]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.lab===i)));shown=reduce?K:0;drawAll();}
+document.querySelectorAll('[data-lab]').forEach(b=>b.addEventListener('click',()=>setLab(+b.dataset.lab)));
+$('again').addEventListener('click',()=>{shown=0;});
+let acc=0,last=0;
+function tick(t){const dt=t-last;last=t;if(shown<K){acc+=dt;if(acc>30){acc=0;shown=Math.min(K,shown+2);drawPerm();}}requestAnimationFrame(tick);}
+const recolor=()=>{readColors();drawAll();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',recolor);
+new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(drawAll,120);});
+readColors();fillSummary();setLab(0);requestAnimationFrame(t=>{last=t;tick(t);});
+})();
+</script>
