@@ -1,8 +1,7 @@
 ## 硤合先生は何を作ったのか ―― 動く図で見る不斉合成 ――
 
-**図1：硤合反応の生成物を立体で見る ― R体とS体**（soai_solid.html）
-@[codepen](https://codepen.io/editor/morcb13-bit/pen/01a1189d-3888-7f1c-be35-61ff99d1690d?default-tab=result)
-
+**図1：右型と左型 ― 回しても重ならない、型紙なら選べる**（Chiral solid.html）
+@[codepen](https://codepen.io/editor/morcb13-bit/pen/01a1195b-0713-74d2-9b86-e98c1112961a?default-tab=result)
 
 ## はじめに
 
