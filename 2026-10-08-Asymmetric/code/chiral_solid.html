@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>右型と左型の立体</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #ffffff; --ink: #222; --muted: #6b6b6b; --line: #d8d4ca;
+    --plus: #c8553d; --minus: #2d6a9f; --accent: #8a6d1d; --plate: #e9e3d4;
+    --sA: #d9a520; --sB: #3f9b5a; --sC: #8e5bb5; --sD: #9aa3ad; --core: #444;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --plus: #e07a5f; --minus: #5fa8e0; --accent: #d9b44a; --plate: #34373e; --sD: #c4cbd3; --core: #bbb; }
+  }
+  :root[data-theme="dark"] { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --plus: #e07a5f; --minus: #5fa8e0; --accent: #d9b44a; --plate: #34373e; --sD: #c4cbd3; --core: #bbb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.3rem; margin: 4px 0 6px; }
+  .tabs, .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+  button { font: inherit; font-size: .88rem; padding: 6px 12px; border-radius: 6px;
+           border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  canvas { width: 100%; display: block; cursor: grab; touch-action: none; }
+  .cap { font-size: .95rem; line-height: 1.7; min-height: 5.2em; margin: 8px 4px 2px; }
+  .cap b.p { color: var(--plus); } .cap b.m { color: var(--minus); } .cap b.k { color: var(--accent); }
+  .tally { font-variant-numeric: tabular-nums; font-size: .9rem; color: var(--muted); margin: 0 4px; min-height: 1.5em; }
+  .foot { color: var(--muted); font-size: .8rem; line-height: 1.6; margin-top: 10px; }
+  .legend span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>右型と左型 ― 回しても重ならない、型紙なら選べる</h1>
+  <div class="tabs">
+    <button id="s0" class="on">① 鏡に映す</button>
+    <button id="s1">② 重ねてみる</button>
+    <button id="s2">③ 型紙にはめる</button>
+    <button id="s3">④ 自分が型紙になる</button>
+  </div>
+  <div class="panel">
+    <canvas id="cv" width="960" height="560"></canvas>
+    <div class="cap" id="cap"></div>
+    <div class="tally" id="tally"></div>
+  </div>
+  <div class="bar" style="margin-top:8px">
+    <button id="play">停止</button><button id="next">一手</button>
+    <button id="sock" title="③で受け口の数を切り替える">受け口 3つ</button>
+    <span class="legend">置換基<span style="background:var(--sA)"></span>A<span style="background:var(--sB)"></span>B<span style="background:var(--sC)"></span>C<span style="background:var(--sD)"></span>D</span>
+  </div>
+  <div class="foot">
+    中心の原子に、4種類の置換基 A・B・C・D が正四面体の向きに付いている。頂点は立方体の一つおきの角 (1,1,1),(1,−1,−1),(−1,1,−1),(−1,−1,1)。
+    鏡は x と y を入れ替える面で、右型の B と C の席が入れ替わったものが左型になる。
+    回し方は、頂点を頂点に移す整数の行列 12 通り。一致の数え上げは整数の比較だけ。画面に描くための向きと遠近だけ浮動小数（観察者側の表示）。ドラッグで見る向きを変えられる。
+  </div>
+</div>
+<script>
+// ── 整数の部分 ──────────────────────────────────────────
+const P = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+const NAMES = ["A","B","C","D"];
+const RIGHT = [0,1,2,3];               // 席 i に付く置換基
+const LEFT  = [0,2,1,3];               // 鏡（x と y の入れ替え）で B と C の席が入れ替わる
+function mul(M, v) { return [0,1,2].map(i => M[i][0]*v[0] + M[i][1]*v[1] + M[i][2]*v[2]); }
+function det(M) {
+  return M[0][0]*(M[1][1]*M[2][2] - M[1][2]*M[2][1]) - M[0][1]*(M[1][0]*M[2][2] - M[1][2]*M[2][0])
+       + M[0][2]*(M[1][0]*M[2][1] - M[1][1]*M[2][0]);
+}
+function seatOf(v) { for (let i = 0; i < 4; i++) if (P[i][0] === v[0] && P[i][1] === v[1] && P[i][2] === v[2]) return i; return -1; }
+const ROTS = [];
+const perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+for (const pm of perms) for (let s = 0; s < 8; s++) {
+  const sg = [(s & 1) ? -1 : 1, (s & 2) ? -1 : 1, (s & 4) ? -1 : 1];
+  const M = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < 3; i++) M[i][pm[i]] = sg[i];
+  if (det(M) !== 1) continue;
+  if (P.every(v => seatOf(mul(M, v)) >= 0)) ROTS.push(M);
+}
+// mol を M で回したとき、席 j に来る置換基
+function turned(mol, M) { const out = [0,0,0,0]; for (let i = 0; i < 4; i++) out[seatOf(mul(M, P[i]))] = mol[i]; return out; }
+function matches(mol, M, seats) { const t = turned(mol, M); let n = 0; for (const j of seats) if (t[j] === RIGHT[j]) n += 1; return n; }
+
+// ── 観察者側の表示（浮動小数） ───────────────────────────
+const cv = document.getElementById("cv"), cx = cv.getContext("2d");
+const W = 960, H = 560;
+const r3 = Math.sqrt(3), r2 = Math.sqrt(2), r6 = Math.sqrt(6);
+function base(v) {                     // (1,1,1) を真上に向ける
+  return [(v[0] - v[1]) / r2, (v[0] + v[1] + v[2]) / r3, (v[0] + v[1] - 2 * v[2]) / r6];
+}
+let yaw = 0.5, pitch = 0.32, autoSpin = true;
+function view(p) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+  const y2 = p[1] * cp - z1 * sp, z2 = p[1] * sp + z1 * cp;
+  return [x1, y2, z2];
+}
+let FLIP = 1;
+function proj(p, ox, oy, s) { const f = 6 / (6 + p[2]); return [ox + FLIP * p[0] * s * f, oy - p[1] * s * f, f, p[2]]; }
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+const SCOL = () => [css("--sA"), css("--sB"), css("--sC"), css("--sD")];
+
+// 分子一つを描く。mol：席→置換基、M：回し方、opt：位置・透明・印
+function drawMol(mol, M, ox, oy, s, opt = {}) {
+  const t = M ? turned(mol, M) : mol;
+  const cols = SCOL();
+  const pts = P.map((v, j) => ({ j, k: t[j], p: proj(view(base(v).map(c => c * 1.0 + 0)), ox, oy + (opt.dy || 0), s) }));
+  const core = proj(view([0, 0, 0]), ox, oy + (opt.dy || 0), s);
+  const items = pts.map(q => ({ z: q.p[3], f: () => ball(q) })).concat([{ z: core[3], f: () => {
+    cx.globalAlpha = opt.alpha ?? 1;
+    cx.beginPath(); cx.arc(core[0], core[1], 16 * core[2] * Math.min(1, s / 100), 0, 7); cx.fillStyle = css("--core"); cx.fill();
+    cx.globalAlpha = 1; } }]);
+  // 結合
+  cx.globalAlpha = opt.alpha ?? 1; cx.strokeStyle = css("--muted"); cx.lineWidth = 5;
+  for (const q of pts) { cx.beginPath(); cx.moveTo(core[0], core[1]); cx.lineTo(q.p[0], q.p[1]); cx.stroke(); }
+  cx.globalAlpha = 1;
+  items.sort((a, b) => b.z - a.z).forEach(it => it.f());
+  function ball(q) {
+    const [X, Y, f] = q.p, r = 26 * f * Math.min(1, s / 100);
+    if (opt.ghost) {
+      cx.setLineDash([5, 4]); cx.lineWidth = 3; cx.strokeStyle = cols[q.k];
+      cx.beginPath(); cx.arc(X, Y, r + 6, 0, 7); cx.stroke(); cx.setLineDash([]);
+      return;
+    }
+    cx.globalAlpha = opt.alpha ?? 1;
+    const g = cx.createRadialGradient(X - r * .35, Y - r * .35, r * .1, X, Y, r);
+    g.addColorStop(0, "#ffffffcc"); g.addColorStop(.35, cols[q.k]); g.addColorStop(1, cols[q.k]);
+    cx.beginPath(); cx.arc(X, Y, r, 0, 7); cx.fillStyle = g; cx.fill();
+    cx.fillStyle = "#fff"; cx.font = `bold ${Math.round(18 * f * Math.min(1, s / 100))}px sans-serif`; cx.textAlign = "center"; cx.textBaseline = "middle";
+    cx.fillText(NAMES[q.k], X, Y + 1);
+    if (opt.hit && opt.hit[q.j] !== undefined) {
+      cx.lineWidth = 4; cx.strokeStyle = opt.hit[q.j] ? css("--accent") : css("--muted");
+      cx.beginPath(); cx.arc(X, Y, r + 7, 0, 7); cx.stroke();
+      if (!opt.hit[q.j]) { cx.beginPath(); cx.moveTo(X - r * .7, Y - r * .7); cx.lineTo(X + r * .7, Y + r * .7); cx.stroke(); }
+    }
+    cx.globalAlpha = 1;
+  }
+}
+function label(text, x, y, col) { cx.fillStyle = col; cx.font = "bold 20px sans-serif"; cx.textAlign = "center"; cx.textBaseline = "alphabetic"; cx.fillText(text, x, y); }
+
+function drawPlate(ox, oy, s, seats, fitCount) {
+  const cols = SCOL();
+  const corner = seats.map(j => proj(view(base(P[j]).map((c, i) => i === 1 ? c - 0.28 : c)), ox, oy, s));
+  // 板（受け口3つを通る三角、2つなら帯）
+  const all = [1, 2, 3].map(j => proj(view(base(P[j]).map((c, i) => i === 1 ? c - 0.3 : c * 1.22)), ox, oy, s));
+  cx.beginPath(); all.forEach((q, i) => i ? cx.lineTo(q[0], q[1]) : cx.moveTo(q[0], q[1])); cx.closePath();
+  cx.fillStyle = css("--plate"); cx.fill(); cx.strokeStyle = css("--line"); cx.lineWidth = 2; cx.stroke();
+  seats.forEach((j, n) => {
+    const q = corner[n];
+    cx.beginPath(); cx.ellipse(q[0], q[1] + 10, 30 * q[2], 12 * q[2], 0, 0, 7);
+    cx.fillStyle = cols[RIGHT[j]] + "55"; cx.fill(); cx.lineWidth = 3; cx.strokeStyle = cols[RIGHT[j]]; cx.stroke();
+  });
+}
+
+// ── 場面 ────────────────────────────────────────────────
+let scene = 0, playing = true, tick = 0, idx = 0, sockets = 3;
+const cap = document.getElementById("cap"), tally = document.getElementById("tally");
+const order = ROTS.map((M, i) => i);
+let hist = [];
+function setScene(n) {
+  scene = n; tick = 0; idx = 0; hist = [];
+  for (let i = 0; i < 4; i++) document.getElementById("s" + i).classList.toggle("on", i === n);
+}
+function seatsNow() { return sockets === 3 ? [1, 2, 3] : [1, 2]; }
+
+function frame() {
+  cx.clearRect(0, 0, W, H);
+  if (autoSpin && playing && scene !== 2 && scene !== 3) yaw += 0.006;
+  const S = 120;
+  if (scene === 0) {
+    // 鏡をはさんで右型と左型
+    cx.setLineDash([8, 8]); cx.strokeStyle = css("--muted"); cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(W / 2, 40); cx.lineTo(W / 2, H - 40); cx.stroke(); cx.setLineDash([]);
+    label("鏡", W / 2, 32, css("--muted"));
+    drawMol(RIGHT, null, 250, 290, 100); FLIP = -1; drawMol(RIGHT, null, 710, 290, 100); FLIP = 1;
+    label("右型（＋）", 250, 520, css("--plus")); label("左型（−）", 710, 520, css("--minus"));
+    cap.innerHTML = `中心に4種類の置換基 A・B・C・D が付いた分子。<b class="p">右型</b>を鏡に映すと<b class="m">左型</b>になる。右と左で、B と C の位置が入れ替わって見える。<br>ドラッグで回して見比べられる。`;
+    tally.textContent = "";
+  }
+  if (scene === 1) {
+    // 右型の席（点線）に、左型を12通りに回して重ねる
+    const M = ROTS[order[idx]];
+    const hit = {}; const t = turned(LEFT, M);
+    for (let j = 0; j < 4; j++) hit[j] = (t[j] === RIGHT[j]);
+    const n = matches(LEFT, M, [0, 1, 2, 3]);
+    drawMol(RIGHT, null, 300, 290, S, { ghost: true });
+    drawMol(LEFT, M, 300, 290, S, { hit });
+    label("右型の席（点線）に左型を重ねる", 300, 520, css("--ink"));
+    // 右側に一致の数を並べる
+    cx.textAlign = "left"; cx.font = "17px sans-serif"; cx.fillStyle = css("--muted");
+    cx.fillText("回し方 12 通りでの一致の数", 600, 90);
+    for (let i = 0; i < ROTS.length; i++) {
+      const m = matches(LEFT, ROTS[order[i]], [0, 1, 2, 3]);
+      const x = 600 + (i % 4) * 82, y = 140 + Math.floor(i / 4) * 70;
+      cx.fillStyle = i === idx ? css("--accent") : (i < idx || hist.length >= 12 ? css("--ink") : css("--line"));
+      cx.font = (i === idx ? "bold " : "") + "28px sans-serif";
+      cx.fillText((i <= idx || hist.length >= 12) ? m + "/4" : "・", x, y);
+    }
+    const seen = hist.length >= 12 ? ROTS.map((M2) => matches(LEFT, M2, [0, 1, 2, 3])) : null;
+    cx.fillStyle = css("--ink"); cx.font = "bold 20px sans-serif";
+    if (seen) cx.fillText("4/4 になる回し方は 0 通り", 600, 380);
+    cap.innerHTML = `左型を、頂点が頂点に重なる12通りの回し方で、右型の席に重ねていく。金の輪は置換基が一致した席、斜線は食い違った席。<br>どう回しても一致は<b class="k">最大2つ</b>。4つそろう回し方はない。右型と左型は、回しても重ならない。`;
+    tally.textContent = `いまの回し方 ${idx + 1}/12：一致 ${n}/4`;
+    if (playing) { tick += 1; if (tick >= 70) { tick = 0; next(); } }
+  }
+  if (scene === 2) {
+    // 型紙（受け口）に右型と左型をはめる
+    const seats = seatsNow();
+    const best = mol => { let b = 0, bm = ROTS[0]; for (const M of ROTS) { const m = matches(mol, M, seats); if (m > b) { b = m; bm = M; } } return [b, bm]; };
+    const [bR, mR] = best(RIGHT), [bL, mL] = best(LEFT);
+    const drop = Math.min(1, tick / 80), dy = -90 * (1 - drop);
+    for (const [ox, mol, b, M, name, col] of [[250, RIGHT, bR, mR, "右型（＋）", css("--plus")], [710, LEFT, bL, mL, "左型（−）", css("--minus")]]) {
+      drawPlate(ox, 300, 95, seats);
+      const hit = {}; if (drop >= 1) { const t = turned(mol, M); for (const j of seats) hit[j] = (t[j] === RIGHT[j]); }
+      const ok = b === seats.length;
+      const bob = (drop >= 1 && !ok) ? -14 * Math.abs(Math.sin(tick / 9)) : 0;
+      drawMol(mol, M, ox, 300, 95, { dy: dy + bob, hit });
+      label(name, ox, 520, col);
+      if (drop >= 1) label(ok ? `はまる（${b}/${seats.length}）` : `はまらない（最大 ${b}/${seats.length}）`, ox, 548, ok ? css("--accent") : css("--muted"));
+    }
+    cap.innerHTML = sockets === 3
+      ? `下の板が型紙。B・C・D に合う<b class="k">受け口が3つ</b>ある。右型は3つともはまる。左型は12通りのどの回し方でも、合うのは2つまで。<br>受け口が3つあれば、型紙は右型だけを受け入れる。これが作り分けの仕組み。`
+      : `受け口を<b class="k">2つ</b>（B・C）に減らした型紙。右型も左型も、2つともはまる。<br>受け口が2つでは、型紙は右と左を見分けられない。作り分けには受け口が3つ要る。`;
+    tally.textContent = "「受け口」ボタンで 3つ ⇄ 2つ を切り替えられる。";
+    tick += 1;
+  }
+  if (scene === 3) {
+    // 右型が自分の型紙になって、次の右型を作る
+    const k = Math.floor(tick / 110), u = Math.min(1, (tick % 110) / 70);
+    const n = Math.min(4, 1 + k);
+    for (let i = 0; i < n; i++) {
+      const ox = 130 + i * 233;
+      const born = i === n - 1 && k < 4 && i > 0;
+      drawMol(RIGHT, null, ox, 280, 62, { alpha: born ? u : 1, dy: born ? -60 * (1 - u) : 0 });
+      if (i > 0) {
+        cx.strokeStyle = css("--accent"); cx.lineWidth = 3; cx.beginPath();
+        cx.moveTo(ox - 150, 420); cx.lineTo(ox - 70, 420); cx.stroke();
+        cx.beginPath(); cx.moveTo(ox - 70, 420); cx.lineTo(ox - 82, 412); cx.lineTo(ox - 82, 428); cx.closePath(); cx.fillStyle = css("--accent"); cx.fill();
+      }
+      label(i === 0 ? "最初の右型" : "写した右型", ox, 470, css("--plus"));
+    }
+    cap.innerHTML = `硤合反応では、できた分子そのものが次の分子の型紙になる。右型は右型を、左型は左型を写す。<br>だから初めにわずかでも右型が多ければ、写すたびに差が広がる。組で消えることと混ぜることが加わると、全体が右型だけになる（記事の図2の③）。`;
+    tally.textContent = "";
+    if (playing) tick += 1;
+    if (tick >= 110 * 5) tick = 0;
+  }
+  requestAnimationFrame(frame);
+}
+function next() {
+  if (scene === 1) { hist.push(idx); idx = (idx + 1) % ROTS.length; if (idx === 0 && hist.length > 12) hist = hist.slice(-12); }
+  else if (scene === 2) { tick = 0; }
+  else if (scene === 3) { tick = (Math.floor(tick / 110) + 1) * 110; }
+}
+for (let i = 0; i < 4; i++) document.getElementById("s" + i).onclick = () => setScene(i);
+document.getElementById("play").onclick = () => { playing = !playing; document.getElementById("play").textContent = playing ? "停止" : "再生"; };
+document.getElementById("next").onclick = () => { playing = false; document.getElementById("play").textContent = "再生"; next(); };
+document.getElementById("sock").onclick = () => {
+  sockets = sockets === 3 ? 2 : 3; document.getElementById("sock").textContent = "受け口 " + sockets + "つ";
+  if (scene !== 2) setScene(2); else tick = 0;
+};
+let drag = null;
+cv.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, yaw, pitch]; cv.setPointerCapture(e.pointerId); autoSpin = false; });
+cv.addEventListener("pointermove", e => { if (!drag) return; yaw = drag[2] + (e.clientX - drag[0]) * 0.01; pitch = Math.max(-1.2, Math.min(1.2, drag[3] + (e.clientY - drag[1]) * 0.01)); });
+cv.addEventListener("pointerup", () => { drag = null; });
+setScene(0); frame();
+</script>
+</body>
+</html>

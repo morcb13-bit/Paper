@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一個差の行方</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #ffffff; --ink: #222; --muted: #6b6b6b; --line: #d8d4ca;
+    --plus: #c8553d; --minus: #2d6a9f; --empty: #e4e0d6; --accent: #8a6d1d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --plus: #e07a5f; --minus: #5fa8e0; --empty: #34373e; --accent: #d9b44a; }
+  }
+  :root[data-theme="dark"] { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --plus: #e07a5f; --minus: #5fa8e0; --empty: #34373e; --accent: #d9b44a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.3rem; margin: 4px 0 6px; }
+  .lead { font-size: .95rem; line-height: 1.7; margin-bottom: 10px; }
+  .lead b.p { color: var(--plus); } .lead b.m { color: var(--minus); }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+  button { font: inherit; font-size: .88rem; padding: 6px 12px; border-radius: 6px;
+           border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .phase { margin-left: auto; font-size: .9rem; color: var(--muted); }
+  .phase span { padding: 2px 8px; border-radius: 10px; }
+  .phase span.now { background: var(--accent); color: var(--panel); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .panel h2 { font-size: 1rem; margin: 0 0 2px; }
+  .panel .what { font-size: .82rem; color: var(--muted); min-height: 2.6em; line-height: 1.5; }
+  canvas { width: 100%; display: block; }
+  .count { font-size: 1.5rem; font-variant-numeric: tabular-nums; text-align: center; margin-top: 4px; }
+  .count .p { color: var(--plus); font-weight: 700; } .count .m { color: var(--minus); font-weight: 700; }
+  .res { text-align: center; font-size: .92rem; min-height: 1.5em; margin-top: 2px; }
+  .res.ok { color: var(--accent); font-weight: 700; }
+  .foot { color: var(--muted); font-size: .8rem; line-height: 1.6; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>一個差の行方 ― 右と左、どちらが残るか</h1>
+  <div class="lead">
+    60個の席が輪になっている。最初は <b class="p">赤（右型）</b> と <b class="m">青（左型）</b> が3個ずつ。そこに赤を<b>1個だけ</b>足す。<br>
+    三つの輪は同じ所から始まり、使える操作だけが違う。どの輪で、1個の差が全体に広がるか。
+  </div>
+  <div class="bar">
+    <button id="play">停止</button><button id="stepb">一手</button><button id="reset">初めから</button>
+    <button id="addP" class="on">赤を1個足す</button><button id="addM">青を1個足す</button><button id="addN">足さない</button>
+    <div class="phase"><span id="ph0">写す</span> → <span id="ph1">組で消える</span> → <span id="ph2">混ぜる</span></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="foot">
+    写す：空いた席は、両隣の色の多い方で埋まる（赤＝＋1、青＝−1 として両隣を足し、正なら赤、負なら青）。<br>
+    組で消える：赤と青が隣り合うと、組になって両方とも空席に戻る。差（赤−青）は変わらない。<br>
+    混ぜる：色を見ずに、席を7つ飛びに並べ直す。<br>
+    計算は整数の足し算と比較だけ。円に並べる位置の換算だけ浮動小数（観察者側の表示）。
+  </div>
+</div>
+<script>
+const N = 60, K = 7;
+const PANELS = [
+  { title: "① 写して増やすだけ", what: "差は少し広がるが、赤と青が半々のまま止まる。", copy: true, pair: false, stir: false },
+  { title: "② 写す＋組で消える", what: "境目で赤と青が向かい合ったまま固まる。", copy: true, pair: true, stir: false },
+  { title: "③ 写す＋組で消える＋混ぜる", what: "出会いが全体に届き、少ない側が先に尽きる。", copy: true, pair: true, stir: true },
+];
+let extra = 1, playing = true, phase = 0, t = 0, steps = 0;
+const HOLD = 90;
+
+function seed() {
+  const x = new Array(N).fill(0);
+  for (let k = 0; k < 6; k++) x[10 * k] = (k % 2 === 0) ? 1 : -1;
+  if (extra !== 0) x[5] = extra;
+  return x;
+}
+function copyStep(x) {
+  const y = x.slice();
+  for (let i = 0; i < N; i++) if (x[i] === 0) {
+    const s = x[(i + N - 1) % N] + x[(i + 1) % N];
+    if (s > 0) y[i] = 1; else if (s < 0) y[i] = -1;
+  }
+  return y;
+}
+function pairStep(y) {
+  const z = y.slice(), gone = new Array(N).fill(false);
+  for (let i = 0; i < N; i++)
+    if (y[i] !== 0 && (y[(i + N - 1) % N] === -y[i] || y[(i + 1) % N] === -y[i])) { z[i] = 0; gone[i] = true; }
+  return [z, gone];
+}
+function stirStep(y) {
+  const w = new Array(N).fill(0), from = new Array(N).fill(0); let j = 0;
+  for (let i = 0; i < N; i++) { w[i] = y[j]; from[i] = j; j += K; if (j >= N) j += -N; }
+  return [w, from];
+}
+function count(x) { let p = 0, m = 0; for (const v of x) { if (v > 0) p += 1; else if (v < 0) m += 1; } return [p, m]; }
+
+// ── 盤 ──
+const panels = PANELS.map((P, n) => {
+  const el = document.createElement("div"); el.className = "panel";
+  el.innerHTML = `<h2>${P.title}</h2><div class="what">${P.what}</div><canvas width="420" height="420"></canvas>
+    <div class="count"><span class="p">赤 0</span> : <span class="m">青 0</span></div><div class="res"></div>`;
+  document.getElementById("grid").appendChild(el);
+  return { P, el, cv: el.querySelector("canvas"), x: null, prev: null, gone: null, from: null, done: false };
+});
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+// 観察者側の表示：席 i を円周上の位置へ
+function pos(i) { const a = -Math.PI / 2 + 2 * Math.PI * i / N; return [210 + 170 * Math.cos(a), 210 + 170 * Math.sin(a)]; }
+function colorOf(v) { return v > 0 ? css("--plus") : v < 0 ? css("--minus") : css("--empty"); }
+
+function draw(pn, u) {
+  const c = pn.cv.getContext("2d"); c.clearRect(0, 0, 420, 420);
+  c.strokeStyle = css("--line"); c.lineWidth = 1; c.beginPath(); c.arc(210, 210, 170, 0, 2 * Math.PI); c.stroke();
+  for (let i = 0; i < N; i++) {
+    let [X, Y] = pos(i), v = pn.x[i], r = 9;
+    if (phase === 0 && pn.prev && pn.prev[i] === 0 && v !== 0) r = 9 * Math.min(1, u * 1.6);   // 写された席が膨らむ
+    if (phase === 1 && pn.gone && pn.gone[i]) {                                                  // 組が消える
+      v = pn.prev[i]; r = 9 * (1 - u);
+    }
+    if (phase === 2 && pn.from) {                                                                // 混ぜる：元の席から滑る
+      const [X0, Y0] = pos(pn.from[i]); X = X0 + (X - X0) * u; Y = Y0 + (Y - Y0) * u;
+    }
+    c.beginPath(); c.arc(X, Y, 9, 0, 2 * Math.PI); c.fillStyle = css("--empty");
+    if (!(phase === 2 && pn.from)) c.fill();
+    if (v !== 0 && r > 0.5) { c.beginPath(); c.arc(X, Y, r, 0, 2 * Math.PI); c.fillStyle = colorOf(v); c.fill(); }
+  }
+  if (steps === 0 && extra !== 0) {
+    const [X, Y] = pos(5); c.beginPath(); c.arc(X, Y, 14, 0, 2 * Math.PI); c.strokeStyle = css("--accent"); c.lineWidth = 3; c.stroke();
+    c.fillStyle = css("--accent"); c.font = "14px sans-serif"; c.textAlign = "center"; c.fillText("足した1個", X, Y - 22);
+  }
+  const [p, m] = count(pn.x);
+  pn.el.querySelector(".p").textContent = "赤 " + p;
+  pn.el.querySelector(".m").textContent = "青 " + m;
+  const res = pn.el.querySelector(".res");
+  if (pn.done) {
+    if (p + m > 0 && (p === 0 || m === 0)) { res.textContent = (p > 0 ? "赤" : "青") + "だけが残った"; res.className = "res ok"; }
+    else if (p + m === 0) { res.textContent = "どちらも残らない"; res.className = "res"; }
+    else { res.textContent = "両方が残ったまま止まった"; res.className = "res"; }
+  } else { res.textContent = ""; res.className = "res"; }
+}
+
+function reset() {
+  for (const pn of panels) { pn.x = seed(); pn.prev = null; pn.gone = null; pn.from = null; pn.done = false; }
+  phase = 0; t = 0; steps = 0; render(1);
+}
+function sameArr(a, b) { for (let i = 0; i < N; i++) if (a[i] !== b[i]) return false; return true; }
+function applyPhase() {           // phase の操作を各盤に一度だけ施す
+  for (const pn of panels) {
+    pn.prev = pn.x.slice(); pn.gone = null; pn.from = null;
+    if (pn.done) continue;
+    if (phase === 0 && pn.P.copy) pn.x = copyStep(pn.x);
+    if (phase === 1 && pn.P.pair) { const [z, g] = pairStep(pn.x); pn.x = z; pn.gone = g; }
+    if (phase === 2 && pn.P.stir) { const [w, f] = stirStep(pn.x); pn.x = w; pn.from = f; }
+  }
+}
+function endOfStep() {
+  steps += 1;
+  for (const pn of panels) {
+    if (pn.done) continue;
+    if (!pn.start) pn.start = [];
+    const [p, m] = count(pn.x);
+    // 混ぜない盤は配置が動かなくなったら止まる。混ぜる盤は席が埋まりきるか空になったら止まる
+    const key = p + "," + m;
+    pn.hist = (pn.hist || []); pn.hist.push(key);
+    const L = pn.hist.length;
+    if (pn.P.stir ? (p + m === N || p + m === 0) : (pn.snap && sameArr(pn.snap, pn.x))) pn.done = true;
+    pn.snap = pn.x.slice();
+  }
+  if (panels.every(pn => pn.done) || steps >= 30) {
+    for (const pn of panels) pn.done = true;
+    playing = false; document.getElementById("play").textContent = "初めから再生";
+  }
+}
+function render(u) {
+  for (let k = 0; k < 3; k++) document.getElementById("ph" + k).className = (steps > 0 || t > 0) && k === phase ? "now" : "";
+  for (const pn of panels) draw(pn, u);
+}
+function advancePhase() {
+  applyPhase(); t = 0;
+}
+// 一つの操作に HOLD フレーム。0〜60%で動き、残りは止めて見せる
+let started = false;
+function loop() {
+  if (playing) {
+    if (!started) { advancePhase(); started = true; }
+    t += 1;
+    const u = Math.min(1, t / (HOLD * 0.6));
+    render(u);
+    if (t >= HOLD) {
+      if (phase === 2) { endOfStep(); if (!playing) { render(1); requestAnimationFrame(loop); return; } }
+      phase = (phase + 1) % 3; advancePhase();
+    }
+  }
+  requestAnimationFrame(loop);
+}
+function restart() {
+  for (const pn of panels) { pn.hist = []; pn.snap = null; }
+  reset(); started = false; playing = true; document.getElementById("play").textContent = "停止";
+}
+document.getElementById("play").onclick = () => {
+  if (panels.every(pn => pn.done)) { restart(); return; }
+  playing = !playing; document.getElementById("play").textContent = playing ? "停止" : "再生";
+};
+document.getElementById("stepb").onclick = () => {
+  if (panels.every(pn => pn.done)) return;
+  playing = false; document.getElementById("play").textContent = "再生";
+  if (!started) { advancePhase(); started = true; render(1); return; }
+  if (phase === 2) endOfStep();
+  if (!panels.every(pn => pn.done)) { phase = (phase + 1) % 3; advancePhase(); }
+  render(1);
+};
+document.getElementById("reset").onclick = restart;
+function setAdd(v) {
+  extra = v;
+  document.getElementById("addP").classList.toggle("on", v === 1);
+  document.getElementById("addM").classList.toggle("on", v === -1);
+  document.getElementById("addN").classList.toggle("on", v === 0);
+  restart();
+}
+document.getElementById("addP").onclick = () => setAdd(1);
+document.getElementById("addM").onclick = () => setAdd(-1);
+document.getElementById("addN").onclick = () => setAdd(0);
+restart(); loop();
+</script>
+</body>
+</html>

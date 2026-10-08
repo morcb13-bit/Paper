@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>硤合反応の生成物の立体</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #ffffff; --ink: #222; --muted: #6b6b6b; --line: #d8d4ca;
+    --accent: #8a6d1d; --plate: #e9e3d4; --bad: #b3261e;
+    --aC: #5b5b5b; --aH: #f4f4f4; --aN: #3b5fc4; --aO: #d03b3b; --hEdge: #9a9a9a;
+    --gOH: #d9a520; --giPr: #3f9b5a; --gR: #8e5bb5; --gH: #6f8fa8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --accent: #d9b44a; --plate: #34373e; --bad: #f2867c; --aC: #9a9a9a; --aH: #e8e8e8; --aN: #6f8ff0; --aO: #ef6b6b; --hEdge: #777; }
+  }
+  :root[data-theme="dark"] { --bg: #17181b; --panel: #222429; --ink: #e8e6e1; --muted: #9a9a9a; --line: #3a3d44; --accent: #d9b44a; --plate: #34373e; --bad: #f2867c; --aC: #9a9a9a; --aH: #e8e8e8; --aN: #6f8ff0; --aO: #ef6b6b; --hEdge: #777; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.25rem; margin: 4px 0 2px; }
+  .sub { color: var(--muted); font-size: .86rem; margin-bottom: 8px; line-height: 1.6; }
+  .tabs, .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+  button { font: inherit; font-size: .88rem; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  canvas { width: 100%; display: block; cursor: grab; touch-action: none; }
+  .cap { font-size: .95rem; line-height: 1.7; min-height: 5.4em; margin: 8px 4px 2px; }
+  .cap b.k { color: var(--accent); } .cap b.x { color: var(--bad); }
+  .num { font-variant-numeric: tabular-nums; font-size: .88rem; color: var(--muted); margin: 0 4px; min-height: 1.5em; }
+  .legend { font-size: .85rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin: 0 3px 0 9px; border: 1px solid var(--hEdge); }
+  .foot { color: var(--muted); font-size: .8rem; line-height: 1.6; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>硤合反応の生成物を立体で見る ― R体とS体</h1>
+  <div class="sub">1-[2-(tert-ブチルエチニル)ピリミジン-5-イル]-2-メチルプロパン-1-オール。中心の炭素（金の輪）に、H・OH・イソプロピル（iPr）・ピリミジン環（環）の4つが付く。</div>
+  <div class="tabs">
+    <button id="s0" class="on">① 鏡に映す</button>
+    <button id="s1">② 重ねてみる</button>
+    <button id="s2">③ 型紙にはめる</button>
+  </div>
+  <div class="panel">
+    <canvas id="cv" width="960" height="560"></canvas>
+    <div class="cap" id="cap"></div>
+    <div class="num" id="num"></div>
+  </div>
+  <div class="bar" style="margin-top:8px">
+    <button id="play">停止</button><button id="again">もう一度</button>
+    <button id="side">板の裏表 あり</button>
+    <span class="legend">原子<i style="background:var(--aC)"></i>C<i style="background:var(--aH)"></i>H<i style="background:var(--aN)"></i>N<i style="background:var(--aO)"></i>O　｜　中心の4つの腕<i style="background:var(--gOH)"></i>OH<i style="background:var(--giPr)"></i>iPr<i style="background:var(--gR)"></i>環<i style="background:var(--gH)"></i>H</span>
+  </div>
+  <div class="foot">
+    座標は化学計算ライブラリ RDKit で、標準的な結合の長さと角度から組んだもの（結晶の実測ではない）。中心の炭素を原点に、0.01Å 単位の整数に直してある。
+    右か左かは、4つの腕 H・OH・iPr・環 の先の原子が作る四面体の向き det[OH−H, iPr−H, 環−H] の符号で決める（整数の計算）。
+    回す・重ねる・画面に描くための座標の換算だけ浮動小数（観察者側の表示）。ドラッグで見る向きを変えられる。
+  </div>
+</div>
+<script>
+const D = {"el":["C","C","C","C","O","C","C","N","C","N","C","C","C","C","C","C","C","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H","H"],"bonds":[[0,1,2],[1,2,2],[1,3,2],[3,4,2],[3,5,2],[5,6,3],[6,7,3],[7,8,3],[8,9,3],[9,10,3],[8,11,2],[11,12,6],[12,13,2],[13,14,2],[13,15,2],[13,16,2],[10,5,3],[0,17,2],[0,18,2],[0,19,2],[1,20,2],[2,21,2],[2,22,2],[2,23,2],[3,24,2],[4,25,2],[6,26,2],[10,27,2],[14,28,2],[14,29,2],[14,30,2],[15,31,2],[15,32,2],[15,33,2],[16,34,2],[16,35,2],[16,36,2]],"star":3,"arms":{"iPr":1,"OH":4,"環":5,"H":24},"Pint":[[63,236,-76],[83,127,30],[232,94,41],[0,0,0],[27,-99,100],[-148,23,-4],[-221,58,108],[-354,80,107],[-414,67,-12],[-354,34,-128],[-222,13,-120],[-555,90,-16],[-673,109,-20],[-819,133,-25],[-860,169,-168],[-893,6,19],[-855,248,70],[126,323,-54],[-41,271,-78],[89,199,-175],[53,168,128],[252,23,122],[270,50,-52],[291,184,62],[33,-43,-95],[-34,-173,86],[-174,69,206],[-175,-13,-215],[-836,89,-238],[-968,187,-175],[-809,260,-203],[-865,-23,121],[-1002,20,17],[-869,-79,-46],[-963,268,69],[-826,226,173],[-803,341,41]],"R":[[-0.494,2.466,-0.47],[-0.78,1.013,-0.87],[-2.287,0.756,-0.795],[0.0,0.0,0.0],[-0.349,-1.332,-0.395],[1.49,0.136,-0.087],[2.196,-0.139,-1.243],[3.535,-0.018,-1.35],[4.168,0.408,-0.25],[3.594,0.713,0.929],[2.263,0.566,0.971],[5.588,0.548,-0.337],[6.776,0.666,-0.403],[8.246,0.817,-0.486],[8.721,1.798,0.589],[8.912,-0.547,-0.263],[8.626,1.344,-1.876],[-1.09,3.156,-1.078],[0.561,2.722,-0.629],[-0.737,2.634,0.578],[-0.495,0.882,-1.928],[-2.547,-0.243,-1.16],[-2.655,0.841,0.234],[-2.841,1.476,-1.41],[-0.317,0.101,1.042],[0.23,-1.946,0.08],[1.699,-0.489,-2.15],[1.815,0.823,1.932],[8.469,1.449,1.59],[9.81,1.928,0.555],[8.266,2.791,0.46],[8.584,-1.277,-1.014],[10.007,-0.477,-0.322],[8.655,-0.964,0.718],[9.714,1.463,-1.972],[8.292,0.672,-2.669],[8.16,2.327,-2.068]],"S":[[0.764,2.394,-0.48],[0.877,0.919,-0.883],[2.346,0.492,-0.831],[0.0,0.0,0.0],[0.19,-1.363,-0.399],[-1.466,0.305,-0.065],[-2.216,0.112,-1.209],[-3.534,0.385,-1.296],[-4.098,0.879,-0.187],[-3.475,1.116,0.983],[-2.169,0.818,1.005],[-5.494,1.18,-0.252],[-6.662,1.432,-0.3],[-8.107,1.749,-0.361],[-8.45,2.777,0.72],[-8.919,0.469,-0.127],[-8.445,2.318,-1.746],[1.425,3.013,-1.097],[-0.258,2.769,-0.623],[1.04,2.533,0.564],[0.563,0.822,-1.936],[2.485,-0.53,-1.198],[2.736,0.534,0.193],[2.969,1.144,-1.454],[0.342,0.063,1.037],[-0.449,-1.908,0.085],[-1.776,-0.291,-2.124],[-1.68,1.022,1.959],[-8.224,2.401,1.717],[-9.518,3.029,0.702],[-7.887,3.712,0.583],[-8.688,-0.292,-0.882],[-10.0,0.663,-0.169],[-8.696,0.026,0.851],[-9.514,2.559,-1.825],[-8.201,1.612,-2.544],[-7.873,3.241,-1.945]],"S2axis":[0.03862,0.76382,-0.64428],"S2ang":3.02821,"S2t":[0.0,0.0,-0.0],"R3":[[-0.435,0.509,2.513],[0.471,-0.0,1.385],[1.91,0.446,1.653],[-0.006,0.47,-0.009],[0.909,-0.0,-1.007],[-1.38,-0.0,-0.378],[-1.677,-1.331,-0.6],[-2.905,-1.782,-0.925],[-3.86,-0.847,-1.015],[-3.698,0.475,-0.817],[-2.454,0.857,-0.503],[-5.173,-1.298,-1.356],[-6.273,-1.668,-1.643],[-7.637,-2.127,-1.993],[-8.661,-1.094,-1.517],[-7.744,-2.291,-3.514],[-7.908,-3.478,-1.318],[-0.048,0.192,3.488],[-1.451,0.106,2.42],[-0.491,1.596,2.503],[0.477,-1.103,1.416],[2.608,0.027,0.919],[2.002,1.538,1.615],[2.249,0.115,2.642],[0.032,1.563,-0.053],[0.534,0.207,-1.876],[-0.912,-2.109,-0.533],[-2.343,1.93,-0.34],[-8.497,-0.122,-1.982],[-9.684,-1.405,-1.766],[-8.616,-0.951,-0.427],[-7.014,-3.02,-3.888],[-8.743,-2.635,-3.814],[-7.546,-1.346,-4.035],[-8.912,-3.85,-1.562],[-7.186,-4.237,-1.627],[-7.836,-3.393,-0.219]],"S3":[[-0.435,-0.509,2.513],[0.471,-0.0,1.385],[1.91,-0.446,1.653],[-0.006,-0.47,-0.009],[0.909,-0.0,-1.007],[-1.38,0.0,-0.378],[-1.677,1.331,-0.6],[-2.905,1.782,-0.925],[-3.86,0.847,-1.015],[-3.698,-0.475,-0.817],[-2.454,-0.857,-0.503],[-5.173,1.298,-1.356],[-6.273,1.668,-1.643],[-7.637,2.127,-1.993],[-8.661,1.094,-1.517],[-7.744,2.291,-3.514],[-7.908,3.478,-1.318],[-0.048,-0.192,3.488],[-1.451,-0.106,2.42],[-0.491,-1.596,2.503],[0.477,1.103,1.416],[2.608,-0.027,0.919],[2.002,-1.538,1.615],[2.249,-0.115,2.642],[0.032,-1.563,-0.053],[0.534,-0.207,-1.876],[-0.912,2.109,-0.533],[-2.343,-1.93,-0.34],[-8.497,0.122,-1.982],[-9.684,1.405,-1.766],[-8.616,0.951,-0.427],[-7.014,3.02,-3.888],[-8.743,2.635,-3.814],[-7.546,1.346,-4.035],[-8.912,3.85,-1.562],[-7.186,4.237,-1.627],[-7.836,3.393,-0.219]],"plate":[[0.909,-0.0,-1.007],[0.471,-0.0,1.385],[-1.38,-0.0,-0.378]],"tri":[59112,65333,56325]};
+// ── 整数の判定 ─────────────────────────────────────────
+function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function det3(u, v, w) { return u[0] * (v[1] * w[2] - v[2] * w[1]) - u[1] * (v[0] * w[2] - v[2] * w[0]) + u[2] * (v[0] * w[1] - v[1] * w[0]); }
+const PI = D.Pint, MI = PI.map(p => [-p[0], p[1], p[2]]);
+const a = D.arms;
+function orient(Q) { return det3(sub(Q[a["OH"]], Q[a["H"]]), sub(Q[a["iPr"]], Q[a["H"]]), sub(Q[a["環"]], Q[a["H"]])); }
+function hside(Q) { return det3(sub(Q[a["iPr"]], Q[a["OH"]]), sub(Q[a["環"]], Q[a["OH"]]), sub(Q[a["H"]], Q[a["OH"]])); }
+const sR = orient(PI), sS = orient(MI), hR = hside(PI), hS = hside(MI);
+
+// ── 観察者側の表示 ──────────────────────────────────────
+const cv = document.getElementById("cv"), cx = cv.getContext("2d"), W = 960, H = 560;
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+let yaw = 0.2, pitch = 0.25, spin = true, FLIP = 1;
+function view(p) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+  return [x1, p[1] * cp - z1 * sp, p[1] * sp + z1 * cp];
+}
+function proj(p, ox, oy, s) { const v = view(p), f = 40 / (40 + v[2]); return [ox + FLIP * v[0] * s * f, oy - v[1] * s * f, f, v[2]]; }
+const RAD = { C: .36, H: .22, N: .34, O: .34 };
+const GROUP = { [a["OH"]]: "--gOH", [a["iPr"]]: "--giPr", [a["環"]]: "--gR", [a["H"]]: "--gH" };
+const GNAME = { [a["OH"]]: "OH", [a["iPr"]]: "iPr", [a["環"]]: "環", [a["H"]]: "H" };
+
+function drawMol(X, ox, oy, s, opt = {}) {
+  const pr = X.map(p => proj(p, ox, oy, s));
+  const items = [];
+  const below = i => opt.plateCut && X[i][1] < -0.05;
+  for (const [i, j, o] of D.bonds) items.push({ z: (pr[i][3] + pr[j][3]) / 2, f: () => {
+    cx.globalAlpha = (below(i) || below(j)) ? 0.25 : (opt.alpha ?? 1); cx.strokeStyle = css("--muted");
+    const n = o === 6 ? 3 : o === 4 ? 2 : 1, dx = pr[j][0] - pr[i][0], dy = pr[j][1] - pr[i][1], L = Math.hypot(dx, dy) || 1;
+    for (let k = 0; k < n; k++) {
+      const off = (k - (n - 1) / 2) * 5, nx = -dy / L * off, ny = dx / L * off;
+      cx.lineWidth = n > 1 ? 2.5 : 5; cx.beginPath(); cx.moveTo(pr[i][0] + nx, pr[i][1] + ny); cx.lineTo(pr[j][0] + nx, pr[j][1] + ny); cx.stroke();
+    }
+    cx.globalAlpha = 1; } });
+  X.forEach((p, i) => items.push({ z: pr[i][3] - 0.01, f: () => atom(i) }));
+  items.sort((u, v) => v.z - u.z).forEach(it => it.f());
+  function atom(i) {
+    const [x, y, f] = pr[i], el = D.el[i], r = RAD[el] * s * f;
+    cx.globalAlpha = below(i) ? 0.3 : (opt.alpha ?? 1);
+    const col = css("--a" + el);
+    const g = cx.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r);
+    g.addColorStop(0, "#ffffffbb"); g.addColorStop(.4, col); g.addColorStop(1, col);
+    cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fillStyle = g; cx.fill();
+    if (el === "H") { cx.lineWidth = 1; cx.strokeStyle = css("--hEdge"); cx.stroke(); }
+    cx.globalAlpha = 1;
+    if (i === D.star && !opt.noHalo) { cx.lineWidth = 4; cx.strokeStyle = css("--accent"); cx.beginPath(); cx.arc(x, y, r + 6, 0, 7); cx.stroke(); }
+    if (GROUP[i] !== undefined && !opt.noHalo) {
+      cx.lineWidth = 4; cx.strokeStyle = css(GROUP[i]); if (opt.dashed) cx.setLineDash([5, 4]);
+      cx.beginPath(); cx.arc(x, y, r + 7, 0, 7); cx.stroke(); cx.setLineDash([]);
+      if (opt.marks && opt.marks[i] !== undefined) {
+        cx.strokeStyle = opt.marks[i] ? css("--accent") : css("--bad"); cx.lineWidth = 3;
+        if (opt.marks[i]) { cx.beginPath(); cx.arc(x, y, r + 13, 0, 7); cx.stroke(); }
+        else { cx.beginPath(); cx.moveTo(x - r - 8, y - r - 8); cx.lineTo(x + r + 8, y + r + 8); cx.moveTo(x + r + 8, y - r - 8); cx.lineTo(x - r - 8, y + r + 8); cx.stroke(); }
+      }
+      if (opt.tags) { cx.fillStyle = css(GROUP[i]); cx.font = "bold 15px sans-serif"; cx.textAlign = "center"; cx.fillText(GNAME[i], x, y - r - 12); }
+    }
+  }
+}
+function label(t, x, y, col, size = 19) { cx.fillStyle = col; cx.font = `bold ${size}px sans-serif`; cx.textAlign = "center"; cx.fillText(t, x, y); }
+function rot(p, ax, th) {                       // ロドリゲスの回転（表示用）
+  const c = Math.cos(th), s = Math.sin(th), d = ax[0] * p[0] + ax[1] * p[1] + ax[2] * p[2];
+  const cr = [ax[1] * p[2] - ax[2] * p[1], ax[2] * p[0] - ax[0] * p[2], ax[0] * p[1] - ax[1] * p[0]];
+  return [0, 1, 2].map(k => p[k] * c + cr[k] * s + ax[k] * d * (1 - c));
+}
+function sgnText(v) { return v > 0 ? "＋" : "−"; }
+
+// ── 場面 ───────────────────────────────────────────────
+let scene = 0, t = 0, playing = true, twoSided = true;
+const cap = document.getElementById("cap"), num = document.getElementById("num");
+function setScene(n) {
+  scene = n; t = 0; spin = n === 0;
+  yaw = n === 2 ? 0.35 : n === 0 ? 3.34 : 0.2; pitch = n === 2 ? 0.42 : 0.25;
+  for (let i = 0; i < 3; i++) document.getElementById("s" + i).classList.toggle("on", i === n);
+}
+function frame() {
+  cx.clearRect(0, 0, W, H);
+  if (playing) t += 1;
+  if (scene === 0) {
+    if (spin && playing) yaw = 3.34 + 0.45 * Math.sin(t / 90);
+    cx.setLineDash([8, 8]); cx.strokeStyle = css("--muted"); cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(W / 2, 40); cx.lineTo(W / 2, H - 50); cx.stroke(); cx.setLineDash([]);
+    label("鏡", W / 2, 32, css("--muted"));
+    drawMol(D.R, 405, 280, 34, { tags: true });
+    FLIP = -1; drawMol(D.R, 555, 280, 34, { tags: true }); FLIP = 1;
+    label("R体", 240, 530, css("--ink")); label("S体（R体の鏡像）", 720, 530, css("--ink"));
+    label("中心の炭素どうしが、鏡をはさんで向き合う", W / 2, H - 14, css("--muted"), 15);
+    cap.innerHTML = `硤合反応で実際に合成される生成物。中心の炭素に H・OH・iPr・環 が付き、4本の腕は長さも向きもそろっていない（正四面体ではない四面体）。<br>R体を鏡に映したものがS体。ドラッグで回して見比べられる。`;
+    num.textContent = `四面体の向き（整数）　R体 ${sR}（${sgnText(sR)}）　S体 ${sS}（${sgnText(sS)}）`;
+  }
+  if (scene === 1) {
+    const u = Math.min(1, Math.max(0, (t - 40) / 160)), e = u * u * (3 - 2 * u);
+    const S = D.S.map(p => { const q = rot(p, D.S2axis, D.S2ang * e); return [q[0] + D.S2t[0] * e, q[1] + D.S2t[1] * e, q[2] + D.S2t[2] * e]; });
+    drawMol(D.R, 400, 270, 44, { alpha: 0.28, dashed: true, tags: false });
+    const done = u >= 1;
+    const marks = done ? { [a["iPr"]]: true, [a["環"]]: true, [a["OH"]]: false, [a["H"]]: false } : null;
+    drawMol(S, 400, 270, 44, { tags: true, marks });
+    label("薄い像＝R体　濃い像＝S体を回して重ねる", 480, 535, css("--ink"), 17);
+    cap.innerHTML = done
+      ? `中心・iPr・環の3つをR体に重ねると、<b class="x">OH と H の場所が入れ替わる</b>。どう回しても4つは同時にそろわない。<br>回すことでは、四面体の向きの符号は変わらない。R体は＋、S体は−のまま。`
+      : `S体を回して、中心の炭素・iPr・環をR体（薄い像）に重ねていく。`;
+    num.textContent = `四面体の向き（整数）　R体 ${sgnText(sR)}　S体 ${sgnText(sS)}　（回転は符号を変えない）`;
+    if (t > 420) t = 0;
+  }
+  if (scene === 2) {
+    const u = Math.min(1, t / 90), drop = (1 - u * u * (3 - 2 * u)) * 3.5;
+    cx.strokeStyle = css("--line"); cx.lineWidth = 1; cx.beginPath(); cx.moveTo(W / 2, 20); cx.lineTo(W / 2, H - 20); cx.stroke();
+    for (const [ox, X, name, hs, x0] of [[240, D.R3, "R体", hR, 0], [720, D.S3, "S体", hS, W / 2]]) {
+      cx.save(); cx.beginPath(); cx.rect(x0 + 2, 0, W / 2 - 4, H); cx.clip();
+      plate(ox, 330, 52);
+      const Y = X.map(p => [p[0], p[1] + drop, p[2]]);
+      const fits = !twoSided || hs === hR;
+      const marks = u >= 1 ? { [a["OH"]]: true, [a["iPr"]]: true, [a["環"]]: true, [a["H"]]: fits ? undefined : false } : null;
+      drawMol(Y, ox, 330, 52, { tags: true, marks, plateCut: twoSided && u >= 1 });
+      cx.restore();
+      label(name, ox, 520, css("--ink"));
+      if (u >= 1) label(fits ? "はまる" : "はまらない（H が板の裏へ突き抜ける）", ox, 548, fits ? css("--accent") : css("--bad"), 16);
+    }
+    cap.innerHTML = twoSided
+      ? `型紙は、OH・iPr・環を受ける3つの受け口と、<b class="k">表と裏のある板</b>。R体は H を表側に向けてはまる。S体は3つの受け口には合わせられるが、そのとき H が板の裏に出てしまい、はまらない。<br>受け口3つと板の表裏がそろって、はじめて片方だけを選べる。`
+      : `板の裏表をなくし、受け口3つだけにした型紙。受け口の三角形はR体とS体で同じ形なので、<b class="x">どちらもはまる</b>。<br>受け口3つだけでは作り分けられない。`;
+    num.textContent = `受け口を合わせたときの H の側（整数の符号で判定）　R体 ${hR === hR ? "表" : "裏"}（${hR}）　S体 ${hS === hR ? "表" : "裏"}（${hS}）　｜　受け口の三角形の辺の二乗（0.01Å単位）${D.tri.join(", ")}（R体とS体で同じ）`;
+  }
+  requestAnimationFrame(frame);
+}
+function platePts(ox, oy, s) {
+  const c = [0, 0, 0]; D.plate.forEach(p => { c[0] += p[0] / 3; c[2] += p[2] / 3; });
+  return D.plate.map(p => [c[0] + (p[0] - c[0]) * 2.6, -0.05, c[2] + (p[2] - c[2]) * 2.6]);
+}
+function plate(ox, oy, s) {
+  const q = platePts().map(p => proj(p, ox, oy, s));
+  if (twoSided) {
+    cx.beginPath(); q.forEach((p, i) => i ? cx.lineTo(p[0], p[1]) : cx.moveTo(p[0], p[1])); cx.closePath();
+    cx.fillStyle = css("--plate"); cx.globalAlpha = 0.95; cx.fill(); cx.globalAlpha = 1;
+    cx.strokeStyle = css("--line"); cx.lineWidth = 2; cx.stroke();
+  }
+  [a["OH"], a["iPr"], a["環"]].forEach((k, n) => {
+    const p = proj(D.plate[n], ox, oy, s);
+    cx.beginPath(); cx.ellipse(p[0], p[1] + 4, 22, 9, 0, 0, 7);
+    cx.strokeStyle = css(GROUP[k]); cx.lineWidth = 3; cx.stroke();
+  });
+}
+function plateFront(ox, oy, s) {     // 板の裏に回った部分を隠すため、板を薄く重ねる
+  const q = platePts().map(p => proj(p, ox, oy, s));
+  cx.beginPath(); q.forEach((p, i) => i ? cx.lineTo(p[0], p[1]) : cx.moveTo(p[0], p[1])); cx.closePath();
+  cx.fillStyle = css("--plate"); cx.globalAlpha = 0.0; cx.fill(); cx.globalAlpha = 1;
+}
+for (let i = 0; i < 3; i++) document.getElementById("s" + i).onclick = () => setScene(i);
+document.getElementById("play").onclick = () => { playing = !playing; document.getElementById("play").textContent = playing ? "停止" : "再生"; };
+document.getElementById("again").onclick = () => { t = 0; playing = true; document.getElementById("play").textContent = "停止"; };
+document.getElementById("side").onclick = () => {
+  twoSided = !twoSided; document.getElementById("side").textContent = "板の裏表 " + (twoSided ? "あり" : "なし");
+  if (scene !== 2) setScene(2); t = 0;
+};
+let drag = null;
+cv.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, yaw, pitch]; cv.setPointerCapture(e.pointerId); spin = false; });
+cv.addEventListener("pointermove", e => { if (!drag) return; yaw = drag[2] + (e.clientX - drag[0]) * 0.01; pitch = Math.max(-1.3, Math.min(1.3, drag[3] + (e.clientY - drag[1]) * 0.01)); });
+cv.addEventListener("pointerup", () => { drag = null; });
+setScene(0); frame();
+</script>
+</body>
+</html>
