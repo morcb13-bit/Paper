@@ -1,0 +1,193 @@
+<title>正三角形の網を球に閉じる</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 左に正四面体の網を球へ投影した立体、右に面・辺・点の表 */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --h1:#c2410c; --h2:#0f766e; --cs:#c2410c; --cp:#0f766e; --cd:#7c3aed; --cf:#1d4ed8;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.lead{max-width:62ch;margin:0}
+.main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;aspect-ratio:1/1;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--f-body);font-size:.88rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.side{display:grid;gap:18px;min-width:0}
+.box{display:grid;gap:6px}
+.box h2{font-family:var(--f-disp);font-weight:600;font-size:1.05rem;margin:0}
+.box p{margin:0;font-size:.88rem;color:var(--muted)}
+.now{font-family:var(--f-disp);font-weight:800;font-size:1.6rem;line-height:1.3}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+table{border-collapse:collapse;font-family:var(--f-mono);font-size:.82rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:400}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.note{font-size:.8rem;color:var(--muted);max-width:70ch;margin:0;border-top:1px solid var(--line);padding-top:12px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+tr.cur td{background:var(--line)}
+tr{cursor:pointer}
+.tbl{overflow-x:auto}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>正三角形の網を球に閉じる</h1>
+    <div class="sub">正四面体の各面を一辺 n で割り、中心の光源から球へ投影する。点の数は 2n²＋2</div>
+  </header>
+  <p class="lead">正四面体の四つの面を、一辺 n の小さな正三角形に割る。球の中心に光源を置き、網の点を球面へ投影すると、正三角形の組み合わせで閉じた球になる。面は 4n²、辺は 6n²、点は 2n²＋2。閉じた球に必ず残る 2 を引くと、2・8・18・32 が並ぶ。</p>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="cv" width="900" height="900" aria-label="正三角形の網を球に投影した図"></canvas>
+      <div class="ctrl">
+        <button id="play" aria-pressed="true">再生中</button>
+        <button id="step">次の殻</button>
+        <label for="spd">速さ <input id="spd" type="range" min="1" max="10" value="4"></label>
+      </div>
+      <div class="ctrl">
+        <button id="breath" aria-pressed="true">平らと球を往復</button>
+        <button id="mirror" aria-pressed="false">鏡像の網も重ねる</button>
+        <button id="close" aria-pressed="false">一辺1で閉じる</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="box">
+        <h2>いまの網</h2>
+        <div class="now" id="now">―</div>
+        <p id="kline">―</p>
+      </div>
+      <div class="box">
+        <h2>数えた値（整数）</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>殻</th><th>n</th><th>面</th><th>辺</th><th>点</th><th>点−2</th><th>累計</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table></div>
+        <p>面・辺・点は、図の網そのものの番地を重複なく数えた値。どの n でも 点＝辺−面＋2 が成り立つことを図の中で確かめている。濃い点は元の正四面体の角（隣が3つ）、淡い点はそれ以外（隣が6つ）。</p>
+      </div>
+      <div class="box">
+        <h2>座標の置き方</h2>
+        <p>正四面体の角は (1,1,1)・(1,−1,−1)・(−1,1,−1)・(−1,−1,1)。一つの面の角を V₁,V₂,V₃ として、網の点は a·V₁＋b·V₂＋c·V₃（a＋b＋c＝n）。すべて整数。鏡像は符号を入れ替えたもの。球への投影だけが観察者側の換算。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">網の点・面・辺の数と、点＝辺−面＋2 の確かめは整数だけで行っている。球面へ押し出す長さの換算と、画面に置く回転・投影だけに浮動小数を使う（観察者側の表示）。殻の数との対応は数の一致として示している。</p>
+</div>
+
+<script>
+(()=>{
+const SH=['K','L','M','N','O','P','Q','R'];
+const TA=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+const FACES=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+let close=false, playing=true, breath=true, showMirror=false, idx=0, acc=0, ph=0;
+let yaw=0.6, pitch=0.35;
+const seq=()=>close?[1,2,3,4,4,3,2,1]:[1,2,3,4,4,3,2];
+const $=id=>document.getElementById(id);
+const cv=$('cv'), cx=cv.getContext('2d'), W=cv.width;
+let col={};
+function readCol(){const cs=getComputedStyle(document.documentElement);
+  for(const n of ['ink','muted','line','panel','accent','h1','h2','cs','cp','cd','cf'])col[n]=cs.getPropertyValue('--'+n).trim();}
+readCol();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCol();draw();});
+new MutationObserver(()=>{readCol();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+// 網（整数）：点は a·V1+b·V2+c·V3、a+b+c=n
+function mesh(n,sgn){
+  const key=p=>p.join(','), P=new Map(), T=[], E=new Set();
+  const id=p=>{const k=key(p);if(!P.has(k))P.set(k,{p,deg:new Set()});return k;};
+  for(const f of FACES){
+    const [A,B,C]=f.map(i=>TA[i].map(v=>sgn*v));
+    const pt=(a,b)=>{const c=n-a-b;return [0,1,2].map(i=>a*A[i]+b*B[i]+c*C[i]);};
+    for(let a=0;a<n;a++)for(let b=0;a+b<n;b++){
+      const t1=[pt(a,b),pt(a+1,b),pt(a,b+1)].map(id); T.push({k:t1,up:true});
+      if(a+b<=n-2){const t2=[pt(a+1,b),pt(a,b+1),pt(a+1,b+1)].map(id);T.push({k:t2,up:false});}
+    }
+  }
+  for(const t of T)for(let i=0;i<3;i++){const u=t.k[i],v=t.k[(i+1)%3];
+    E.add(u<v?u+'|'+v:v+'|'+u);P.get(u).deg.add(v);P.get(v).deg.add(u);}
+  return {P,T,E};
+}
+function counts(n){const m=mesh(n,1);return {F:m.T.length,E:m.E.size,V:m.P.size,ok:(m.P.size===m.E.size-m.T.length+2)};}
+
+// 観察者側の表示：平ら（網そのもの）と球（中心からの投影）の間を t で混ぜる
+function place(p,n,t){
+  const r=Math.hypot(p[0],p[1],p[2]), R=n*Math.sqrt(3);   // 角までの長さに球の半径を合わせる
+  const s=(1-t)+t*R/r;
+  return [p[0]*s/n,p[1]*s/n,p[2]*s/n];
+}
+function proj(q){
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const x=q[0]*cy-q[1]*sy, y0=q[0]*sy+q[1]*cy;
+  const y=q[2]*cp-y0*sp, d=q[2]*sp+y0*cp;
+  const S=W/5.2; return [W/2+x*S, W/2-y*S, d];
+}
+function draw(){
+  cx.clearRect(0,0,W,W);
+  const S=seq(), n=S[idx], t=breath?(1-Math.cos(ph))/2:1;
+  const sets=[{m:mesh(n,1),c:col.h1}]; if(showMirror)sets.push({m:mesh(n,-1),c:col.h2});
+  const polys=[];
+  for(const s of sets){
+    const Q=new Map(); for(const [k,v] of s.m.P)Q.set(k,proj(place(v.p,n,t)));
+    s.Q=Q;
+    for(const tr of s.m.T){const pts=tr.k.map(k=>Q.get(k));polys.push({pts,c:s.c,up:tr.up,z:(pts[0][2]+pts[1][2]+pts[2][2])/3});}
+  }
+  polys.sort((a,b)=>a.z-b.z);
+  for(const o of polys){
+    cx.beginPath();cx.moveTo(o.pts[0][0],o.pts[0][1]);cx.lineTo(o.pts[1][0],o.pts[1][1]);cx.lineTo(o.pts[2][0],o.pts[2][1]);cx.closePath();
+    const front=o.z>0;
+    cx.globalAlpha=(o.up?0.30:0.14)*(front?1:0.5);cx.fillStyle=o.c;cx.fill();
+    cx.globalAlpha=front?0.85:0.25;cx.strokeStyle=o.c;cx.lineWidth=1.4;cx.stroke();cx.globalAlpha=1;
+  }
+  for(const s of sets){for(const [k,v] of s.m.P){const q=s.Q.get(k);const corner=v.deg.size===3;
+    cx.globalAlpha=q[2]>0?1:0.35;cx.fillStyle=corner?col.ink:s.c;cx.beginPath();cx.arc(q[0],q[1],corner?6:3.5,0,7);cx.fill();cx.globalAlpha=1;}}
+  cx.fillStyle=col.accent;const o=proj([0,0,0]);cx.beginPath();cx.arc(o[0],o[1],4,0,7);cx.fill();
+  readout(S,n,t);
+}
+function readout(S,n,t){
+  let cum=0,h='';
+  S.forEach((m,i)=>{const c=counts(m);cum+=c.V-2;
+    h+=`<tr class="${i===idx?'cur':''}" data-i="${i}"><td>${SH[i]}</td><td>${m}</td><td>${c.F}</td><td>${c.E}</td><td>${c.V}</td><td>${c.V-2}</td><td>${cum}</td></tr>`;});
+  $('tb').innerHTML=h;
+  [...$('tb').querySelectorAll('tr')].forEach(tr=>tr.onclick=()=>{idx=+tr.dataset.i;if(playing)$('play').click();draw();});
+  const c=counts(n);
+  $('now').textContent=`${SH[idx]}殻　n＝${n}　点 ${c.V}（${c.V-2}＋2）`;
+  $('kline').textContent=(c.ok?'点＝辺−面＋2 を確認':'点＝辺−面＋2 が合わない')+'　'+(t<0.05?'平らな正四面体の網':(t>0.95?'球に投影した網':'光源から球へ押し出している'));
+}
+let last=performance.now(),dragging=false;
+function loop(tm){const dt=tm-last;last=tm;
+  if(playing){acc+=dt*(+$('spd').value)/5200;if(acc>=1){acc=0;idx=(idx+1)%seq().length;}
+    if(breath)ph+=dt*0.0016*(+$('spd').value)/4;}
+  if(!dragging&&playing)yaw+=dt*0.0002;
+  draw();requestAnimationFrame(loop);}
+$('play').onclick=()=>{playing=!playing;$('play').setAttribute('aria-pressed',playing);$('play').textContent=playing?'再生中':'停止中';};
+$('step').onclick=()=>{if(playing)$('play').click();idx=(idx+1)%seq().length;draw();};
+$('breath').onclick=()=>{breath=!breath;$('breath').setAttribute('aria-pressed',breath);draw();};
+$('mirror').onclick=()=>{showMirror=!showMirror;$('mirror').setAttribute('aria-pressed',showMirror);draw();};
+$('close').onclick=()=>{close=!close;$('close').setAttribute('aria-pressed',close);if(idx>=seq().length)idx=0;draw();};
+let px=0,py=0;
+cv.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{if(!dragging)return;yaw+=(e.clientX-px)*0.01;pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-py)*0.01));px=e.clientX;py=e.clientY;draw();});
+cv.addEventListener('pointerup',()=>{dragging=false;cv.style.cursor='grab';});
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;breath=false;$('play').setAttribute('aria-pressed',false);$('play').textContent='停止中';$('breath').setAttribute('aria-pressed',false);idx=3;}
+draw();requestAnimationFrame(loop);
+})();
+</script>

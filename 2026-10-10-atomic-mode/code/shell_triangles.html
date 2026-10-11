@@ -1,0 +1,175 @@
+<title>三角形で数える電子殻</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 左に段で育つ三角形と鏡像、右に殻ごとの足し算の表 */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --h1:#c2410c; --h2:#0f766e; --cs:#c2410c; --cp:#0f766e; --cd:#7c3aed; --cf:#1d4ed8;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.lead{max-width:62ch;margin:0}
+.main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;aspect-ratio:1/1;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--f-body);font-size:.88rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.side{display:grid;gap:18px;min-width:0}
+.box{display:grid;gap:6px}
+.box h2{font-family:var(--f-disp);font-weight:600;font-size:1.05rem;margin:0}
+.box p{margin:0;font-size:.88rem;color:var(--muted)}
+.now{font-family:var(--f-disp);font-weight:800;font-size:1.6rem;line-height:1.3}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+table{border-collapse:collapse;font-family:var(--f-mono);font-size:.82rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:400}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.note{font-size:.8rem;color:var(--muted);max-width:70ch;margin:0;border-top:1px solid var(--line);padding-top:12px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+tr.cur td{background:var(--line)}
+tr{cursor:pointer}
+.tbl{overflow-x:auto}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>三角形で数える電子殻</h1>
+    <div class="sub">一辺を 1・2・3・4 と育て、4・3・2 と戻す。段は 1・3・5・7、二組で 2n²</div>
+  </header>
+  <p class="lead">一辺 n の正三角形を小さな三角形に割ると、上から 1・3・5・7 個の段が並び、上向きと下向きが互い違いになる。点対称の鏡像と二組にしたものを一つの殻とする。一辺は 4 まで育ち、そこから同じ道を戻る。</p>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="cv" width="900" height="900" aria-label="三角形の段で数える電子殻"></canvas>
+      <div class="ctrl">
+        <button id="play" aria-pressed="true">再生中</button>
+        <button id="prev">前の殻</button>
+        <button id="next">次の殻</button>
+        <label for="spd">速さ <input id="spd" type="range" min="1" max="10" value="4"></label>
+      </div>
+      <div class="ctrl">
+        <button id="lay" aria-pressed="true">鏡像と重ねる</button>
+        <button id="close" aria-pressed="false">一辺1で閉じる</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="box">
+        <h2>いまの殻</h2>
+        <div class="now" id="now">―</div>
+        <p id="kline">―</p>
+      </div>
+      <div class="box">
+        <h2>殻ごとの数（足し算だけ）</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>殻</th><th>一辺</th><th>段</th><th>二組</th><th>累計</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table></div>
+        <p>段の色：<span class="sw" style="background:var(--cs)"></span>1個（s）<span class="sw" style="background:var(--cp);margin-left:8px"></span>3個（p）<span class="sw" style="background:var(--cd);margin-left:8px"></span>5個（d）<span class="sw" style="background:var(--cf);margin-left:8px"></span>7個（f）。濃い方が上向き、淡い方が下向き。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">殻ごとの数は段の数を足していくだけで求めている（1、1＋3、1＋3＋5 …、二組は同じ数をもう一度足す）。三角形の頂点は整数の三角格子の番地で持ち、浮動小数は画面に置く換算（観察者側の表示）だけに使う。殻と副殻の対応は知識として置いたもので、図の中では数の一致だけを示している。</p>
+</div>
+
+<script>
+(()=>{
+const SH=['K','L','M','N','O','P','Q','R'];
+let close=false, overlay=true, playing=true, idx=0, prog=0, acc=0;
+const sides=()=>close?[1,2,3,4,4,3,2,1]:[1,2,3,4,4,3,2];
+const $=id=>document.getElementById(id);
+const cv=$('cv'), cx=cv.getContext('2d');
+let col={};
+function readCol(){const cs=getComputedStyle(document.documentElement);
+  for(const n of ['ink','muted','line','panel','accent','cs','cp','cd','cf'])col[n]=cs.getPropertyValue('--'+n).trim();}
+readCol();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCol();draw();});
+new MutationObserver(()=>{readCol();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const rowCol=k=>[col.cs,col.cp,col.cd,col.cf][k-1];
+
+// 段の数・殻の数・累計：足し算だけ
+function rows(n){const r=[];let odd=1;for(let k=1;k<=n;k++){r.push(odd);odd+=2;}return r;}
+function shellCount(n){let s=0;for(const x of rows(n))s+=x;return s+s;}
+function table(){
+  let cum=0,h='';const S=sides();
+  S.forEach((n,i)=>{const c=shellCount(n);cum+=c;
+    h+=`<tr class="${i===idx?'cur':''}" data-i="${i}"><td>${SH[i]}</td><td>${n}</td><td>${rows(n).join('＋')}</td><td>${c}</td><td>${cum}</td></tr>`;});
+  $('tb').innerHTML=h;
+  [...$('tb').querySelectorAll('tr')].forEach(tr=>tr.onclick=()=>{idx=+tr.dataset.i;prog=99;if(playing)$('play').click();draw();});
+}
+
+// 三角格子の番地 (a,b) → 画面（観察者側の表示）
+const W=cv.width, U=W/7.2, R3=Math.sqrt(3)/2;
+// 一辺 n の上向き三角形：段 k（1…n）の小三角形を、格子の番地で列挙
+function smallTris(n){
+  const out=[];
+  for(let k=1;k<=n;k++){
+    for(let i=0;i<k;i++){ // 上向き k 個
+      out.push({k,up:true,p:[[2*i-(k-1),k-1],[2*i-(k-1)-1,k],[2*i-(k-1)+1,k]]});}
+    for(let i=0;i<k-1;i++){ // 下向き k−1 個
+      out.push({k,up:false,p:[[2*i-(k-1)+1,k],[2*i-(k-1),k-1],[2*i-(k-1)+2,k-1]]});}
+  }
+  return out;
+}
+// 番地は (横の半目盛り, 段)。重心が原点に来るよう縦をずらす（3n の倍数で整数のまま）
+function toScreen(a,b,n,mirror,shift){
+  let x=a, y=3*b-2*n;            // 縦を3倍して重心 (0,0) に（整数）
+  if(mirror){x=-x;y=-y;}
+  return [W/2+shift+x*U/2, W/2+y*U*R3/3];
+}
+function draw(){
+  cx.clearRect(0,0,W,W);
+  const S=sides(), n=S[idx], T=smallTris(n);
+  const shift=overlay?0:U*1.25;
+  for(const mirror of[false,true]){
+    const sh=overlay?0:(mirror?shift:-shift);
+    for(const t of T){
+      if(t.k>prog)continue;
+      const P=t.p.map(([a,b])=>toScreen(a,b,n,mirror,sh));
+      cx.beginPath();cx.moveTo(P[0][0],P[0][1]);cx.lineTo(P[1][0],P[1][1]);cx.lineTo(P[2][0],P[2][1]);cx.closePath();
+      cx.globalAlpha=(t.up?0.62:0.28)*(overlay?0.8:1);cx.fillStyle=rowCol(t.k);cx.fill();cx.globalAlpha=1;
+      cx.strokeStyle=col.panel;cx.lineWidth=2;cx.stroke();
+    }
+    // 外形
+    const O=[[0,0],[-n,n],[n,n]].map(([a,b])=>toScreen(a,b,n,mirror,overlay?0:(mirror?shift:-shift)));
+    cx.beginPath();cx.moveTo(O[0][0],O[0][1]);cx.lineTo(O[1][0],O[1][1]);cx.lineTo(O[2][0],O[2][1]);cx.closePath();
+    cx.strokeStyle=col.ink;cx.lineWidth=2;cx.setLineDash(mirror?[8,6]:[]);cx.stroke();cx.setLineDash([]);
+  }
+  cx.fillStyle=col.muted;cx.beginPath();cx.arc(W/2,W/2,3,0,7);cx.fill();
+  const shown=Math.min(prog,n);let c=0;for(const x of rows(shown))c+=x;
+  $('now').textContent=`${SH[idx]}殻　一辺${n}　${c+c} / ${shellCount(n)}`;
+  $('kline').textContent=idx<4?'一辺が一つ育つたびに、次の段（奇数個）が加わる':(idx===4?'一辺4のまま。ここから同じ道を戻る':'一辺が一つずつ戻る');
+  table();
+}
+
+function advance(){prog++; if(prog>sides()[idx]+2){prog=0; idx=(idx+1)%sides().length;}}
+let last=performance.now();
+function loop(t){const dt=t-last;last=t;
+  if(playing){acc+=dt*(+$('spd').value)/2600;if(acc>=1){acc=0;advance();draw();}}
+  requestAnimationFrame(loop);}
+$('play').onclick=()=>{playing=!playing;$('play').setAttribute('aria-pressed',playing);$('play').textContent=playing?'再生中':'停止中';};
+$('next').onclick=()=>{idx=(idx+1)%sides().length;prog=99;if(playing)$('play').click();draw();};
+$('prev').onclick=()=>{const L=sides().length;idx=(idx+L-1)%L;prog=99;if(playing)$('play').click();draw();};
+$('lay').onclick=()=>{overlay=!overlay;$('lay').setAttribute('aria-pressed',overlay);$('lay').textContent=overlay?'鏡像と重ねる':'鏡像と並べる';draw();};
+$('close').onclick=()=>{close=!close;$('close').setAttribute('aria-pressed',close);if(idx>=sides().length)idx=0;draw();};
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;$('play').setAttribute('aria-pressed',false);$('play').textContent='停止中';prog=99;idx=3;}
+draw();requestAnimationFrame(loop);
+})();
+</script>

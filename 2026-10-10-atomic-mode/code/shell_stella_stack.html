@@ -1,0 +1,211 @@
+<title>ずらして重ねる星型八面体</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 左に殻ごとの星型八面体を軸に沿ってずらした立体、右に殻ごとの足し算の表 */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --h1:#c2410c; --h2:#0f766e; --cs:#c2410c; --cp:#0f766e; --cd:#7c3aed; --cf:#1d4ed8;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;--cs:#fb923c;--cp:#2dd4bf;--cd:#a78bfa;--cf:#60a5fa;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.lead{max-width:62ch;margin:0}
+.main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;aspect-ratio:1/1;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--f-body);font-size:.88rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.side{display:grid;gap:18px;min-width:0}
+.box{display:grid;gap:6px}
+.box h2{font-family:var(--f-disp);font-weight:600;font-size:1.05rem;margin:0}
+.box p{margin:0;font-size:.88rem;color:var(--muted)}
+.now{font-family:var(--f-disp);font-weight:800;font-size:1.6rem;line-height:1.3}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+table{border-collapse:collapse;font-family:var(--f-mono);font-size:.82rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:400}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.note{font-size:.8rem;color:var(--muted);max-width:70ch;margin:0;border-top:1px solid var(--line);padding-top:12px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+tr.cur td{background:var(--line)}
+tr{cursor:pointer}
+.tbl{overflow-x:auto}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>ずらして重ねる星型八面体</h1>
+    <div class="sub">殻ごとに一つの星型八面体（正四面体と点対称の鏡像、中心は共通）。一辺 1・2・3・4・4・3・2 を軸に沿ってずらして重ねる</div>
+  </header>
+  <p class="lead">一つの殻は、一辺 n の正四面体とその点対称の鏡像を同じ中心に重ねた星型八面体。三回軸に垂直な面が二枚（正四面体の底面と鏡像の底面）あり、どちらも n² 個の小三角形に割れて、合わせて 2n²。殻ごとの星型八面体を軸に沿ってずらして重ねる。ずらす量を 0 にすると、すべて同じ中心の入れ子になる。</p>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="cv" width="900" height="900" aria-label="ずらして重ねた星型八面体"></canvas>
+      <div class="ctrl">
+        <button id="play" aria-pressed="true">再生中</button>
+        <button id="step">一殻</button>
+        <label for="spd">速さ <input id="spd" type="range" min="1" max="10" value="4"></label>
+      </div>
+      <div class="ctrl">
+        <label for="sh">ずらす量 <input id="sh" type="range" min="0" max="4" value="2"></label><span class="sub" id="shv">2</span>
+        <button id="edges" aria-pressed="true">辺</button>
+        <button id="top" aria-pressed="false">軸の上から見る</button>
+        <button id="close" aria-pressed="false">一辺1で閉じる</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="box">
+        <h2>いまの殻</h2>
+        <div class="now" id="now">―</div>
+        <p id="kline">―</p>
+      </div>
+      <div class="box">
+        <h2>殻ごとの数（足し算だけ）</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>殻</th><th>一辺</th><th>中心の面</th><th>面1枚</th><th>2枚</th><th>累計</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table></div>
+        <p>段の色：<span class="sw" style="background:var(--cs)"></span>s <span class="sw" style="background:var(--cp);margin-left:8px"></span>p <span class="sw" style="background:var(--cd);margin-left:8px"></span>d <span class="sw" style="background:var(--cf);margin-left:8px"></span>f。濃い方が上向き、淡い方が下向き。いまの殻以外は薄く描く。</p>
+      </div>
+      <div class="box">
+        <h2>座標の置き方</h2>
+        <p>殻 k（k＝0,1,…）の中心は c＋k·d·(1,1,1)。正四面体は中心から n(1,1,1)・n(1,−1,−1)・n(−1,1,−1)・n(−1,−1,1)、鏡像は符号をすべて入れ替えたもの。大きな辺²は 8n²、面を割った小さな辺²は 8。全体の中心がそろうよう c を整数で決める。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">座標・長さ²・個数はすべて整数で求めている。浮動小数は画面に置く回転と投影（観察者側の表示）だけに使う。殻と副殻の対応は知識として置いたもので、図の中では数の一致だけを示している。</p>
+</div>
+
+<script>
+(()=>{
+const SH=['K','L','M','N','O','P','Q','R'];
+let close=false, showEdges=true, topView=false, playing=true, cur=0, acc=0, d=2;
+let yaw=0.5, pitch=0.3;
+const sizes=()=>close?[1,2,3,4,4,3,2,1]:[1,2,3,4,4,3,2];
+const $=id=>document.getElementById(id);
+const cv=$('cv'), cx=cv.getContext('2d'), W=cv.width;
+let col={};
+function readCol(){const cs=getComputedStyle(document.documentElement);
+  for(const n of ['ink','muted','line','panel','accent','cs','cp','cd','cf','h1','h2'])col[n]=cs.getPropertyValue('--'+n).trim();}
+readCol();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCol();draw();});
+new MutationObserver(()=>{readCol();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const rowCol=r=>[col.cs,col.cp,col.cd,col.cf][r-1];
+
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1],p[2]+q[2]];
+const sub=(p,q)=>[p[0]-q[0],p[1]-q[1],p[2]-q[2]];
+const mul=(k,p)=>[k*p[0],k*p[1],k*p[2]];
+const neg=p=>[-p[0],-p[1],-p[2]];
+const d2=(p,q)=>{let s=0;for(let k=0;k<3;k++){const t=p[k]-q[k];s+=t*t;}return s;};
+const TA=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+// 全体の中心をそろえる：殻 k の中心 = (2k−K)·d·(1,1,1)（2 倍で持って整数のまま）
+function centers(){const S=sizes(),K=S.length-1;return S.map((_,k)=>mul((2*k-K)*d,[1,1,1]));} // 座標は 2 倍で保持
+function star(n,c){ // c は 2 倍座標。頂点も 2 倍で返す
+  const A=TA.map(v=>add(c,mul(2*n,v))), B=TA.map(v=>add(c,mul(-2*n,v)));
+  return {A,B};
+}
+// 三回軸に垂直な面：A の底面（頂点 A[1],A[2],A[3]）と B の底面（B[1],B[2],B[3]）
+function faceTris(P0,P1,P2,n){ // 一辺 n の三角形を n² 個に割る（2 倍座標、整数）
+  const u=sub(P1,P0), w=sub(P2,P0), out=[];
+  // u/n, w/n が整数になるよう P は 2n 倍の目盛りで置かれている
+  const du=[u[0]/n,u[1]/n,u[2]/n], dw=[w[0]/n,w[1]/n,w[2]/n];
+  const pt=(i,j)=>add(add(P0,mul(i,du)),mul(j,dw));
+  for(let i=0;i<=n;i++)for(let j=0;i+j<=n;j++){
+    if(i+j<=n-1)out.push({r:i+j+1,up:true,P:[pt(i,j),pt(i+1,j),pt(i,j+1)]});
+    if(i+j<=n-2)out.push({r:i+j+2,up:false,P:[pt(i+1,j),pt(i,j+1),pt(i+1,j+1)]});
+  }
+  return out;
+}
+// 確かめ（整数）：大きな辺²＝8n²（2 倍座標では 32n²）、小さな辺²＝8（2 倍で 32）
+let ok=true;
+for(const n of[1,2,3,4]){const {A,B}=star(n,[0,0,0]);
+  for(let i=0;i<4;i++)for(let j=i+1;j<4;j++){if(d2(A[i],A[j])!==32*n*n||d2(B[i],B[j])!==32*n*n)ok=false;}
+  for(const t of faceTris(A[1],A[2],A[3],n).concat(faceTris(B[1],B[2],B[3],n)))
+    for(let k=0;k<3;k++)if(d2(t.P[k],t.P[(k+1)%3])!==32)ok=false;}
+
+const r2=Math.SQRT2,r6=Math.sqrt(6),r3=Math.sqrt(3);
+let SC=1;
+function proj(p){ // 観察者側の表示（浮動小数はここだけ）。p は 2 倍座標
+  const x=p[0]/2,y=p[1]/2,z=p[2]/2;
+  const a=(x-y)/r2,b=(x+y-2*z)/r6,c=(x+y+z)/r3;
+  const cy=Math.cos(yaw),sy=Math.sin(yaw);
+  const X=a*cy-b*sy,Z=a*sy+b*cy;
+  const pt_=topView?Math.PI/2:pitch,cp=Math.cos(pt_),sp=Math.sin(pt_);
+  const Y=-c*cp-Z*sp,D=-c*sp+Z*cp;
+  return [W/2+X*SC,W/2-Y*SC,D];
+}
+function rows(n){const r=[];let o=1;for(let k=1;k<=n;k++){r.push(o);o+=2;}return r;}
+function cnt(n){let s=0;for(const x of rows(n))s+=x;return s;}
+function line(a,b){cx.beginPath();cx.moveTo(a[0],a[1]);cx.lineTo(b[0],b[1]);cx.stroke();}
+
+function draw(){
+  cx.clearRect(0,0,W,W);
+  const S=sizes(),C=centers(),K=S.length-1;
+  // 画面の大きさ（観察者側の表示）：軸方向の広がりに合わせる
+  let span=4*r3; S.forEach((n,k)=>{span=Math.max(span,Math.abs(2*k-K)*d/2*r3+n*r3);}); SC=W/2/(span*1.12);
+  const polys=[];
+  S.forEach((n,k)=>{
+    const {A,B}=star(n,C[k]), on=(k===cur), dim=on?1:0.28;
+    for(const t of faceTris(A[1],A[2],A[3],n).concat(faceTris(B[1],B[2],B[3],n)))
+      polys.push({pts:t.P.map(proj),c:rowCol(t.r),a:(t.up?0.6:0.25)*dim,k});
+    if(showEdges){
+      for(const [P,c,dash] of [[A,col.h1,[]],[B,col.h2,[8,6]]])
+        for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)polys.push({line:[proj(P[i]),proj(P[j])],c,dash,a:on?0.9:0.18});
+    }
+  });
+  const depth=o=>o.line?(o.line[0][2]+o.line[1][2])/2:(o.pts[0][2]+o.pts[1][2]+o.pts[2][2])/3;
+  polys.sort((u,v)=>depth(u)-depth(v));
+  for(const o of polys){
+    if(o.line){cx.globalAlpha=o.a;cx.strokeStyle=o.c;cx.lineWidth=2;cx.setLineDash(o.dash);line(o.line[0],o.line[1]);cx.setLineDash([]);cx.globalAlpha=1;continue;}
+    cx.beginPath();cx.moveTo(o.pts[0][0],o.pts[0][1]);cx.lineTo(o.pts[1][0],o.pts[1][1]);cx.lineTo(o.pts[2][0],o.pts[2][1]);cx.closePath();
+    cx.globalAlpha=o.a;cx.fillStyle=o.c;cx.fill();cx.globalAlpha=Math.min(1,o.a+0.2);cx.strokeStyle=col.panel;cx.lineWidth=1;cx.stroke();cx.globalAlpha=1;
+  }
+  const o=proj([0,0,0]);cx.fillStyle=col.ink;cx.beginPath();cx.arc(o[0],o[1],3,0,7);cx.fill();
+  readout(S,C);
+}
+function readout(S,C){
+  let cum=0,h='';
+  S.forEach((n,k)=>{const c=cnt(n);cum+=c+c;const s=(C[k][0]+C[k][1]+C[k][2])/2;
+    h+=`<tr class="${k===cur?'cur':''}" data-k="${k}"><td>${SH[k]}</td><td>${n}</td><td>x+y+z＝${s}</td><td>${rows(n).join('＋')}</td><td>${c+c}</td><td>${cum}</td></tr>`;});
+  $('tb').innerHTML=h;
+  [...$('tb').querySelectorAll('tr')].forEach(tr=>tr.onclick=()=>{cur=+tr.dataset.k;if(playing)$('play').click();draw();});
+  $('now').textContent=`${SH[cur]}殻　一辺${S[cur]}　2枚で ${cnt(S[cur])*2}`;
+  $('kline').textContent=(ok?'大きな辺²＝8n²、小さな辺²＝8（確認済み）':'辺の長さ²が合わないものがある')+`　ずらす量 ${d}${d===0?'（すべて同じ中心の入れ子）':''}`;
+}
+let last=performance.now(),dragging=false;
+function loop(t){const dt=t-last;last=t;
+  if(playing){acc+=dt*(+$('spd').value)/3000;if(acc>=1){acc=0;cur=(cur+1)%sizes().length;}}
+  if(!dragging&&playing&&!topView)yaw+=dt*0.00018;
+  draw();requestAnimationFrame(loop);}
+$('play').onclick=()=>{playing=!playing;$('play').setAttribute('aria-pressed',playing);$('play').textContent=playing?'再生中':'停止中';};
+$('step').onclick=()=>{if(playing)$('play').click();cur=(cur+1)%sizes().length;draw();};
+$('sh').oninput=()=>{d=+$('sh').value;$('shv').textContent=d;draw();};
+$('edges').onclick=()=>{showEdges=!showEdges;$('edges').setAttribute('aria-pressed',showEdges);draw();};
+$('top').onclick=()=>{topView=!topView;$('top').setAttribute('aria-pressed',topView);draw();};
+$('close').onclick=()=>{close=!close;$('close').setAttribute('aria-pressed',close);if(cur>=sizes().length)cur=0;draw();};
+let px=0,py=0;
+cv.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{if(!dragging)return;yaw+=(e.clientX-px)*0.01;if(!topView)pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-py)*0.01));px=e.clientX;py=e.clientY;draw();});
+cv.addEventListener('pointerup',()=>{dragging=false;cv.style.cursor='grab';});
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;$('play').setAttribute('aria-pressed',false);$('play').textContent='停止中';cur=3;}
+draw();requestAnimationFrame(loop);
+})();
+</script>

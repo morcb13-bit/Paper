@@ -1,0 +1,224 @@
+<title>三角形と正四面体の振動</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 左に振動する立体、右に番地と長さ²の読み。水素＝一組、ヘリウム＝点対称に互い違いの二組 */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --h1:#c2410c; --h2:#0f766e;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--h1:#fb923c;--h2:#2dd4bf;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-inline:16px;padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.lead{max-width:62ch;margin:0}
+.main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;aspect-ratio:1/1;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--f-body);font-size:.88rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.side{display:grid;gap:18px;min-width:0}
+.box{display:grid;gap:6px}
+.box h2{font-family:var(--f-disp);font-weight:600;font-size:1.05rem;margin:0}
+.box p{margin:0;font-size:.88rem;color:var(--muted)}
+.now{font-family:var(--f-disp);font-weight:800;font-size:1.6rem;line-height:1.3}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+table{border-collapse:collapse;font-family:var(--f-mono);font-size:.82rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:400}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.note{font-size:.8rem;color:var(--muted);max-width:70ch;margin:0;border-top:1px solid var(--line);padding-top:12px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>三角形と正四面体の振動</h1>
+    <div class="sub">水素＝正三角形と正四面体の間を往復する一組／ヘリウム＝点対称に互い違いの二組</div>
+  </header>
+  <p class="lead">正三角形の中心に置いた一点が面の上へ、三角形は面の下へ、中心を動かさずに一歩ずつ開く。開く前は平らな三角形（2次元）、開ききると正四面体（3次元）。その間を往復させたものを水素とする。ヘリウムは、同じ中心にその鏡像（点対称）を互い違いに重ねた二組。閉じたときは一つの面の上の六芒星、開ききると星型八面体。</p>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="cv" width="900" height="900" aria-label="振動する三角形と正四面体"></canvas>
+      <div class="ctrl">
+        <button id="play" aria-pressed="true">再生中</button>
+        <button id="step">一歩</button>
+        <label for="spd">速さ <input id="spd" type="range" min="1" max="10" value="4"></label>
+      </div>
+      <div class="ctrl">
+        <button id="mH" aria-pressed="true">水素</button>
+        <button id="mHe" aria-pressed="false">ヘリウム</button>
+        <button id="ph" aria-pressed="false" disabled>時間も互い違い</button>
+        <button id="axis" aria-pressed="false">軸の上から見る</button>
+        <button id="cube" aria-pressed="false">立方体の枠</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="box">
+        <h2>いまの形</h2>
+        <div class="now" id="now">―</div>
+        <div class="bar"><i id="barA"></i></div>
+        <p id="kline">―</p>
+      </div>
+      <div class="box">
+        <h2>長さ²（整数）</h2>
+        <table>
+          <thead><tr><th>組</th><th>番地 k</th><th>側の辺²</th><th>底の辺²</th><th>四点の和</th></tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+        <p>四点の和はどの k でも (0,0,0)。中心は動かない。側の辺²が底の辺²に一致したとき正四面体。k が一つ進むたびに側の辺²は 48(2k＋1) ずつ足される。</p>
+      </div>
+      <div class="box">
+        <h2>座標の置き方</h2>
+        <p>整数格子（m＝16）。底の三角形は (4m−k, −2m−k, −2m−k) とその巡回、持ち上がる点は (3k,3k,3k)、k＝0…m。底が k 下がる間に頂点が 3k 上がるので、四点の和は常に 0。k＝m で頂点は立方体 (±3m) の角に乗る。鏡像はすべての座標の符号を入れ替えたもの。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">図の中の座標・長さ²・判定はすべて整数の足し算と掛け算で求めている。浮動小数は、立体を画面に置くための回転と投影（観察者側の表示）だけに使う。ドラッグで向きを変えられる。</p>
+</div>
+
+<script>
+(()=>{
+const M=16, TOP=M, S=3*M;
+// 四点の和を常に (0,0,0) に保つ：底は軸に沿って j 下がり、頂点は 3j 上がる（整数）
+const neg=p=>p.map(v=>-v);
+const baseA=j=>[[4*M-j,-2*M-j,-2*M-j],[-2*M-j,4*M-j,-2*M-j],[-2*M-j,-2*M-j,4*M-j]];
+const baseB=j=>baseA(j).map(neg);                    // 点対称の鏡像
+const apexA=j=>[3*j,3*j,3*j];                        // 中心(0,0,0)から(3m,3m,3m)へ
+const apexB=j=>neg(apexA(j));
+const d2=(p,q)=>{let s=0;for(let i=0;i<3;i++){const t=p[i]-q[i];s+=t*t;}return s;};
+const sum4=(b,a)=>[0,1,2].map(i=>b[0][i]+b[1][i]+b[2][i]+a[i]);
+const BASE2=d2(baseA(0)[0],baseA(0)[1]);             // 72m²（どの j でも同じ）
+
+let mode='H', alt=false, playing=true, k=0, dir=1, acc=0, showCube=false;
+let yaw=0.6, pitch=0.35, axisView=false;
+
+const $=id=>document.getElementById(id);
+const cv=$('cv'), cx=cv.getContext('2d');
+let col={};
+function readCol(){const cs=getComputedStyle(document.documentElement);
+  for(const n of ['ink','muted','line','h1','h2','panel','accent'])col[n]=cs.getPropertyValue('--'+n).trim();}
+readCol();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCol();draw();});
+new MutationObserver(()=>{readCol();draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+// 観察者側の表示：(1,1,1) を画面の縦に立てる正規直交基底と回転（浮動小数はここだけ）
+const r2=Math.SQRT2, r6=Math.sqrt(6), r3=Math.sqrt(3);
+function proj(p){
+  const a=(p[0]-p[1])/r2, b=(p[0]+p[1]-2*p[2])/r6, c=(p[0]+p[1]+p[2])/r3;
+  const cy=Math.cos(yaw), sy=Math.sin(yaw);
+  const x=a*cy-b*sy, z=a*sy+b*cy;
+  const pt=axisView?Math.PI/2:pitch, cp=Math.cos(pt), sp=Math.sin(pt);
+  const y=c*cp - z*sp, dz=c*sp + z*cp;
+  const sc=cv.width/(2*S*2.05);
+  return [cv.width/2 + x*sc, cv.height/2 - y*sc, dz];
+}
+
+function tetra(base, apex, color, kk){
+  const P=base.map(proj), A=proj(apex);
+  const faces=[[P[0],P[1],P[2]],[P[0],P[1],A],[P[1],P[2],A],[P[2],P[0],A]];
+  return {P,A,faces,color,kk};
+}
+
+function drawCube(){
+  const v=[];for(const x of[-S,S])for(const y of[-S,S])for(const z of[-S,S])v.push([x,y,z]);
+  cx.strokeStyle=col.line; cx.lineWidth=1.5; cx.setLineDash([6,6]);
+  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){if(d2(v[i],v[j])===4*S*S){
+    const a=proj(v[i]), b=proj(v[j]); cx.beginPath(); cx.moveTo(a[0],a[1]); cx.lineTo(b[0],b[1]); cx.stroke();}}
+  cx.setLineDash([]);
+}
+
+function draw(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  if(showCube)drawCube();
+  const kB = alt ? TOP-k : k;
+  const items=[tetra(baseA(k),apexA(k),col.h1,k)];
+  if(mode==='He')items.push(tetra(baseB(kB),apexB(kB),col.h2,kB));
+  // 面を奥から順に塗る
+  const fs=[];
+  for(const it of items)for(const f of it.faces)fs.push({f,color:it.color,z:(f[0][2]+f[1][2]+f[2][2])/3});
+  fs.sort((a,b)=>a.z-b.z);
+  for(const o of fs){
+    cx.beginPath(); cx.moveTo(o.f[0][0],o.f[0][1]); cx.lineTo(o.f[1][0],o.f[1][1]); cx.lineTo(o.f[2][0],o.f[2][1]); cx.closePath();
+    cx.globalAlpha=0.13; cx.fillStyle=o.color; cx.fill(); cx.globalAlpha=1;
+  }
+  for(const it of items){
+    cx.strokeStyle=it.color; cx.lineWidth=3;
+    cx.beginPath(); cx.moveTo(it.P[0][0],it.P[0][1]); cx.lineTo(it.P[1][0],it.P[1][1]); cx.lineTo(it.P[2][0],it.P[2][1]); cx.closePath(); cx.stroke();
+    cx.lineWidth=2; cx.setLineDash(it.kk===0?[4,5]:[]);
+    for(const p of it.P){cx.beginPath(); cx.moveTo(p[0],p[1]); cx.lineTo(it.A[0],it.A[1]); cx.stroke();}
+    cx.setLineDash([]);
+    cx.fillStyle=it.color;
+    for(const p of it.P){cx.beginPath(); cx.arc(p[0],p[1],6,0,7); cx.fill();}
+    cx.beginPath(); cx.arc(it.A[0],it.A[1],8,0,7); cx.fill();
+    cx.strokeStyle=col.panel; cx.lineWidth=2; cx.stroke();
+  }
+  // 中心
+  const o=proj([0,0,0]); cx.fillStyle=col.muted; cx.beginPath(); cx.arc(o[0],o[1],3,0,7); cx.fill();
+  readout(kB);
+}
+
+function shapeName(kk){ return kk===0?'平らな三角形':(kk===TOP?'正四面体':'途中'); }
+function readout(kB){
+  const sA=d2(apexA(k),baseA(k)[0]), cA=sum4(baseA(k),apexA(k)).join(',');
+  let rows=`<tr><td><span class="sw" style="background:${col.h1}"></span>水素${mode==='He'?'A':''}</td><td>${k} / ${TOP}</td><td>${sA}</td><td>${BASE2}</td><td>(${cA})</td></tr>`;
+  let name=shapeName(k);
+  if(mode==='He'){
+    const sB=d2(apexB(kB),baseB(kB)[0]), cB=sum4(baseB(kB),apexB(kB)).join(',');
+    rows+=`<tr><td><span class="sw" style="background:${col.h2}"></span>水素B</td><td>${kB} / ${TOP}</td><td>${sB}</td><td>${BASE2}</td><td>(${cB})</td></tr>`;
+    if(k===TOP&&kB===TOP)name='星型八面体';
+    else if(k===0&&kB===0)name='一つの面の六芒星';
+    else name=shapeName(k)+'＋'+shapeName(kB);
+  }
+  $('tb').innerHTML=rows;
+  $('now').textContent=name;
+  $('kline').textContent=k===0?'高さ0：四つの点が一つの面にあり、持ち上がる点は三角形の中心にある（2次元）':(k===TOP?'上がりきった：四つの点の間の長さ²がすべて等しい（3次元）':'2次元と3次元の間');
+  $('barA').style.width=(k*100/TOP)+'%';
+}
+
+function stepOnce(){ k+=dir; if(k>=TOP){k=TOP;dir=-1;} else if(k<=0){k=0;dir=1;} }
+
+let last=performance.now();
+function loop(t){
+  const dt=t-last; last=t;
+  if(playing){ acc+=dt*(+$('spd').value)/400*TOP/16;
+    let n=0; while(acc>=1&&n<8){acc-=1;stepOnce();n++;} if(n>=8)acc=0; }
+  if(!dragging && playing && !axisView) yaw+=dt*0.00018;
+  draw(); requestAnimationFrame(loop);
+}
+
+// 操作
+$('play').onclick=()=>{playing=!playing; $('play').setAttribute('aria-pressed',playing); $('play').textContent=playing?'再生中':'停止中';};
+$('step').onclick=()=>{ if(playing)$('play').click(); stepOnce(); draw(); };
+function setMode(m){ mode=m; $('mH').setAttribute('aria-pressed',m==='H'); $('mHe').setAttribute('aria-pressed',m==='He'); $('ph').disabled=(m!=='He'); draw(); }
+$('mH').onclick=()=>setMode('H'); $('mHe').onclick=()=>setMode('He');
+$('ph').onclick=()=>{alt=!alt; $('ph').setAttribute('aria-pressed',alt); draw();};
+$('axis').onclick=()=>{axisView=!axisView; $('axis').setAttribute('aria-pressed',axisView); draw();};
+$('cube').onclick=()=>{showCube=!showCube; $('cube').setAttribute('aria-pressed',showCube); draw();};
+
+let dragging=false, px=0, py=0;
+cv.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{ if(!dragging)return; yaw+=(e.clientX-px)*0.01;
+  if(!axisView)pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-py)*0.01)); px=e.clientX; py=e.clientY; draw(); });
+cv.addEventListener('pointerup',()=>{dragging=false;cv.style.cursor='grab';});
+
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){ playing=false; $('play').setAttribute('aria-pressed',false); $('play').textContent='停止中'; k=TOP; }
+draw(); requestAnimationFrame(loop);
+})();
+</script>
