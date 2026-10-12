@@ -1,0 +1,117 @@
+<title>フィボナッチで重ねる星型八面体</title>
+<style>
+/* 左：同じ中心に、正立と鏡像の正四面体をフィボナッチの大きさで一つずつ交互に重ねる立体。右：表と操作 */
+:root{
+  --bg:#f2f3f0; --panel:#ffffff; --ink:#1c2320; --mute:#69726d; --line:#cdd3ce;
+  --c1:#b0302a; --c2:#c2571f; --c3:#3b5b8c; --c4:#2f7d5b; --c5:#8a5a2b; --c6:#6b4fa0; --c7:#1f7a8c; --c8:#7a7a1f;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1d2421; --ink:#e5eae7; --mute:#9aa49f; --line:#36403b;
+  --c1:#ef6f63; --c2:#f0965a; --c3:#86a6d8; --c4:#62c99a; --c5:#d39a5f; --c6:#b59be0; --c7:#5fc3d6; --c8:#cfcf6a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1d2421; --ink:#e5eae7; --mute:#9aa49f; --line:#36403b;
+  --c1:#ef6f63; --c2:#f0965a; --c3:#86a6d8; --c4:#62c99a; --c5:#d39a5f; --c6:#b59be0; --c7:#5fc3d6; --c8:#cfcf6a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;margin:0;padding-block:20px;padding-inline:16px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--mute);max-width:70ch}
+.main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px;min-width:0;position:relative}
+canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%}
+.tag{position:absolute;left:18px;top:12px;font-size:1.5rem;font-weight:700}
+.tag small{font-size:.85rem;font-weight:500;color:var(--mute);margin-left:8px}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;min-width:0}
+.box h2{font-size:.8rem;letter-spacing:.08em;color:var(--mute);margin:0 0 6px;font-weight:600}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:center;font-size:.88rem;white-space:nowrap}
+th{color:var(--mute);font-weight:500}
+tr.on td{font-weight:700}
+tr.off td{opacity:.35}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ctrl label{color:var(--mute);font-size:.85rem}
+button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:5px 12px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.note{font-size:.82rem;color:var(--mute);margin:6px 0 0}
+</style>
+
+<div class="wrap">
+  <h1>フィボナッチで重ねる星型八面体</h1>
+  <p class="lead">同じ中心に、正四面体を一つずつ重ねていきます。大きさはフィボナッチ数 1, 1, 2, 3, 5, 8, 13, 21 で、向きは正立（A、実線）と鏡像（B、破線）を交互にします。最初の二つ（1, 1）だけが同じ大きさで、He の星型八面体になります。一つ置くたびに殻が一つでき、その正四面体の面に電子の席が網の点として並びます。網は 1 段おきに細かくなります（一辺 1, 1 → 2, 2 → 3, 3 → 4, 4）。一度置いた正四面体の大きさと色は、そのまま変わりません。</p>
+  <div class="main">
+    <div class="stage">
+      <div class="tag" id="tag"></div>
+      <canvas id="cv" width="760" height="760" aria-label="フィボナッチの大きさで交互に重ねた正四面体"></canvas>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h2>置いた順（辺の長さ・殻の電子数）</h2>
+        <div class="tw"><table id="tbl"></table></div>
+        <p class="note">点は、その殻の正四面体の面を一辺 n（層の番号）の網に割った格子点で、数は 2n²＋2（L・M 10、N・O 20、P・Q 34）。電子の席は 2n² で、残る 2 は閉じた形に必ず残る 2（どの点とは決まらない）。H と He は種で、向かい合う頂点に 1 個ずつ。電子数の累計 2・10・18・36・54・86・118 は殻が閉じる原子番号。種の 1, 1 だけが 1 ずつで、ほかの層は 2n² が 2 回ずつ。隣どうしの組 (a, b)（a が前）について b² − ab − a² は ＋1 と −1 を交互にとる。差が 0 なのは最初の 1, 1 だけ。</p>
+      </div>
+      <div class="box ctrl">
+        <span style="color:var(--mute);font-size:.85rem">目盛り</span><button id="z3">内側（辺 3 まで）</button><button id="z8">中（辺 8 まで）</button><button id="z21">全体（辺 21 まで）</button></div><div class="box ctrl"><button id="prev">一つ戻る</button><button id="next">一つ置く</button>
+        <button id="play">止める</button>
+        <label for="spd">速さ</label><input id="spd" type="range" min="1" max="10" value="4">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- 整数の部分 ----
+const V=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+const F=[1,1];while(F.length<8)F.push(F[F.length-1]+F[F.length-2]);   // 1,1,2,3,5,8,13（足し算だけ）
+const SHELL=["H","He","L","M","N","O","P","Q"];
+const layer=i=>i<2?1:Math.floor(i/2)+1;                     // 置いた順 i（0 から）→ 層 1,1,2,2,3,3,4,4
+const ecount=i=>i<2?1:2*layer(i)*layer(i);                   // 電子数：種は 1 ずつ、その先は 2n²（1 段おきに増える）
+let acc=0;
+const ITEMS=F.map((s,i)=>{acc+=ecount(i);return {s,sign:i%2===0?1:-1,name:i%2===0?"A（正立）":"B（鏡像）",sh:SHELL[i],e:ecount(i),cum:acc};});
+const form=(a,b)=>b*b-a*b-a*a;
+function surf(n){const out=[];for(let a=0;a<=n;a++)for(let b=0;a+b<=n;b++)for(let c=0;a+b+c<=n;c++){const d=n-a-b-c;if(a===0||b===0||c===0||d===0)out.push([a,b,c,d]);}return out;}
+const pos=w=>[0,1,2].map(j=>w[0]*V[0][j]+w[1]*V[1][j]+w[2]*V[2][j]+w[3]*V[3][j]);
+ITEMS.forEach((it,i)=>{const n=layer(i);
+  it.pts = i<2 ? [V[0].map(x=>it.sign*x*it.s)]                 // 種：H と He は 1 個ずつ、向かい合う頂点に
+               : surf(n).map(w=>pos(w).map(x=>it.sign*it.s*x)); // 座標は整数（表示で n で割る）
+  it.div = i<2 ? 1 : n;});
+let k=2;
+const tbl=document.getElementById("tbl");
+function table(){tbl.innerHTML="<tr><th>順</th><th>殻</th><th>向き</th><th>辺</th><th>電子数</th><th>累計</th><th>前との b²−ab−a²</th></tr>"+
+  ITEMS.map((it,i)=>`<tr class="${i+1===k?"on":(i+1>k?"off":"")}"><td><span class="dot" style="background:var(--c${i+1})"></span>${i+1}</td><td>${it.sh}</td><td>${it.name}</td><td>${it.s}</td><td>${it.e}</td><td>${it.cum}</td><td>${i?form(ITEMS[i-1].s,it.s):"―"}</td></tr>`).join("");}
+
+// ---- 観察者側の表示（ここだけ浮動小数）----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let th=0.6, t=0, playing=!matchMedia("(prefers-reduced-motion: reduce)").matches;
+const TE=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]], TF=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+let RM=8;                                                 // 目盛り：段を足しても変えない（拡大は手で選ぶ）
+function proj(v){const c=Math.cos(th),s=Math.sin(th);let x=v[0]*c+v[2]*s,z=-v[0]*s+v[2]*c,y=v[1];
+  const tl=0.45,y2=y*Math.cos(tl)-z*Math.sin(tl),z2=y*Math.sin(tl)+z*Math.cos(tl);
+  const S=cv.width/(RM*3.9),f=1/(1-z2/(RM*12));return [cv.width/2+x*S*f,cv.height/2+20-y2*S*f];}
+function tet(it,col){const P=V.map(v=>proj(v.map(x=>it.sign*it.s*x)));
+  g.globalAlpha=0.06;g.fillStyle=col;TF.forEach(f=>{g.beginPath();f.forEach((q,i)=>i?g.lineTo(P[q][0],P[q][1]):g.moveTo(P[q][0],P[q][1]));g.closePath();g.fill();});
+  g.globalAlpha=1;g.strokeStyle=col;g.lineWidth=1.9;g.setLineDash(it.sign>0?[]:[7,5]);
+  TE.forEach(([a,b])=>{g.beginPath();g.moveTo(P[a][0],P[a][1]);g.lineTo(P[b][0],P[b][1]);g.stroke();});g.setLineDash([]);
+  g.fillStyle=col;it.pts.forEach(q=>{const Q=proj(q.map(x=>x/it.div));g.beginPath();g.arc(Q[0],Q[1],it.s>=8?3.6:3,0,7);g.fill();});
+  if(it.s>=2){const top=P.reduce((m,p)=>p[1]<m[1]?p:m,P[0]);g.font="600 13px system-ui";g.fillText(it.sh,top[0]+6,top[1]-6);}}
+function draw(){g.clearRect(0,0,cv.width,cv.height);
+  for(let i=k-1;i>=0;i--)tet(ITEMS[i],css("--c"+(i+1)));
+  const O=proj([0,0,0]);g.fillStyle=css("--ink");g.beginPath();g.arc(O[0],O[1],3.5,0,7);g.fill();}
+function setK(n){k=Math.max(1,Math.min(ITEMS.length,n));const it=ITEMS[k-1];
+  document.getElementById("tag").innerHTML=`${it.sh}<small>${k} 個目・${it.name}・辺 ${it.s}・電子 ${it.e}（累計 ${it.cum}）</small>`;table();draw();}
+[3,8,21].forEach(z=>document.getElementById("z"+z).onclick=()=>{RM=z;draw();});
+document.getElementById("prev").onclick=()=>setK(k-1);
+document.getElementById("next").onclick=()=>setK(k+1);
+const pb=document.getElementById("play"),spd=document.getElementById("spd");const setPB=()=>pb.textContent=playing?"止める":"再生";setPB();
+pb.onclick=()=>{playing=!playing;setPB();};
+let last=performance.now();
+function loop(now){const dt=Math.min(50,now-last);last=now;
+  if(playing){th+=0.00012*spd.value*dt;t+=dt*spd.value;if(t>7000){t=0;setK(k>=ITEMS.length?1:k+1);}draw();}
+  requestAnimationFrame(loop);}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+setK(2);requestAnimationFrame(loop);
+</script>

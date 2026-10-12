@@ -1,0 +1,112 @@
+<title>ボーア模型と正四面体の殻</title>
+<style>
+/* 左右に二つの図：左はボーア模型（円軌道）、右は B13（正立と鏡像の正四面体と、その外接球がつくる二つの同心球）。下に整数の表 */
+:root{
+  --bg:#f2f3f0; --panel:#ffffff; --ink:#1c2320; --mute:#69726d; --line:#cdd3ce;
+  --l:#3b5b8c; --m:#2f7d5b; --band:#c9a227; --nuc:#1c2320;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1d2421; --ink:#e5eae7; --mute:#9aa49f; --line:#36403b;
+  --l:#86a6d8; --m:#62c99a; --band:#e0c050; --nuc:#e5eae7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1d2421; --ink:#e5eae7; --mute:#9aa49f; --line:#36403b;
+  --l:#86a6d8; --m:#62c99a; --band:#e0c050; --nuc:#e5eae7; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;margin:0;padding-block:20px;padding-inline:16px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:1.3rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--mute);max-width:72ch}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.pair{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;min-width:0}
+.stage h2{font-size:.95rem;margin:0 0 2px}
+.stage p{font-size:.82rem;color:var(--mute);margin:0 0 6px}
+canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;min-width:0}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+td,th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:center;font-size:.88rem;white-space:nowrap}
+th{color:var(--mute);font-weight:500}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ctrl label{color:var(--mute);font-size:.85rem}
+button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:5px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--l);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+</style>
+
+<div class="wrap">
+  <h1>ボーア模型と正四面体の殻</h1>
+  <p class="lead">L殻（2s・2p）と M殻（3s・3p）を例に、二つの模型を並べます。ボーア模型では電子は円軌道の上にあり、軌道の半径は 4 : 9 です。B13 では、正立の正四面体（L、辺 2）と鏡像の正四面体（M、辺 3）の外接球が二つの同心球になり、そのあいだが殻の範囲です。電子の席は正四面体の網の点で、位置は確定値です。</p>
+  <div class="pair">
+    <div class="stage">
+      <h2>ボーア模型</h2>
+      <p>電子は円軌道の上を回る。半径は n² に比例（L 4、M 9）。</p>
+      <canvas id="cvB" width="620" height="620" aria-label="ボーア模型"></canvas>
+    </div>
+    <div class="stage">
+      <h2>B13：正立と鏡像の正四面体</h2>
+      <p>二つの外接球（半径² 12 と 27 ＝ 4 : 9）のあいだが殻。席は網の点（L 10 点・M 10 点）。「席を球へ写す」で、中心から各自の球へ写した位置（観察者側の換算）に切り替わる。</p>
+      <canvas id="cvT" width="620" height="620" aria-label="正四面体と二つの同心球"></canvas>
+    </div>
+  </div>
+  <div class="box">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--l)"></span>L殻（正立の正四面体、辺 2）</span>
+      <span><span class="sw" style="background:var(--m)"></span>M殻（鏡像の正四面体、辺 3）</span>
+      <span><span class="sw" style="background:var(--band);opacity:.5"></span>二つの同心球のあいだ（殻の範囲）</span>
+    </div>
+  </div>
+  <div class="box tw"><table id="tbl"></table></div>
+  <div class="box ctrl">
+    <button id="sph" aria-pressed="false">席を球へ写す</button><button id="play">止める</button>
+    <label for="spd">速さ</label><input id="spd" type="range" min="1" max="10" value="4">
+  </div>
+</div>
+
+<script>
+// ---- 整数の部分 ----
+const V=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
+const pos=w=>[0,1,2].map(j=>w[0]*V[0][j]+w[1]*V[1][j]+w[2]*V[2][j]+w[3]*V[3][j]);
+function surf(n){const out=[];for(let a=0;a<=n;a++)for(let b=0;a+b<=n;b++)for(let c=0;a+b+c<=n;c++){const d=n-a-b-c;if(a===0||b===0||c===0||d===0)out.push([a,b,c,d]);}return out;}
+const SH=[{name:"L",s:2,sign:1,n:2,col:"--l",bohr:4,e:8},{name:"M",s:3,sign:-1,n:2,col:"--m",bohr:9,e:8}];
+SH.forEach(h=>{h.pts=surf(h.n).map(w=>pos(w).map(x=>h.sign*h.s*x));   // 整数（表示で n で割る）
+  h.r2=3*h.s*h.s;});                                                 // 外接球の半径²（頂点 (s,s,s)）
+document.getElementById("tbl").innerHTML="<tr><th>殻</th><th>ボーアの半径（n²）</th><th>正四面体の辺</th><th>外接球の半径²</th><th>網の点</th><th>電子の席</th></tr>"+
+  SH.map(h=>`<tr><td>${h.name}</td><td>${h.bohr}</td><td>${h.s}</td><td>${h.r2}</td><td>${h.pts.length}</td><td>${h.e}</td></tr>`).join("")+
+  `<tr><td>比</td><td>4 : 9</td><td>2 : 3</td><td>12 : 27 ＝ 4 : 9</td><td colspan="2">網の点 2n²＋2 ＝ 10（席 8 と、閉じた形に残る 2）</td></tr>`;
+
+// ---- 観察者側の表示（ここだけ浮動小数）----
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const cB=document.getElementById("cvB"), gB=cB.getContext("2d"), cT=document.getElementById("cvT"), gT=cT.getContext("2d");
+let th=0.5, ph=0, onSphere=false, playing=!matchMedia("(prefers-reduced-motion: reduce)").matches;
+function drawBohr(){const g=gB,W=cB.width,cx=W/2,cy=W/2,S=W/(2*9*1.18);g.clearRect(0,0,W,W);
+  // 範囲（L と M の軌道のあいだ）
+  g.fillStyle=css("--band");g.globalAlpha=0.16;g.beginPath();g.arc(cx,cy,9*S,0,2*Math.PI);g.moveTo(cx+4*S,cy);g.arc(cx,cy,4*S,0,2*Math.PI,true);g.fill();g.globalAlpha=1;
+  SH.forEach((h,k)=>{const r=h.bohr*S;g.strokeStyle=css(h.col);g.lineWidth=2;g.beginPath();g.arc(cx,cy,r,0,7);g.stroke();
+    for(let i=0;i<h.e;i++){const a=ph*(k?0.45:1)+i*2*Math.PI/h.e;g.fillStyle=css(h.col);g.beginPath();g.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),6,0,7);g.fill();}
+    g.fillStyle=css(h.col);g.font="600 15px system-ui";g.fillText(h.name+"（n² ＝ "+h.bohr+"）",cx+6,cy-r-6);});
+  // 内側の K（参考）
+  g.strokeStyle=css("--line");g.setLineDash([4,4]);g.beginPath();g.arc(cx,cy,1*S,0,7);g.stroke();g.setLineDash([]);
+  g.fillStyle=css("--nuc");g.beginPath();g.arc(cx,cy,6,0,7);g.fill();}
+function proj(v){const W=cT.width,c=Math.cos(th),s=Math.sin(th);let x=v[0]*c+v[2]*s,z=-v[0]*s+v[2]*c,y=v[1];
+  const tl=0.42,y2=y*Math.cos(tl)-z*Math.sin(tl),z2=y*Math.sin(tl)+z*Math.cos(tl);const S=W/(2*Math.sqrt(27)*1.18);
+  return [W/2+x*S,W/2-y2*S,z2];}                                 // 平行投影（球の輪郭は円のまま）
+function drawT(){const g=gT,W=cT.width,S=W/(2*Math.sqrt(27)*1.18);g.clearRect(0,0,W,W);
+  const rL=Math.sqrt(SH[0].r2)*S, rM=Math.sqrt(SH[1].r2)*S;
+  g.fillStyle=css("--band");g.globalAlpha=0.16;g.beginPath();g.arc(W/2,W/2,rM,0,2*Math.PI);g.moveTo(W/2+rL,W/2);g.arc(W/2,W/2,rL,0,2*Math.PI,true);g.fill();g.globalAlpha=1;
+  [[rL,"--l"],[rM,"--m"]].forEach(([r,c])=>{g.strokeStyle=css(c);g.lineWidth=1.5;g.setLineDash([3,4]);g.beginPath();g.arc(W/2,W/2,r,0,7);g.stroke();g.setLineDash([]);});
+  const TE=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+  SH.forEach(h=>{const P=V.map(v=>proj(v.map(x=>h.sign*h.s*x)));g.strokeStyle=css(h.col);g.lineWidth=2;g.setLineDash(h.sign>0?[]:[7,5]);
+    TE.forEach(([a,b])=>{g.beginPath();g.moveTo(P[a][0],P[a][1]);g.lineTo(P[b][0],P[b][1]);g.stroke();});g.setLineDash([]);});
+  const dots=[];SH.forEach(h=>h.pts.forEach(q=>{let v=q.map(x=>x/h.n);if(onSphere){const L=Math.hypot(...v),R=Math.sqrt(h.r2);v=v.map(x=>x*R/L);}dots.push({p:proj(v),c:css(h.col)});}));
+  dots.sort((a,b)=>a.p[2]-b.p[2]).forEach(d=>{g.fillStyle=d.c;g.beginPath();g.arc(d.p[0],d.p[1],6,0,7);g.fill();});
+  g.fillStyle=css("--nuc");g.beginPath();g.arc(W/2,W/2,6,0,7);g.fill();
+  g.font="600 15px system-ui";g.fillStyle=css("--l");g.fillText("L（半径² 12）",W/2+6,W/2-rL-6);g.fillStyle=css("--m");g.fillText("M（半径² 27）",W/2+6,W/2-rM-6);}
+const pb=document.getElementById("play"),spd=document.getElementById("spd");const setPB=()=>pb.textContent=playing?"止める":"再生";setPB();
+pb.onclick=()=>{playing=!playing;setPB();};
+document.getElementById("sph").onclick=e=>{onSphere=!onSphere;e.currentTarget.setAttribute("aria-pressed",onSphere);e.currentTarget.textContent=onSphere?"席を面に戻す":"席を球へ写す";};
+function loop(){if(playing){th+=0.0025*spd.value;ph+=0.004*spd.value;}drawBohr();drawT();requestAnimationFrame(loop);}
+loop();
+</script>
