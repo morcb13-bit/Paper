@@ -1,0 +1,183 @@
+<title>正5胞体の影</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 主役は影の立体（左）。右に角の読み取りと「位相→角」の曲線。下に単体の列。狭い画面では一列 */
+:root{
+  --bg:#f2f3f5; --panel:#ffffff; --fg:#1b1f27; --muted:#5d6472; --line:#cfd4dc;
+  --hyd:#e7eef3; --hydline:#3a5866; --cen:#3b55c9; --lone:#c99a1e; --fulc:#b2402f;
+  --arm:#1b1f27; --curve:#3b55c9; --rec:#b2402f; --grid:#e3e6eb; --ghost:#9aa3b2;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151b; --panel:#1a1f27; --fg:#e5e8ee; --muted:#9aa2b1; --line:#323a47;
+  --hyd:#26313a; --hydline:#a9c4d2; --cen:#8fa2ff; --lone:#e6bf52; --fulc:#f08a72;
+  --arm:#e5e8ee; --curve:#8fa2ff; --rec:#f08a72; --grid:#262d38; --ghost:#5d6676; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151b; --panel:#1a1f27; --fg:#e5e8ee; --muted:#9aa2b1; --line:#323a47;
+  --hyd:#26313a; --hydline:#a9c4d2; --cen:#8fa2ff; --lone:#e6bf52; --fulc:#f08a72;
+  --arm:#e5e8ee; --curve:#8fa2ff; --rec:#f08a72; --grid:#262d38; --ghost:#5d6676; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:1020px;margin:0 auto;padding-block:20px 40px;padding-inline:16px;display:grid;gap:18px}
+h1{font-size:1.45rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:68ch}
+.stage{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:780px){.stage{grid-template-columns:minmax(0,1fr)}}
+canvas{width:100%;max-width:100%;display:block;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+#cv{aspect-ratio:1/1;touch-action:none;cursor:grab}
+#plot{aspect-ratio:4/3}
+.side{display:grid;gap:12px;min-width:0}
+.big{font-size:2.1rem;font-weight:600;font-family:var(--f-mono);line-height:1.2}
+.read{font-family:var(--f-mono);font-variant-numeric:tabular-nums;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:.9rem;margin:0}
+.read dt{color:var(--muted)} .read dd{margin:0}
+label{font-size:.85rem;color:var(--muted);letter-spacing:.04em}
+input[type=range]{width:100%}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--curve)} button:focus-visible{outline:2px solid var(--curve);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--curve);color:var(--curve)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.86rem;min-width:560px}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+h2{font-size:1.05rem;margin:0}
+.note{font-size:.82rem;color:var(--muted);max-width:72ch;margin:0}
+</style>
+
+<div class="wrap">
+  <h1>正5胞体の影 ― 4次元で回すと角が変わって見える</h1>
+  <p class="lead">5つの頂点（H 三本・埋まった席 L・4次元目の支点 F）が、どの二本も同じ角で開く正5胞体。形は固定したまま、4次元の面 P（H の軸と L−F の向き）で回し、4次元目を落として3次元の影を見る。H どうしの角は、回した位相 θ だけで 104.48° から 120° まで動く。</p>
+
+  <div class="stage">
+    <canvas id="cv" width="900" height="900" aria-label="正5胞体の3次元の影。ドラッグで回転"></canvas>
+    <div class="side">
+      <div>
+        <div class="big" id="ang">104.48°</div>
+        <dl class="read">
+          <dt>位相 θ</dt><dd id="th">0°</dd>
+          <dt>c ＝ cos²θ</dt><dd id="cc">1</dd>
+          <dt>影の組 (2c−5, 2c+10)</dt><dd id="pr">(−1, 4)</dd>
+          <dt>いまの位置</dt><dd id="here">本当の角</dd>
+        </dl>
+      </div>
+      <div>
+        <label for="sl">4次元の面 P での位相 θ（0°〜90°）</label>
+        <input id="sl" type="range" min="0" max="9000" value="0">
+      </div>
+      <div class="row" id="snaps"></div>
+      <div class="row">
+        <button id="play" aria-pressed="true">回す</button>
+        <button id="spin" aria-pressed="true">見回す</button>
+      </div>
+      <canvas id="plot" width="800" height="600" aria-label="位相 c と影の角の曲線、記録の点"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--cen)"></i>中心の原子</span>
+        <span><i style="background:var(--hyd);border:1px solid var(--hydline)"></i>H</span>
+        <span><i style="background:var(--lone)"></i>埋まった席 L</span>
+        <span><i style="background:var(--fulc)"></i>4次元目の支点 F</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>単体の列 ― 角は次元だけで決まる</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>次元 n</th><th>形</th><th>組 (−1, n)</th><th>角</th><th>記録</th><th>分子</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td>線分</td><td class="n">(−1, 1)</td><td class="n">180°</td><td class="n">180</td><td>BeH₂</td></tr>
+        <tr><td class="n">2</td><td>正三角形</td><td class="n">(−1, 2)</td><td class="n">120°</td><td class="n">120</td><td>BH₃</td></tr>
+        <tr><td class="n">3</td><td>正四面体</td><td class="n">(−1, 3)</td><td class="n">109.4712°</td><td class="n">109.471</td><td>CH₄</td></tr>
+        <tr><td class="n">4</td><td>正5胞体（支点つき）</td><td class="n">(−1, 4)</td><td class="n">104.4775°</td><td class="n">104.4776 ±0.0019</td><td>H₂O</td></tr>
+        <tr><td class="n">5</td><td>6頂点の単体（時間軸）</td><td class="n">(−1, 5)</td><td class="n">101.537°</td><td class="n">―</td><td>未決</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">正 n 単体の頂点を (n+1)e_i − (1,…,1) と整数で置くと、どの二本も内積 −(n+1)、長さ² n(n+1)。影の組 (2c−5, 2c+10) は c が分数 p/q なら (2p−5q, 2p+10q) で整数。H₂O と CH₄ は整数の c（1 と 5/8）で出る。NH₃（c≈0.82）と H₃O⁺（c≈0.46）は記録に合わせて位相を選んだ位置で、位相を決める規則はまだ無い。記録：H₂O Hoy–Bunker 1979、CH₄ Hirota 1979、NH₃ CCSD(T) 106.769、H₃O⁺ ab initio 111.95。描画と角の表示だけ浮動小数。</p>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('cv'), g=cv.getContext('2d');
+const pl=document.getElementById('plot'), q=pl.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const S30=Math.sqrt(30), S50=Math.sqrt(50), QR=Math.sqrt(50/3);
+// 4次元の成分 [m, u, q1, q2]（|v|²=20、どの二本も内積 −5）
+const V=[0,1,2].map(i=>[-10/S30,0,QR*Math.cos(2*Math.PI*i/3),QR*Math.sin(2*Math.PI*i/3)]);
+const L=[15/S30, 25/S50,0,0], F=[15/S30,-25/S50,0,0];
+const deg=x=>x*180/Math.PI;
+const angOf=c=>deg(Math.acos((2*c-5)/(2*c+10)));
+const SN=[["H₂O 本当の角",1,104.4776],["NH₃",0.82066,106.769],["CH₄ 正四面体",0.625,109.4712],["H₃O⁺",0.45932,111.95],["平ら",0,120]];
+let th=0, playing=true, spinning=true, yaw=0.5, pitch=-0.3, drag=null, dir=1;
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){playing=false;spinning=false}
+const sl=document.getElementById('sl'), playB=document.getElementById('play'), spinB=document.getElementById('spin');
+playB.setAttribute('aria-pressed',String(playing)); spinB.setAttribute('aria-pressed',String(spinning));
+const box=document.getElementById('snaps');
+SN.forEach(([n,c])=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{setTh(Math.acos(Math.sqrt(c)));stop()};box.appendChild(b)});
+function stop(){playing=false;playB.setAttribute('aria-pressed','false')}
+playB.onclick=()=>{playing=!playing;playB.setAttribute('aria-pressed',String(playing))};
+spinB.onclick=()=>{spinning=!spinning;spinB.setAttribute('aria-pressed',String(spinning))};
+sl.addEventListener('input',()=>{th=sl.value/100*Math.PI/180;stop();readout()});
+function setTh(t){th=Math.max(0,Math.min(Math.PI/2,t));sl.value=Math.round(deg(th)*100);readout()}
+function frac(c){const known=[[1,"1"],[0.625,"5/8"],[0,"0"],[0.5,"1/2"],[0.75,"3/4"],[0.25,"1/4"]];for(const [v,s] of known)if(Math.abs(c-v)<1e-4)return s;return c.toFixed(4)}
+function pairStr(c){const m={"1":[1,1],"5/8":[5,8],"0":[0,1],"1/2":[1,2],"3/4":[3,4],"1/4":[1,4]}[frac(c)];
+  if(!m)return `(${(2*c-5).toFixed(3)}, ${(2*c+10).toFixed(3)})`;const [p,qq]=m;let a=2*p-5*qq,b=2*p+10*qq;const gg=(x,y)=>y?gg(y,x%y):x;const k=gg(Math.abs(a),b);return `(${a/k}, ${b/k})`}
+function readout(){
+  const c=Math.cos(th)**2, a=angOf(c);
+  document.getElementById('ang').textContent=a.toFixed(2)+'°';
+  document.getElementById('th').textContent=deg(th).toFixed(1)+'°';
+  document.getElementById('cc').textContent=frac(c);
+  document.getElementById('pr').textContent=pairStr(c);
+  let h='―';SN.forEach(([n,cc])=>{if(Math.abs(cc-c)<0.004)h=n});document.getElementById('here').textContent=h;
+}
+// 面 P で θ 回し、u を落とす → 3次元 (m', q1, q2) と、落とした高さ u'
+function shadow(v){const c=Math.cos(th),s=Math.sin(th);return {p:[v[0]*c-v[1]*s,v[2],v[3]],h:v[0]*s+v[1]*c}}
+function rot(p){const [x,y,z]=[p[1],p[0],p[2]];const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const x1=cy*x+sy*z,z1=-sy*x+cy*z;return [x1,cp*y-sp*z1,sp*y+cp*z1]}
+function P(p){const r=rot(p),W=cv.width,s=W/12,d=1+r[2]/30;return [W/2+r[0]*s/d,W*0.53-r[1]*s/d,r[2]]}
+function seg(a,b,col,w,dash){const A=P(a),B=P(b);g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke();g.setLineDash([])}
+function dot(p,r,f,st){const A=P(p),s=cv.width/12;g.beginPath();g.arc(A[0],A[1],r*s,0,7);g.fillStyle=f;g.fill();if(st){g.strokeStyle=st;g.lineWidth=2;g.stroke()}}
+function draw(){
+  const W=cv.width;g.clearRect(0,0,W,W);
+  const cH=css('--hyd'),cHL=css('--hydline'),cC=css('--cen'),cL=css('--lone'),cF=css('--fulc'),cA=css('--arm'),cG=css('--ghost');
+  const all=[...V,L,F].map(shadow);
+  // 正5胞体の辺（影）
+  for(let i=0;i<5;i++)for(let j=i+1;j<5;j++)seg(all[i].p,all[j].p,cG,1.2,[4,5]);
+  const items=[];
+  all.forEach((o,i)=>{
+    const z=P(o.p)[2];
+    if(i<3)items.push({z,f:()=>{seg([0,0,0],o.p,cA,3);dot(o.p,0.42,cH,cHL)}});
+    else{const col=i===3?cL:cF;items.push({z,f:()=>{seg([0,0,0],o.p,col,2,[3,4]);dot(o.p,0.3+0.06*o.h,col)}})}
+  });
+  items.push({z:0,f:()=>dot([0,0,0],0.5,cC)});
+  items.sort((a,b)=>b.z-a.z).forEach(o=>o.f());
+  // 4次元目の高さ（落とした成分）
+  g.fillStyle=css('--muted');g.font=`${Math.round(W/40)}px ${css('--f-mono')}`;
+  g.fillText(`落とした4次元目の高さ  L ${all[3].h.toFixed(2)}   F ${all[4].h.toFixed(2)}   H ${all[0].h.toFixed(2)}`,W*0.03,W*0.965);
+}
+function drawPlot(){
+  const W=pl.width,H=pl.height,ml=70,mr=20,mt=24,mb=56;q.clearRect(0,0,W,H);
+  const X=c=>ml+(1-c)*(W-ml-mr), Y=a=>mt+(120-a)/(120-104)*(H-mt-mb);
+  q.font=`${Math.round(W/36)}px ${css('--f-mono')}`;q.lineWidth=1;
+  for(const a of [104,108,112,116,120]){q.strokeStyle=css('--grid');q.beginPath();q.moveTo(ml,Y(a));q.lineTo(W-mr,Y(a));q.stroke();q.fillStyle=css('--muted');q.fillText(a+'°',8,Y(a)+6)}
+  for(const c of [1,0.75,0.5,0.25,0]){q.fillStyle=css('--muted');q.fillText(String(c),X(c)-10,H-mb+26)}
+  q.fillText('c = cos²θ',W/2-50,H-10);
+  q.strokeStyle=css('--curve');q.lineWidth=3;q.beginPath();
+  for(let i=0;i<=200;i++){const c=1-i/200,a=angOf(c);i?q.lineTo(X(c),Y(a)):q.moveTo(X(c),Y(a))}q.stroke();
+  SN.forEach(([n,c,a])=>{q.fillStyle=css('--rec');q.beginPath();q.arc(X(c),Y(a),6,0,7);q.fill();q.fillStyle=css('--fg');q.fillText(n.split(' ')[0],X(c)+8,Y(a)-8)});
+  const c=Math.cos(th)**2;q.strokeStyle=css('--fg');q.lineWidth=1.5;q.setLineDash([4,4]);q.beginPath();q.moveTo(X(c),mt);q.lineTo(X(c),H-mb);q.stroke();q.setLineDash([]);
+}
+function frame(){
+  if(spinning&&!drag)yaw+=0.004;
+  if(playing){th+=dir*0.004;if(th>=Math.PI/2){th=Math.PI/2;dir=-1}if(th<=0){th=0;dir=1}sl.value=Math.round(deg(th)*100);readout()}
+  draw();drawPlot();requestAnimationFrame(frame);
+}
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.4,Math.min(1.4,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY]});
+cv.addEventListener('pointerup',()=>drag=null);cv.addEventListener('pointercancel',()=>drag=null);
+readout();frame();
+})();
+</script>

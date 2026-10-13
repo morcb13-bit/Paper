@@ -1,0 +1,173 @@
+<title>NH₃ の手の滑り</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図（立方体の中の NH3）を主役に、下に滑りのつまみと記録の表。狭い画面では一列 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --cube:#9aa5a1; --tetra:#2f6f8f; --octa:#b0652a; --hyd:#d9e3e8; --hydline:#3d5560;
+  --nit:#3b5bd6; --lone:#c9a227; --arm:#1d2422; --path:#b0652a;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#5d6a66; --tetra:#6fb3d4; --octa:#e39a5c; --hyd:#2a3438; --hydline:#a9c3cf;
+  --nit:#8ea4ff; --lone:#e8c454; --arm:#e4e9e6; --path:#e39a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#5d6a66; --tetra:#6fb3d4; --octa:#e39a5c; --hyd:#2a3438; --hydline:#a9c3cf;
+  --nit:#8ea4ff; --lone:#e8c454; --arm:#e4e9e6; --path:#e39a5c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:980px;margin:0 auto;padding-block:20px 40px;padding-inline:16px;display:grid;gap:18px}
+h1{font-size:1.45rem;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:65ch}
+.stage{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.stage{grid-template-columns:minmax(0,1fr)}}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.side{display:grid;gap:14px;min-width:0}
+.read{font-family:var(--f-mono);font-variant-numeric:tabular-nums;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.92rem}
+.read dt{color:var(--muted)} .read dd{margin:0}
+.big{font-size:2rem;font-weight:600;font-family:var(--f-mono)}
+label{font-size:.85rem;color:var(--muted);letter-spacing:.04em}
+input[type=range]{width:100%}
+.snaps{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--path)} button:focus-visible{outline:2px solid var(--nit);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--path);color:var(--path)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;min-width:520px}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:.82rem;color:var(--muted);max-width:70ch;margin:0}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <h1>NH₃ の手の滑り ― 先端から芯の頂点へ</h1>
+  <p class="lead">立方体の中の正四面体 A と、A の辺の中点（芯の正八面体の頂点）。H の手は A の頂点から辺の中点へ、辺の上を滑る。手 v₁＝(p, −c, −p) とその巡回、三本の和は常に (−c, −c, −c)。</p>
+
+  <div class="stage">
+    <canvas id="cv" width="900" height="900" aria-label="NH3 の立体図。ドラッグで回転"></canvas>
+    <div class="side">
+      <div>
+        <div class="big" id="ang">106.78°</div>
+        <dl class="read">
+          <dt>p / c</dt><dd id="pc">0.8264</dd>
+          <dt>組 (−p², 2p²+c²)</dt><dd id="pair">―</dd>
+          <dt>余弦²</dt><dd id="c2">―</dd>
+          <dt>いまの位置</dt><dd id="here">―</dd>
+        </dl>
+      </div>
+      <div>
+        <label for="sl">滑り量 p / c（1＝A の頂点、0＝辺の中点）</label>
+        <input id="sl" type="range" min="0" max="1000" value="826">
+      </div>
+      <div class="snaps" id="snaps"></div>
+      <div class="snaps">
+        <button id="play" aria-pressed="false">滑らせる</button>
+        <button id="spin" aria-pressed="true">回転</button>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--nit)"></i>N</span>
+        <span><i style="background:var(--hyd);border:1px solid var(--hydline)"></i>H</span>
+        <span><i style="background:var(--lone)"></i>埋まった席（A の残りの頂点）</span>
+        <span><i style="background:var(--octa)"></i>芯の正八面体の頂点</span>
+        <span><i style="background:var(--tetra)"></i>正四面体 A</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>位置</th><th>角</th><th>余弦²</th><th>p / c</th><th>帰属</th></tr></thead>
+      <tbody>
+        <tr><td>CH₄（A の頂点）</td><td class="n">109.471°</td><td class="n">1/9</td><td class="n">1</td><td>[計算] 形の対称性</td></tr>
+        <tr><td>NH₃ 平衡値</td><td class="n">106.769°</td><td class="n">≈1/12（106.779°）</td><td class="n">0.8264</td><td>[知識] CCSD(T)、Lin–Thiel–Yurchenko 2002</td></tr>
+        <tr><td>v284 の模型 (−2,7)</td><td class="n">106.60°</td><td class="n">4/49</td><td class="n">0.8165</td><td>[計算] 平衡値の幅の外</td></tr>
+        <tr><td>H₂O（参考、手 2 本）</td><td class="n">104.4776°</td><td class="n">1/16</td><td class="n">―</td><td>[知識] Hoy–Bunker 1979、(−1,4) が誤差内</td></tr>
+        <tr><td>PH₃（M 殻）</td><td class="n">93.4°</td><td class="n">≈1/284</td><td class="n">0.259</td><td>[知識] Helms–Gordy 1977、Kijima–Tanaka 1981</td></tr>
+        <tr><td>辺の中点</td><td class="n">90°</td><td class="n">0</td><td class="n">0</td><td>[計算] 立方体の軸の向き</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">座標・組・余弦²の分母は整数で書けるところだけ整数。図の描画と角の表示だけ浮動小数。腕の長さは辺の上の点までで、実際の結合距離（N–H 1.0109 Å）ではない。余弦² 1/9・1/12・1/16 の並びは記録を見たあとで見つけたもの（[見立て]）。</p>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('cv'), g=cv.getContext('2d');
+const C=6;
+const SNAPS=[["CH₄ 109.47°",1],["NH₃ 平衡 106.77°",0.826450],["模型 (−2,7)",0.816497],["PH₃ 93.4°",0.2594],["90°",0]];
+let t=0.826450, yaw=0.6, pitch=-0.35, spinning=true, playing=false, dir=-1, drag=null;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const sl=document.getElementById('sl');
+const snapBox=document.getElementById('snaps');
+SNAPS.forEach(([n,v])=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{set(v);stopPlay()};snapBox.appendChild(b)});
+function set(v){t=Math.max(0,Math.min(1,v));sl.value=Math.round(t*1000);readout()}
+sl.addEventListener('input',()=>{t=sl.value/1000;stopPlay();readout()});
+const playB=document.getElementById('play'), spinB=document.getElementById('spin');
+function stopPlay(){playing=false;playB.setAttribute('aria-pressed','false')}
+playB.onclick=()=>{playing=!playing;playB.setAttribute('aria-pressed',String(playing))};
+spinB.onclick=()=>{spinning=!spinning;spinB.setAttribute('aria-pressed',String(spinning))};
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){spinning=false;spinB.setAttribute('aria-pressed','false')}
+
+function arms(p){return [[p,-C,-p],[-p,p,-C],[-C,-p,p]]}
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+function readout(){
+  const p=t*C, cosv=-(p*p)/(2*p*p+C*C), a=Math.acos(cosv)*180/Math.PI;
+  document.getElementById('ang').textContent=a.toFixed(2)+'°';
+  document.getElementById('pc').textContent=t.toFixed(4);
+  const pi=Math.round(p);
+  document.getElementById('pair').textContent=Math.abs(p-pi)<1e-9?`(${-pi*pi}, ${2*pi*pi+C*C})  c=${C}`:`(−${(p*p).toFixed(2)}, ${(2*p*p+C*C).toFixed(2)})  c=${C}`;
+  const c2=cosv*cosv; document.getElementById('c2').textContent=c2<1e-9?'0':'1/'+(1/c2).toFixed(2);
+  let near='辺の上'; SNAPS.forEach(([n,v])=>{if(Math.abs(v-t)<0.003)near=n});
+  document.getElementById('here').textContent=near;
+}
+function rot(v){
+  const [x,y,z]=v, cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*x+sy*z, z1=-sy*x+cy*z; const y1=cp*y-sp*z1, z2=sp*y+cp*z1; return [x1,y1,z2];
+}
+function proj(v){const r=rot(v), s=cv.width/(4.2*C), d=1+r[2]/(9*C); return [cv.width/2+r[0]*s/d, cv.height/2-r[1]*s/d, r[2]];}
+function line(a,b,col,w,dash){const A=proj(a),B=proj(b);g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke();g.setLineDash([])}
+function ball(v,r,fill,stroke){const P=proj(v), s=cv.width/(4.2*C);g.beginPath();g.arc(P[0],P[1],r*s,0,7);g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=2;g.stroke()}}
+const cube=[];for(const x of[-C,C])for(const y of[-C,C])for(const z of[-C,C])cube.push([x,y,z]);
+const A=[[C,C,C],[C,-C,-C],[-C,C,-C],[-C,-C,C]];
+const O=[[C,0,0],[-C,0,0],[0,C,0],[0,-C,0],[0,0,C],[0,0,-C]];
+function draw(){
+  const W=cv.width; g.clearRect(0,0,W,W);
+  const cCube=css('--cube'),cT=css('--tetra'),cO=css('--octa'),cP=css('--path'),cArm=css('--arm'),cN=css('--nit'),cL=css('--lone'),cH=css('--hyd'),cHL=css('--hydline');
+  // 立方体
+  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){let d=0;for(let k=0;k<3;k++)if(cube[i][k]!==cube[j][k])d++; if(d===1)line(cube[i],cube[j],cCube,1.2,[4,5])}
+  // 正四面体 A
+  for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)line(A[i],A[j],cT,2);
+  // 芯の正八面体の頂点
+  O.forEach(v=>ball(v,0.22,cO));
+  // 滑る道
+  const end=arms(0), start=arms(C);
+  for(let i=0;i<3;i++)line(start[i],end[i],cP,3,[2,6]);
+  // 物を奥から描く
+  const p=t*C, H=arms(p), items=[];
+  H.forEach(h=>items.push({z:proj(h)[2],f:()=>{line([0,0,0],h,cArm,3.2);ball(h,0.55,cH,cHL)}}));
+  items.push({z:proj(A[0])[2],f:()=>{line([0,0,0],[C*0.55,C*0.55,C*0.55],cL,2,[3,4]);ball(A[0],0.4,cL)}});
+  items.push({z:0,f:()=>ball([0,0,0],0.75,cN)});
+  items.sort((a,b)=>b.z-a.z).forEach(o=>o.f());
+  // 三本の和
+  g.fillStyle=css('--muted');g.font=`${Math.round(W/38)}px ${css('--f-mono')}`;
+  const s=H.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]);
+  g.fillText(`三本の和 (${s.map(x=>Math.round(x)).join(', ')})`,W*0.03,W*0.96);
+}
+function frame(){
+  if(spinning&&!drag)yaw+=0.004;
+  if(playing){t+=dir*0.0025;if(t<=0){t=0;dir=1}if(t>=1){t=1;dir=-1}sl.value=Math.round(t*1000);readout()}
+  draw();requestAnimationFrame(frame);
+}
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.4,Math.min(1.4,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY]});
+cv.addEventListener('pointerup',()=>drag=null);cv.addEventListener('pointercancel',()=>drag=null);
+readout();frame();
+})();
+</script>
