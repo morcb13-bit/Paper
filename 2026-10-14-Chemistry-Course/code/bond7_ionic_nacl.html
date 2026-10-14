@@ -1,0 +1,197 @@
+<title>イオン結合の腕</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段の説明・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --idle:#a3aca9; --lp:#d08a0c; --one:#e7b64e; --plus:#2f6fd0; --minus:#2f9a5b;
+  --atomNa:#6c5bd6; --atomCl:#2f9a5b; --grid:#c4ccc8;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --idle:#5d6a66; --lp:#f0b33a; --one:#f6d27e; --plus:#79a8ff; --minus:#5fd08f;
+  --atomNa:#a597ff; --atomCl:#5fd08f; --grid:#3a4642; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --idle:#5d6a66; --lp:#f0b33a; --one:#f6d27e; --plus:#79a8ff; --minus:#5fd08f;
+  --atomNa:#a597ff; --atomCl:#5fd08f; --grid:#3a4642; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-inline:16px;display:grid;gap:12px}
+canvas{width:100%;aspect-ratio:4/3;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--plus)} button:focus-visible{outline:2px solid var(--plus);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--plus);color:var(--plus)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.count{font-size:.9rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1200" height="900" aria-label="ナトリウムと塩素のイオン結合の立体図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>イオン結合 ― 腕は出会わず、電子が移り切る</h1>
+  <p>ナトリウム Na の外側の正四面体には、電子が 1 個だけ入った腕が 1 本ある。塩素 Cl の外側の正四面体は、腕 3 本が自分の電子 2 個ずつで埋まり、残る 1 本に電子が 1 個入っている。</p>
+  <p>共有結合では二つの腕が頂点で出会って電子を分け合った。イオン結合では腕は出会わず、Na の電子 1 個が Cl の腕へ移り切る。Cl は腕 4 本がすべて埋まって Cl⁻ になる。Na は外側の正四面体が空になり、内側の埋まった正四面体だけが残って Na⁺ になる。</p>
+  <p>Na⁺ と Cl⁻ をつなぐ腕はないので、引き合う向きは決まっていない。＋と−が交互に並び、どの Na⁺ も上下・左右・前後の 6 方向を Cl⁻ に囲まれて、立方体の結晶（食塩）を積む。</p>
+  <p class="count">腕の勘定：Na の外の腕は電子 1 個の腕 1 本、Cl の外の腕は埋まった腕 3 本と電子 1 個の腕 1 本。移ったあとは Na⁺ の内側が埋まった腕 4 本、Cl⁻ が埋まった腕 4 本。結晶の番地 (i, j, k) は和 i＋j＋k が偶数なら Na⁺、奇数なら Cl⁻ で、隣どうしは必ず偶奇が逆になる。</p>
+</div>
+
+<script>
+// ---- 整数の模型 ----
+const A=[[3,3,3],[3,-3,-3],[-3,3,-3],[-3,-3,3]];      // 正四面体（m15 と同じ）
+const SITES=[]; // 結晶の番地 i∈{-1..2}, j,k∈{-1..1}。和の偶奇で Na⁺ / Cl⁻
+for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(let k=-1;k<=1;k++){
+  const odd=((i+j+k)%2+2)%2===1; SITES.push({n:[i,j,k],el:odd?"Cl":"Na"});
+}
+const BONDS=[]; // 隣り合う番地（差が軸方向に 1）
+SITES.forEach((a,ai)=>SITES.forEach((b,bi)=>{if(bi<=ai)return;let d=0,s=0;for(let t=0;t<3;t++){const x=a.n[t]-b.n[t];d+=x*x;}if(d===1)BONDS.push([ai,bi]);}));
+
+// ---- ここから先は観察者側の表示（向き・大きさ・動きの補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const addv=(a,b)=>a.map((x,i)=>x+b[i]), mul=(k,a)=>a.map(x=>k*x), dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const nrm=a=>Math.hypot(...a), unit=a=>mul(1/nrm(a),a);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function rotTo(a,b){const v=cross(a,b),c=dot(a,b);if(nrm(v)<1e-9)return c>0?(p=>p):(p=>[-p[0],-p[1],p[2]]);
+  const k=unit(v),s=nrm(v);return p=>addv(addv(mul(c,p),mul(s,cross(k,p))),mul(dot(k,p)*(1-c),k));}
+const ARMS=A.map(v=>unit(v));
+const naDir=ARMS.map(rotTo(ARMS[0],[1,0,0]));   // Na の電子 1 個の腕を Cl へ向ける
+const clDir=ARMS.map(rotTo(ARMS[0],[-1,0,0]));  // Cl の電子 1 個の腕を Na へ向ける
+const SP=14, L=5.2;                              // 結晶の間隔・腕の長さ（表示）
+const STAGES=[
+ "1. Na は外の腕に電子 1 個、Cl は 3 本埋まって 1 本に電子 1 個",
+ "2. 近づく",
+ "3. 腕は出会わない。Na の電子が Cl へ移り切る",
+ "4. Na は外の殻が空になり小さな Na⁺、Cl は 4 本とも埋まって Cl⁻",
+ "5. つなぐ腕がないので向きがない。＋と−が引き合う",
+ "6. ＋と−が交互に積み重なり、立方体の結晶になる（食塩）"];
+const DUR=[2.6,2.2,2.6,2.8,2.6,5.0];
+let yaw=0.5, pitch=0.32, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now();
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function rgba(c,a){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;const h=d.fillStyle;
+  if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+let SCALE=1;
+let CEN=[0,0,0];
+function proj(q){
+  const p=[q[0]-CEN[0],q[1]-CEN[1],q[2]-CEN[2]];
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*p[0]+sy*p[2], z1=-sy*p[0]+cy*p[2];
+  const y2=cp*p[1]-sp*z1, z2=sp*p[1]+cp*z1;
+  const f=1/(1+z2/90);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.52-y2*SCALE*f, z2, f];
+}
+function state(){
+  const e=ease(tS/DUR[stage]);
+  const s={sep:SP, naOuter:1, naInner:0, clScale:0.95, eT:-1, naE:1, clFull:false, charge:0, lattice:0};
+  if(stage===0){s.sep=SP+12;}
+  if(stage===1){s.sep=SP+12*(1-e);}
+  if(stage===2){s.eT=Math.min(1,tS/(DUR[2]*0.75)); if(s.eT>=1){s.naE=0;s.clFull=true;s.eT=-1;} else s.naE=0;}
+  if(stage>=3){s.naE=0;s.clFull=true;}
+  if(stage===3){s.naOuter=1-e; s.naInner=e; s.clScale=0.95+0.25*e;}
+  if(stage>=4){s.naOuter=0; s.naInner=1; s.clScale=1.2; s.charge=stage===4?ease(tS/0.8):1;}
+  if(stage===5){s.lattice=ease(tS/2.4);}
+  return s;
+}
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/46, s=state(), items=[], tops=[];
+  SCALE=(1-s.lattice)*(0.42*cv.width/(s.sep/2+L*1.4+2)) + s.lattice*(0.42*cv.height/(SP*2.0));
+  const NA=[-s.sep/2,0,0], CL=[s.sep/2,0,0];
+  CEN=[NA[0]*s.lattice,0,0];
+  const C={idle:css("--idle"),lp:css("--lp"),one:css("--one"),plus:css("--plus"),minus:css("--minus")};
+  const armFade=1-s.lattice;
+  function tet(center,dirs,scale,kinds,alpha,col){
+    if(alpha<=0.01) return;
+    const PC=proj(center), V=dirs.map(d=>proj(addv(center,mul(L*scale,d))));
+    [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].forEach(([i,j])=>items.push({z:(V[i][2]+V[j][2])/2+0.3,k:"edge",P:[V[i],V[j]],c:rgba(col,0.35*alpha)}));
+    kinds.forEach((kd,i)=>{
+      const c= kd==="lp"?C.lp: kd==="one"?C.one: C.idle;
+      items.push({z:(PC[2]+V[i][2])/2,k:"arm",P:[PC,V[i]],c:rgba(c,alpha)});
+      if(kd==="lp") items.push({z:V[i][2]-0.1,k:"dots",n:2,P:[PC,V[i]],c:rgba(C.lp,alpha)});
+      if(kd==="one") items.push({z:V[i][2]-0.1,k:"dots",n:1,P:[PC,V[i]],c:rgba(C.lp,alpha)});
+    });
+  }
+  // 結晶（最後の段）
+  if(s.lattice>0){
+    const pos=SITES.map(st=>[-SP/2+st.n[0]*SP, st.n[1]*SP, st.n[2]*SP]);
+    BONDS.forEach(([a,b])=>{const P=[proj(pos[a]),proj(pos[b])];const ctr=[a,b].some(i=>SITES[i].n.every(x=>x===0));items.push({z:(P[0][2]+P[1][2])/2+1,k:"grid",P,c:ctr?rgba(css("--plus"),0.8*s.lattice):rgba(css("--grid"),s.lattice),w:ctr?4:2});});
+    SITES.forEach((st,i)=>{
+      const isPair=(st.n[0]===0||st.n[0]===1)&&st.n[1]===0&&st.n[2]===0;
+      const P=proj(pos[i]); const na=st.el==="Na";
+      tops.push({z:P[2],k:"ion",P:[P],r:(na?0.95:1.55),c:css(na?"--atomNa":"--atomCl"),lab:na?"+":"−",a:isPair?1:s.lattice});
+    });
+  }
+  // 二つの原子
+  const pairA=s.lattice>0?armFade:1;
+  tet(NA,naDir,1.3*s.naOuter+0.0001,["one"].concat(["idle","idle","idle"]).map((k,i)=>i===0?(s.naE?"one":"idle"):k),s.naOuter*pairA,css("--atomNa"));
+  tet(NA,naDir,0.6,["lp","lp","lp","lp"],s.naInner*pairA,css("--atomNa"));
+  tet(CL,clDir,s.clScale,[s.clFull?"lp":"one","lp","lp","lp"],pairA,css("--atomCl"));
+  if(s.lattice===0){
+    const pn=proj(NA), pc=proj(CL);
+    tops.push({z:pn[2],k:"ion",P:[pn],r:1.6,c:css("--atomNa"),lab:s.charge>0?"Na⁺":"Na",a:1});
+    tops.push({z:pc[2],k:"ion",P:[pc],r:1.9,c:css("--atomCl"),lab:s.charge>0?"Cl⁻":"Cl",a:1});
+  }
+  // 移る電子
+  if(s.eT>=0){
+    const a=addv(NA,mul(L*1.3,naDir[0])), b=addv(CL,mul(L*0.95,clDir[0]));
+    const t=ease(s.eT), m=[(a[0]+b[0])/2,(a[1]+b[1])/2+4,(a[2]+b[2])/2];
+    const p=[0,1,2].map(i=>(1-t)*(1-t)*a[i]+2*(1-t)*t*m[i]+t*t*b[i]);
+    tops.push({z:-999,k:"e",P:[proj(p)]});
+  }
+  items.sort((p,q)=>q.z-p.z); tops.sort((p,q)=>q.z-p.z);
+  for(const it of items.concat(tops)){
+    const P=it.P;
+    if(it.k==="edge"||it.k==="grid"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.k==="grid"?(it.w||2):1.5;if(it.k==="edge")g.setLineDash([6,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="arm"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=R*0.7;g.lineCap="round";g.stroke();}
+    else if(it.k==="dots"){const c=P[0],q=P[1],dx=q[0]-c[0],dy=q[1]-c[1],L2=Math.hypot(dx,dy)||1,nx=-dy/L2,ny=dx/L2;
+      g.fillStyle=it.c;const offs=it.n===2?[-1,1]:[0];for(const o of offs){g.beginPath();g.arc(q[0]+nx*o*R*0.85+dx/L2*R*0.5,q[1]+ny*o*R*0.85+dy/L2*R*0.5,R*0.5,0,7);g.fill();}}
+    else if(it.k==="ion"){const q=P[0],r=R*it.r*q[3];g.globalAlpha=it.a;g.beginPath();g.arc(q[0],q[1],r,0,7);g.fillStyle=it.c;g.fill();
+      g.fillStyle=css("--panel");g.font=`700 ${r*(it.lab.length>2?0.62:it.lab.length>1?0.75:1.1)}px ${css("--f-mono")}`;g.textAlign="center";g.textBaseline="middle";g.fillText(it.lab,q[0],q[1]+1);g.globalAlpha=1;}
+    else if(it.k==="e"){const q=P[0];g.beginPath();g.arc(q[0],q[1],R*0.75,0,7);g.fillStyle=C.lp;g.fill();g.lineWidth=3;g.strokeStyle=css("--panel");g.stroke();}
+  }
+  // 引き合う印（5 段目）
+  if(stage===4){const pn=proj(NA),pc=proj(CL),k=0.5+0.5*Math.sin(tS*6);g.strokeStyle=rgba(css("--fg"),0.35+0.3*k);g.lineWidth=3;g.setLineDash([R*0.6,R*0.6]);
+    g.beginPath();g.moveTo(pn[0]+R*2,pn[1]);g.lineTo(pc[0]-R*2.4,pc[1]);g.stroke();g.setLineDash([]);}
+  // 図の中の見出し・段・凡例
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText("食塩 NaCl（イオン結合）",R*1.0,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.25}px ${css("--f-body")}`;g.fillText(STAGES[stage],R*1.0,R*3.0);
+  const leg=[["idle","空の腕"],["one","電子 1 個の腕"],["lp","電子 2 個で埋まった腕"]];
+  let y=cv.height-R*1.5*leg.length+R*0.2;
+  g.font=`${R*1.15}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const [k,t] of leg){g.fillStyle=C[k];g.fillRect(R*1.0,y-R*0.3,R*2.0,R*0.6);g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.5;}
+}
+function setStage(n){stage=(n+STAGES.length)%STAGES.length;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.2,Math.min(1.2,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();stage=5;tS=DUR[5];}
+function tick(t){
+  const dt=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7;
+  if(spin) yaw+=dt*0.3*k;
+  tS=Math.min(tS+dt*k, play?1e9:DUR[stage]);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

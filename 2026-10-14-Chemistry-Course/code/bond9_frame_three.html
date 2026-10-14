@@ -1,0 +1,223 @@
+<title>枠で見る三つの結合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段の説明・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --cube:#b4bcb9; --ta:#2f6f8f; --tb:#b0652a; --e:#d08a0c; --share:#7a3fd1;
+  --atomCl:#2f9a5b; --atomNa:#6c5bd6;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff;
+  --atomCl:#5fd08f; --atomNa:#a597ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff;
+  --atomCl:#5fd08f; --atomNa:#a597ff; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-inline:16px;display:grid;gap:12px}
+canvas{width:100%;aspect-ratio:4/3;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+table{border-collapse:collapse;font-size:.88rem}
+th,td{padding:4px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1200" height="900" aria-label="正四面体 A とその鏡像 B の枠で、共有・イオン・金属の三つの結合を描き分ける立体図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>枠で見る三つの結合 ― 辺・頂点・面</h1>
+  <p>枠は、立方体の一つおきの頂点で作る正四面体 A と、それを中心で裏返した鏡像 B の組。二つの正四面体の頂点を合わせると立方体の 8 つの頂点になり、これを電子の席 8 つと数える。電子は A の席から埋まり、B まで埋まると 8 になる。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>結合</th><th>枠どうし</th><th>電子</th><th>席の勘定</th></tr></thead>
+    <tbody>
+      <tr><td>共有（Cl₂）</td><td>辺（席 2 つ）を分け合う</td><td>互いの空いた席に、相手の電子が入る。重なった席の電子は両方の枠に属する</td><td class="n">席 8＋8−2＝14、電子 7＋7＝14。どちらの枠からも 8</td></tr>
+      <tr><td>イオン（NaCl）</td><td>頂点 1 つで接するだけ</td><td>電子は分け合わず、Na の電子 1 個が Cl の空いた席へ移り切る</td><td class="n">Na 1→0、Cl 7→8</td></tr>
+      <tr><td>金属（Na）</td><td>面でつながり網になる</td><td>少ない電子が、つながった席を渡り歩く</td><td class="n">枠 8 個で席 27、電子 8</td></tr>
+    </tbody>
+  </table></div>
+  <p>どの結合も同じ 2×2×2 の枠の上に置いた。共有は二つの枠が辺の席を分け合い、イオンは頂点で接するだけで電子は一方へ移り切り、金属は八つの枠が面でつながって席の網になる。三つの違いは、枠どうしがどこまで重なるかと、重なった席を電子が分け合うかどうかで決まる。</p>
+</div>
+
+<script>
+// ---- 整数の模型 ----
+// 枠：立方体 (±3,±3,±3)。成分の積が正なら A の席、負なら B の席（鏡像）。
+const CUBE=[];for(const x of[-3,3])for(const y of[-3,3])for(const z of[-3,3])CUBE.push([x,y,z]);
+const isA=v=>v[0]*v[1]*v[2]>0;
+const CEDGES=[];CUBE.forEach((a,i)=>CUBE.forEach((b,j)=>{if(j<=i)return;let d=0;for(let t=0;t<3;t++)if(a[t]!==b[t])d++;if(d===1)CEDGES.push([i,j]);}));
+const TA=CUBE.map((v,i)=>i).filter(i=>isA(CUBE[i])), TB=CUBE.map((v,i)=>i).filter(i=>!isA(CUBE[i]));
+const add=(a,b)=>a.map((x,i)=>x+b[i]), eq=(a,b)=>a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2];
+// 共有：Cl₁ は中心 (0,0,0)、Cl₂ は中心 (6,6,0) で A と B を入れ替えた鏡の枠。辺 P=(3,3,3)・Q=(3,3,-3) を共有
+const P=[3,3,3], Q=[3,3,-3];
+// 金属：中心 (±3,±3,±3) の枠 8 個。席は {-6,0,6}^3 の 27 点
+const MCEN=[];for(const x of[-3,3])for(const y of[-3,3])for(const z of[-3,3])MCEN.push([x,y,z]);
+const MSEAT=[];for(const x of[-6,0,6])for(const y of[-6,0,6])for(const z of[-6,0,6])MSEAT.push([x,y,z]);
+const MNEI=MSEAT.map(a=>MSEAT.map((b,j)=>[j,b]).filter(([j,b])=>{let d=0,s=0;for(let t=0;t<3;t++){const k=Math.abs(a[t]-b[t]);if(k){d++;s=k;}}return d===1&&s===6;}).map(([j])=>j));
+
+// ---- ここから先は観察者側の表示（回転・透視・動きの補間とくじ引きだけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let yaw=0.6, pitch=0.38, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now(), SCALE=1, CEN=[0,0,0];
+const STAGES=[
+ ["枠：正四面体 A とその鏡像 B","電子は A の席から埋まり、B まで埋まると 8"],
+ ["共有結合（Cl₂）：枠が辺を分け合う","互いの空いた席に相手の電子が入り、どちらの枠も 8"],
+ ["イオン結合（NaCl）：枠は頂点で接するだけ","Na の電子 1 個が Cl の空いた席へ移り切る"],
+ ["金属結合（Na）：枠が面でつながって網になる","枠 8 個で席 27 に電子 8。空いた席を渡り歩く"]];
+const DUR=[6,7,7,8];
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function rgba(c,a){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;const h=d.fillStyle;
+  if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+function proj(q){
+  const p=[q[0]-CEN[0],q[1]-CEN[1],q[2]-CEN[2]];
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*p[0]+sy*p[2], z1=-sy*p[0]+cy*p[2];
+  const y2=cp*p[1]-sp*z1, z2=sp*p[1]+cp*z1;
+  const f=1/(1+z2/80);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.54-y2*SCALE*f, z2, f];
+}
+// 枠を描く：center、鏡か（A/B 入れ替え）、各席の状態（"e"＝電子, "o"＝空き, "s"＝重なった席の電子）
+function frame(items,tops,center,mirror,seats,alpha,opts={}){
+  const V=CUBE.map(v=>proj(add(center,v)));
+  if(!opts.noCube) CEDGES.forEach(([i,j])=>items.push({z:(V[i][2]+V[j][2])/2+0.5,k:"line",P:[V[i],V[j]],c:rgba(css("--cube"),0.8*alpha),w:1.5}));
+  if(!opts.noTet){
+    const ta=mirror?TB:TA, tb=mirror?TA:TB;
+    [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].forEach(([i,j])=>{
+      items.push({z:(V[ta[i]][2]+V[ta[j]][2])/2+0.2,k:"line",P:[V[ta[i]],V[ta[j]]],c:rgba(css("--ta"),0.9*alpha),w:2.6});
+      items.push({z:(V[tb[i]][2]+V[tb[j]][2])/2+0.2,k:"line",P:[V[tb[i]],V[tb[j]]],c:rgba(css("--tb"),0.9*alpha),w:2.2,dash:true});
+    });
+  }
+  CUBE.forEach((v,i)=>{const st=seats?seats[i]:"o"; if(st==="-")return;
+    const a=isA(v)!==mirror;
+    tops.push({z:V[i][2]-0.2,k:"seat",P:[V[i]],st,col:css(a?"--ta":"--tb"),alpha});});
+}
+let MEL=[];
+function resetMetal(){MEL=[];const idx=[...MSEAT.keys()].sort(()=>Math.random()-0.5).slice(0,8);idx.forEach(s=>MEL.push({s,to:-1,t:0,w:Math.random()*0.6}));}
+resetMetal();
+function stepMetal(dt){
+  const occ=new Set(); MEL.forEach(e=>{occ.add(e.s); if(e.to>=0)occ.add(e.to);});
+  for(const e of MEL){
+    if(e.to>=0){e.t+=dt/0.5; if(e.t>=1){occ.delete(e.s); e.s=e.to; e.to=-1; e.t=0; e.w=Math.random()*0.4;} continue;}
+    e.w-=dt; if(e.w>0) continue;
+    const c=MNEI[e.s].filter(j=>!occ.has(j)); if(!c.length){e.w=0.2;continue;}
+    e.to=c[Math.floor(Math.random()*c.length)]; e.t=0; occ.add(e.to);
+  }
+}
+function draw(dt){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/46, items=[], tops=[], over=[];
+  CEN=[0,0,0]; SCALE=0.40*cv.height/12.5;
+  // どの段も 2×2×2 の枠の上に置く。使わない枠は薄く
+  const used = stage===0?[[-3,-3,3]] : stage===1?[[-3,-3,3],[3,3,3]] : stage===2?[[-3,-3,-3],[3,3,3]] : MCEN;
+  if(stage<3) MCEN.forEach(c=>{ if(!used.some(u=>eq(u,c))) frame(items,tops,c,false,CUBE.map(()=>"-"),0.35,{noTet:true}); });
+  if(stage===0){
+    const c=[-3,-3,3];
+    const n=Math.min(8,Math.floor(tS/0.6)); // A を 4 つ埋めてから B を 4 つ
+    const order=TA.concat(TB), seats=CUBE.map(()=> "o");
+    order.slice(0,n).forEach(i=>seats[i]="e");
+    frame(items,tops,c,false,seats,1);
+    tops.push({z:proj(c)[2],k:"atom",P:[proj(c)],c:css("--atomCl"),lab:"原子",r:1.2});
+    over.push(`席 8 のうち電子 ${n}`);
+  }
+  if(stage===1){
+    // Cl₁ 中心 (-3,-3,3)、Cl₂ 中心 (3,3,3)（A と B を入れ替えた鏡の枠）。共有する辺 P=(0,0,6)・Q=(0,0,0)
+    const c1=[-3,-3,3], c2=[3,3,3], Pp=[0,0,6], Qq=[0,0,0];
+    const s1=CUBE.map(v=>{const w=add(v,c1); return eq(w,Pp)||eq(w,Qq)?"s":"e";});
+    const s2=CUBE.map(v=>{const w=add(v,c2); return eq(w,Pp)||eq(w,Qq)?"-":"e";});
+    frame(items,tops,c1,false,s1,1);
+    frame(items,tops,c2,true,s2,1);
+    const a=proj(Pp),b=proj(Qq);items.push({z:(a[2]+b[2])/2-1,k:"line",P:[a,b],c:css("--share"),w:R*0.5});
+    tops.push({z:proj(c1)[2],k:"atom",P:[proj(c1)],c:css("--atomCl"),lab:"Cl"});
+    tops.push({z:proj(c2)[2],k:"atom",P:[proj(c2)],c:css("--atomCl"),lab:"Cl"});
+    over.push("辺の席 2 つを分け合う：Cl₁ の空き席に Cl₂ の電子、Cl₂ の空き席に Cl₁ の電子");
+  }
+  if(stage===2){
+    // Na 中心 (-3,-3,-3)、Cl 中心 (3,3,3)。接するのは頂点 (0,0,0) だけ
+    const cN=[-3,-3,-3], cC=[3,3,3];
+    const from=add(cN,[3,-3,-3]), to=add(cC,[-3,3,3]); // Na の A の席 → Cl の空いた B の席
+    const tE=(tS-1.2)/2.0, moved=tE>=1;
+    const sN=CUBE.map(v=>eq(v,[3,-3,-3])&&tE<0?"e":(eq(v,[3,3,3])?"-":"o"));
+    const sC=CUBE.map(v=>eq(v,[-3,3,3])?(moved?"e":"o"):"e");
+    const fadeN=moved?1-0.55*ease((tS-3.4)/1.2):1;
+    frame(items,tops,cN,false,sN,fadeN);
+    frame(items,tops,cC,false,sC,1);
+    if(tE>=0&&tE<1){const t=ease(tE),m=[0,0,0];const p=[0,1,2].map(i=>(1-t)*(1-t)*from[i]+2*(1-t)*t*m[i]+t*t*to[i]);tops.push({z:-999,k:"fly",P:[proj(p)]});}
+    tops.push({z:proj(cN)[2],k:"atom",P:[proj(cN)],c:css("--atomNa"),lab:moved?"Na⁺":"Na"});
+    tops.push({z:proj(cC)[2],k:"atom",P:[proj(cC)],c:css("--atomCl"),lab:moved?"Cl⁻":"Cl"});
+    over.push(moved?"接する頂点は Cl の席。Na 電子 0、Cl 電子 8":"接するのは頂点 1 つだけ。電子は分け合わない");
+  }
+  if(stage===3){
+    stepMetal(dt);
+    MCEN.forEach(c=>frame(items,tops,c,false,CUBE.map(()=>"-"),0.55,{noTet:true}));
+    MSEAT.forEach(s=>{const V=proj(s);tops.push({z:V[2]-0.1,k:"seat",P:[V],st:"o",col:css("--share"),alpha:1});});
+    MCEN.forEach(c=>tops.push({z:proj(c)[2],k:"atom",P:[proj(c)],c:css("--atomNa"),lab:"Na",r:1.0}));
+    for(const e of MEL){let p=MSEAT[e.s]; if(e.to>=0){const q=MSEAT[e.to];p=p.map((x,i)=>x+(q[i]-x)*e.t);} tops.push({z:proj(p)[2]-1,k:"fly",P:[proj(p)]});}
+    over.push("席 27 に電子 8");
+  }
+  items.sort((p,q)=>q.z-p.z); tops.sort((p,q)=>q.z-p.z);
+  for(const it of items.concat(tops)){
+    const P=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([8,7]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="seat"){const q=P[0],r=R*0.62*q[3];g.globalAlpha=it.alpha;
+      g.beginPath();g.arc(q[0],q[1],r,0,7);g.fillStyle=css("--panel");g.fill();g.lineWidth=2.5;g.strokeStyle=it.col;g.stroke();
+      if(it.st==="e"||it.st==="s"){g.beginPath();g.arc(q[0],q[1],r*0.75,0,7);g.fillStyle=it.st==="s"?css("--share"):css("--e");g.fill();}
+      g.globalAlpha=1;}
+    else if(it.k==="atom"){const q=P[0],r=R*(it.r||1.4)*q[3];g.beginPath();g.arc(q[0],q[1],r,0,7);g.fillStyle=it.c;g.fill();
+      g.fillStyle=css("--panel");g.font=`700 ${r*(it.lab.length>2?0.7:0.85)}px ${css("--f-mono")}`;g.textAlign="center";g.textBaseline="middle";g.fillText(it.lab,q[0],q[1]+1);}
+    else if(it.k==="fly"){const q=P[0];g.beginPath();g.arc(q[0],q[1],R*0.5,0,7);g.fillStyle=css("--e");g.fill();g.lineWidth=2;g.strokeStyle=css("--panel");g.stroke();}
+  }
+  // 図の中の見出し・段・凡例
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.55}px ${css("--f-body")}`;g.fillText(STAGES[stage][0],R*1.0,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.2}px ${css("--f-body")}`;g.fillText(STAGES[stage][1],R*1.0,R*2.9);
+  g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;g.fillText(over[0]||"",R*1.0,R*4.6);
+  const leg=[["--ta","正四面体 A（実線）","line"],["--tb","鏡像 B（破線）","dash"],["--e","電子","dot"],["--share","重なった席・つながった席","dot"]];
+  let y=cv.height-R*1.45*leg.length+R*0.1;
+  g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const [c,t,kind] of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(kind==="dot"){g.beginPath();g.arc(R*2.0,y,R*0.45,0,7);g.fill();}
+    else{g.lineWidth=3;if(kind==="dash")g.setLineDash([6,5]);g.beginPath();g.moveTo(R*1.0,y);g.lineTo(R*3.0,y);g.stroke();g.setLineDash([]);}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  // 右上：三つの段の位置
+  const names=["枠","共有","イオン","金属"];g.textAlign="right";g.textBaseline="top";g.font=`${R*1.05}px ${css("--f-body")}`;
+  names.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R*1.0,R*(0.9+i*1.5));});
+}
+function setStage(n){stage=(n+STAGES.length)%STAGES.length;tS=0;if(stage===3)resetMetal();}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.2,Math.min(1.2,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(1);tS=DUR[1];}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) yaw+=dt0*0.25*k;
+  tS=Math.min(tS+dt, play?1e9:(stage===3?1e9:DUR[stage]));
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(stage===3?dt:0); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
