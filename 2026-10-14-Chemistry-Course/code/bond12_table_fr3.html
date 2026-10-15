@@ -1,0 +1,165 @@
+<title>折れを持つ元素の周期表</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --cube:#b4bcb9; --ta:#2f6f8f; --tb:#b0652a; --e:#d08a0c; --share:#7a3fd1; --ng:#c23b2e; --off:#e6e9e7;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; --ng:#ff7a6b; --off:#262d2b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; --ng:#ff7a6b; --off:#262d2b; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:4/3;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+table{border-collapse:collapse;font-size:.88rem}
+th,td{padding:4px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1200" height="900" aria-label="周期表の典型元素を、出す側と分け合う側で塗り分け、骨組みに B を持つ元素 X に印を付けて、規則 FR から FR3 へ切り替える図"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>折れを持つ元素の周期表 ― FR から FR3 へ</h1>
+  <p>典型元素（1・2・13〜17 族、第 2〜6 周期）を、外側の電子 v から出す側（暖色）と分け合う側（寒色）に塗り分けた。元素の記号の下の印は、単体の記録との照合で、○が一致、×が外れ、－が判定しない元素（半金属など）。</p>
+  <p>紫の枠は、n−1 殻に埋まった d を持つ元素 X（第 4 周期以降の 13〜17 族）。3 で割る段のように、骨組みの中心に鏡像 B が入って折れる元素として扱う。X の元素は、出すことも分け合うこともでき、手数の少ない方を取る（v＋v ≤ 8 なら出す側）。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>規則</th><th>単体（27）</th><th>化合物（25）</th><th>新しい 25 物質</th></tr></thead>
+    <tbody>
+      <tr><td>FR（v ≤ 3 なら出す側）</td><td class="n">24</td><td class="n">23</td><td class="n">15</td></tr>
+      <tr><td>FR3（X は手数の少ない方）</td><td class="n">26</td><td class="n">24</td><td class="n">21</td></tr>
+    </tbody>
+  </table></div>
+  <p>Sn と Pb は、X として出す側へ移り、金属の記録と一致した。Bi は v＝5 のため分け合う側に残り、外れたまま。化合物では、出す側の原子が X の組（GaAs・GaP・InSb など）が、辺で分け合う共有結合として当たりに変わった。</p>
+</div>
+
+<script>
+// ---- 整数の模型 ----
+const ROWS=[
+ "H . . . . . . . . . . . . . . . . He",
+ "Li Be . . . . . . . . . . B C N O F Ne",
+ "Na Mg . . . . . . . . . . Al Si P S Cl Ar",
+ "K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr",
+ "Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe",
+ "Cs Ba Ln Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn",
+ "Fr Ra An Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og"];
+const EL=[];ROWS.forEach((r,pi)=>r.split(" ").forEach((s,gi)=>{if(s!==".")EL.push({s,p:pi+1,g:gi+1});}));
+const VG={1:1,2:2,13:3,14:4,15:5,16:6,17:7};
+const inScope=e=>e.p>=2&&e.p<=6&&VG[e.g]!==undefined;
+const V={};EL.forEach(e=>{if(VG[e.g]!==undefined)V[e.s]=VG[e.g];});
+const isX=e=>e.p>=4&&e.g>=13&&e.g<=17;
+const XS=new Set(EL.filter(e=>isX(e)&&inScope(e)).map(e=>e.s));
+// 単体の記録（FR_prereg と同じ）
+const REC={};"Li Na K Rb Cs Be Mg Ca Sr Ba Al Ga In Tl Sn Pb Bi".split(" ").forEach(s=>REC[s]="金属");
+"C N P O S Se F Cl Br I".split(" ").forEach(s=>REC[s]="共有");
+"B Si Ge As Sb Te Po At".split(" ").forEach(s=>REC[s]="－");
+const sideFR=s=>V[s]<=3?"D":"S";
+const sideFR3=s=>XS.has(s)?(V[s]+V[s]<=8?"D":"S"):sideFR(s);
+const elemP=(sd,s)=>sd(s)==="D"?"金属":"共有";
+function comp(sd,a,b,fr3){const p=sd(a),q=sd(b);if(p===q&&p==="D")return"金属";if(p===q)return"共有";
+  if(fr3){const d=p==="D"?a:b;if(XS.has(d))return"共有";}return"イオン";}
+const C1=[["Na","Cl","イオン"],["K","Br","イオン"],["Li","F","イオン"],["Mg","O","イオン"],["Ca","F","イオン"],["Ca","O","イオン"],["Na","O","イオン"],["K","S","イオン"],["Mg","Cl","イオン"],["Ba","Cl","イオン"],
+ ["C","O","共有"],["C","S","共有"],["C","Cl","共有"],["Si","O","共有"],["Si","C","共有"],["N","Cl","共有"],["P","Cl","共有"],["S","O","共有"],["S","F","共有"],["O","F","共有"],["B","N","共有"],["Ga","As","共有"],
+ ["Na","K","金属"],["Ca","Mg","金属"],["Mg","Al","金属"]];
+const C2=[["Ga","P"],["Ga","N"],["In","P"],["In","As"],["In","Sb"],["Al","P"],["Al","As"],["Al","Sb"],["B","P"],["Ga","Cl"],["Sn","Cl"],["Ge","Cl"],["Sb","Cl"],["As","Cl"],["Si","Cl"],["P","Br"]].map(x=>x.concat("共有"))
+ .concat([["K","I"],["Cs","I"],["Rb","Br"],["Na","I"],["Na","Br"],["Li","I"],["Sr","Br"],["Ba","I"],["Cs","Br"]].map(x=>x.concat("イオン")));
+function counts(fr3){const sd=fr3?sideFR3:sideFR;let e=0,c=0,n=0;
+  for(const s in REC)if(REC[s]!=="－"&&elemP(sd,s)===REC[s])e++;
+  for(const[a,b,r]of C1)if(comp(sd,a,b,fr3)===r)c++;
+  for(const[a,b,r]of C2)if(comp(sd,a,b,fr3)===r)n++;return[e,c,n];}
+const CNT=[counts(false),counts(true)];
+
+// ---- ここから先は観察者側の表示（配置と透明度の補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let play=true, speed=0.45, stage=0, tS=0, last=performance.now();
+const STAGES=[
+ ["規則 FR：v ≤ 3 なら出す側","単体の記録と照らすと、Sn・Pb・Bi が外れる"],
+ ["骨組みに B を持つ元素 X","第 4 周期以降の 13〜17 族。3 で割る段のように中心で折れる"],
+ ["規則 FR3：X は手数の少ない方を取る","Sn・Pb が出す側へ移り、記録と一致する"]];
+const DUR=[6,6,8];
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function rgba(c,a){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;const h=d.fillStyle;
+  if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/46, W=cv.width, mx=R*1.0, cw=(W-mx*2)/18, ch=cw*1.32, top=R*6.6;
+  const fr3=stage===2, sd=fr3?sideFR3:sideFR, kX=stage===0?0:ease(tS/1.2), kC=stage===2?ease((tS-0.6)/1.4):0;
+  for(const e of EL){
+    const x=mx+(e.g-1)*cw, y=top+(e.p-1)*ch, scope=inScope(e);
+    let fill=css("--off");
+    if(scope){const before=sideFR(e.s), after=sideFR3(e.s);
+      const col=s=>s==="D"?css("--tb"):css("--ta");
+      fill=rgba(col(stage===2&&kC>0.5?after:before),0.22);
+      if(stage===1&&!XS.has(e.s))fill=rgba(col(before),0.10);}
+    rr(x+2,y+2,cw-4,ch-4,5);g.fillStyle=fill;g.fill();
+    g.lineWidth=1;g.strokeStyle=css("--line");g.stroke();
+    if(XS.has(e.s)&&kX>0){rr(x+2,y+2,cw-4,ch-4,5);g.lineWidth=2+2.5*kX;g.strokeStyle=rgba(css("--share"),kX);g.stroke();
+      // 折れの印（V 字）
+      g.beginPath();g.moveTo(x+cw-R*1.35,y+R*0.55);g.lineTo(x+cw-R*0.95,y+R*1.1);g.lineTo(x+cw-R*0.55,y+R*0.55);g.lineWidth=2;g.strokeStyle=rgba(css("--share"),kX);g.stroke();}
+    const changed=scope&&sideFR(e.s)!==sideFR3(e.s)&&REC[e.s]&&REC[e.s]!=="－";
+    if(stage===2&&changed&&kC>0){g.beginPath();g.arc(x+cw/2,y+ch/2,cw*0.47,0,7);g.lineWidth=3;g.strokeStyle=rgba(css("--e"),kC);g.stroke();}
+    g.fillStyle=scope?css("--fg"):css("--muted");g.textAlign="center";g.textBaseline="middle";
+    g.font=`700 ${R*(e.s.length>1?1.1:1.25)}px ${css("--f-mono")}`;g.fillText(e.s,x+cw/2,y+ch*0.42);
+    if(scope){g.font=`${R*0.7}px ${css("--f-mono")}`;g.fillStyle=css("--muted");g.textAlign="left";g.fillText(String(V[e.s]),x+R*0.45,y+R*0.75);}
+    if(REC[e.s]){g.textAlign="center";g.font=`700 ${R*0.95}px ${css("--f-body")}`;
+      let m="－",c=css("--muted");
+      if(REC[e.s]!=="－"){const ok=elemP(stage===2&&kC>0.5?sideFR3:sideFR,e.s)===REC[e.s];m=ok?"○":"×";c=ok?css("--fg"):css("--ng");}
+      g.fillStyle=c;g.fillText(m,x+cw/2,y+ch*0.76);}
+  }
+  // 見出し
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.55}px ${css("--f-body")}`;g.fillText(STAGES[stage][0],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.2}px ${css("--f-body")}`;g.fillText(STAGES[stage][1],R,R*2.9);
+  const c=CNT[stage===2?1:0];
+  g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;
+  g.fillText(stage===1?`X：${[...XS].join(" ")}`:`単体 ${c[0]}/27・化合物 ${c[1]}/25・新しい 25 物質 ${c[2]}`,R,R*4.6);
+  // 凡例
+  const ly=top+7*ch+R*1.4;g.font=`${R*1.05}px ${css("--f-body")}`;g.textBaseline="middle";
+  const leg=[[css("--tb"),"出す側（金属の側）"],[css("--ta"),"分け合う側（共有の側）"],[css("--share"),"X：骨組みに B を持つ（折れ）"],[css("--e"),"FR3 で側が移った元素"]];
+  leg.forEach(([col,t],i)=>{const x=R+(i%2)*W*0.48, y=ly+Math.floor(i/2)*R*1.6;
+    if(i<2){rr(x,y-R*0.5,R*1.6,R,3);g.fillStyle=rgba(col,0.3);g.fill();}else{rr(x,y-R*0.5,R*1.6,R,3);g.lineWidth=3;g.strokeStyle=col;g.stroke();}
+    g.fillStyle=css("--fg");g.textAlign="left";g.fillText(t,x+R*2.2,y);});
+  g.fillStyle=css("--muted");g.fillText("○ 一致　× 外れ　－ 判定しない　灰色は対象外（H・He・遷移元素・18 族・第 7 周期）",R,ly+R*3.4);
+  const names=["FR","X","FR3"];g.textAlign="right";g.textBaseline="top";g.font=`${R*1.05}px ${css("--f-body")}`;
+  names.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,W-R,R*(0.9+i*1.5));});
+}
+function setStage(n){stage=(n+STAGES.length)%STAGES.length;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){stopUI();setStage(2);tS=DUR[2];}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const dt=dt0*(0.3+speed*1.7);
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
