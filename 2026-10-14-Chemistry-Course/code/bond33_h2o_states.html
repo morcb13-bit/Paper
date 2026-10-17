@@ -1,0 +1,218 @@
+<title>水の三つの姿</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Zen+Old+Mincho:wght@700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* 図を上・説明を下。図はキャンバス1枚 */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --fg:#1c2422; --mute:#5d6a66; --line:#c9d2cf;
+  --a:#0f7f7a; --h:#c46a12; --e:#7b6fb0; --hit:#b0233a;
+  --f-disp:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --panel:#19211f; --fg:#e4ebe8; --mute:#93a29d; --line:#2f3b38;
+  --a:#3cc2b9; --h:#f0a04b; --e:#a99be6; --hit:#ff6b81; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --panel:#19211f; --fg:#e4ebe8; --mute:#93a29d; --line:#2f3b38;
+  --a:#3cc2b9; --h:#f0a04b; --e:#a99be6; --hit:#ff6b81; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.8;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+canvas{display:block;width:100%;touch-action:none;cursor:grab}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+button{font:600 13px var(--f-body);color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--fg)}
+button[aria-pressed="true"]{border-color:var(--hit);color:var(--hit)}
+button:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.hint{font-size:12px;color:var(--mute);align-self:center;margin-left:auto}
+h1{font:700 1.5rem/1.4 var(--f-disp);margin:6px 0 0;text-wrap:balance}
+h2{font:700 1.05rem/1.5 var(--f-body);margin:10px 0 0}
+p,li{max-width:65ch}
+ul{padding-left:1.2em;margin:4px 0}
+code{font-family:var(--f-mono);font-size:.92em}
+.tag{font:600 11px var(--f-mono);letter-spacing:.06em;color:var(--mute)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:4px 10px;text-align:left;font-family:var(--f-mono)}
+th{color:var(--mute);font-weight:600}
+</style>
+
+<div class="wrap">
+  <div class="fig">
+    <canvas id="cv" aria-label="水の H が固体では面で、液体では辺を軸に、気体では点だけで O につながって振れる動く図"></canvas>
+    <div class="ctl">
+      <button id="play" type="button">停止</button>
+      <button id="s0" type="button">固体</button>
+      <button id="s1" type="button">液体</button>
+      <button id="s2" type="button">気体</button>
+      <button id="swap" type="button" aria-pressed="false">残る点を入れ替える</button>
+      <span class="hint">ドラッグで回す</span>
+    </div>
+  </div>
+
+  <h1>水の三つの姿 ── 面・辺・点で O につながる H</h1>
+
+  <h2>図の読み方</h2>
+  <ul>
+    <li>枠は辺 12、小立方体は辺 6（v288 と同じ置き方）。O の正四面体 4 個（緑）は番地の和が奇数の小立方体に、H 2 個（橙）は B の席 <code>(0,0,0)</code> と <code>(1,1,0)</code> に、残りの B の席 2 つ（紫の点線）は電子の席。</li>
+    <li><b>固体</b>：H は、枠の中心を向いた面（三角形）で O の正四面体 3 個と辺を 1 本ずつ分け合う。分け合う頂点 3、辺 3（赤）。席にはまって動かない。</li>
+    <li><b>液体</b>：辺 2 本がはがれ、残った 1 本を軸に H が振れる。分け合う頂点 2、辺 1。</li>
+    <li><b>気体</b>：残った辺の片方の端だけで O につながり、その点を中心に振り回される。分け合う頂点 1、辺 0。</li>
+    <li>分け合う頂点は 3 → 2 → 1 と一つずつ減る。</li>
+  </ul>
+
+  <h2>どの辺が残るか</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>H の席</th><th>分け合う辺</th><th>相手の O</th><th>その O と辺を分ける H</th><th>H どうしの共有点に触れる</th></tr></thead>
+    <tbody>
+      <tr><td>(0,0,0)</td><td>(0,6,6)–(6,0,6)</td><td>(0,0,1)</td><td>1</td><td>いいえ</td></tr>
+      <tr><td>(0,0,0)</td><td>(0,6,6)–(6,6,0)</td><td>(0,1,0)</td><td>2</td><td>はい</td></tr>
+      <tr><td>(0,0,0)</td><td>(6,0,6)–(6,6,0)</td><td>(1,0,0)</td><td>2</td><td>はい</td></tr>
+      <tr><td>(1,1,0)</td><td>(6,6,0)–(6,12,6)</td><td>(0,1,0)</td><td>2</td><td>はい</td></tr>
+      <tr><td>(1,1,0)</td><td>(6,6,0)–(12,6,6)</td><td>(1,0,0)</td><td>2</td><td>はい</td></tr>
+      <tr><td>(1,1,0)</td><td>(6,12,6)–(12,6,6)</td><td>(1,1,1)</td><td>1</td><td>いいえ</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><span class="tag">[計算]</span> H 2 個は点 <code>(6,6,0)</code> を 1 つ共有する。各 H の 3 本の辺は、2 本が H どうしの共有点に触れ、もう 1 本の H と同じ O を分け合う。残り 1 本は共有点に触れず、その H だけの O と分け合う。H₂O では 3 本は同じでなく、2＋1 に分かれる。</li>
+    <li><span class="tag">[見立て]</span> 図では、2 本ずつ取り合いになっている辺が先にはがれ、その H だけの辺が液体の軸として残るとした。</li>
+    <li><span class="tag">[計算]</span> 気体で残る点は、その軸の両端のどちらか。x と y を入れ替える鏡映で 2 つの端は入れ替わり、ほかの配置は変わらないので、置き方だけでは決まらない（ボタンで入れ替えて見られる）。v288 で、ねじれの巻く向きが決まらなかったのと同じ形。</li>
+  </ul>
+
+  <h2>帰属</h2>
+  <ul>
+    <li><span class="tag">[監督]</span> 水は三重結合で立方体にはまっていないとばらばらになる。固体は面、液体は O との接辺を軸に振れ、気体は接点だけで振り回される。</li>
+    <li><span class="tag">[計算]</span> 表の辺・点・共有の数（m35_h2o_peel.py、整数座標の集合の比較だけ）。</li>
+    <li><span class="tag">[見立て]</span> はがれる順（取り合いの辺が先）と、振れる角度・速さ。角度は描画のための小数で、模型から出した値ではない。</li>
+  </ul>
+
+  <h2>結論</h2>
+  <p>H₂O の H は、枠の中心を向いた面で O の正四面体 3 個と辺を 1 本ずつ分け合う。その 3 本は 2＋1 に分かれ、2 本は H どうしの共有点に触れ、1 本はその H だけのもの。だからどの辺が残るかには、置き方の中に手がかりがある。残った辺のどちらの端が最後の点になるかは鏡映で入れ替わるので、置き方だけでは決まらない。</p>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BITS=[];for(const a of [0,1])for(const b of [0,1])for(const c of [0,1])BITS.push([a,b,c]);
+const odd=n=>(n[0]+n[1]+n[2])%2===1;
+const tet=(n,wantOdd)=>BITS.filter(b=>odd(b)===wantOdd).map(b=>[6*n[0]+6*b[0],6*n[1]+6*b[1],6*n[2]+6*b[2]]);
+const Otet=BITS.filter(odd).map(n=>tet(n,true));
+const Hseat=[[0,0,0],[1,1,0]], Eseat=[[1,0,1],[0,1,1]];
+const Ht=Hseat.map(n=>tet(n,false)), Et=Eseat.map(n=>tet(n,false));
+const HH=[6,6,0];
+const eq=(p,q)=>p[0]===q[0]&&p[1]===q[1]&&p[2]===q[2];
+// 各 H：自分だけの辺（H どうしの共有点に触れない面の辺）＝液体の軸
+const own=Ht.map(T=>{
+  const face=T.filter(v=>!( (v[0]%12===0)&&(v[1]%12===0)&&(v[2]%12===0) ));
+  return face.filter(v=>!eq(v,HH));});
+const C=[6,6,6];
+
+/* 回転 */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const nrm=a=>{const l=Math.hypot(...a);return [a[0]/l,a[1]/l,a[2]/l];};
+function rot(p,c,u,ang){const v=sub(p,c),co=Math.cos(ang),si=Math.sin(ang),k=dot(u,v)*(1-co),x=cr(u,v);
+  return add(c,[v[0]*co+x[0]*si+u[0]*k,v[1]*co+x[1]*si+u[1]*k,v[2]*co+x[2]*si+u[2]*k]);}
+const cent=T=>[T.reduce((s,v)=>s+v[0],0)/4,T.reduce((s,v)=>s+v[1],0)/4,T.reduce((s,v)=>s+v[2],0)/4];
+// 外へ振れる向きの符号
+const hingeSign=own.map((e,i)=>{const u=nrm(sub(e[1],e[0])),c0=cent(Ht[i]);
+  const d0=Math.hypot(...sub(c0,C)), d1=Math.hypot(...sub(rot(c0,e[0],u,0.1),C));return d1>d0?1:-1;});
+
+let phase=0, tPhase=0, playing=!reduce, swap=0, yaw=-0.75, elev=0.45, drag=null;
+const DUR=[2600,5200,5200];
+function setPhase(p,now){phase=p;tPhase=now;}
+
+function poseH(i,now){
+  const T=Ht[i], e=own[i], u=nrm(sub(e[1],e[0])), s=hingeSign[i], t=(now-tPhase)/1000;
+  if(phase===0){const j=0.04*Math.sin(t*40+i);return T.map(v=>rot(v,e[0],u,s*Math.abs(j)*0.3));}
+  const ramp=Math.min(1,(now-tPhase)/700);
+  if(phase===1){const a=s*ramp*(0.25+0.32*(0.5+0.5*Math.sin(t*9+i*1.7))+0.05*Math.sin(t*31));
+    return T.map(v=>rot(v,e[0],u,a));}
+  const piv=e[swap], a1=s*ramp*(0.55+0.45*(0.5+0.5*Math.sin(t*5.5+i))), w=nrm(sub(piv,C)), a2=ramp*1.4*Math.sin(t*3.7+i*2);
+  return T.map(v=>rot(rot(v,piv,u,a1),piv,w,a2));
+}
+
+let W=0,H=0;
+function size(){const dpr=Math.min(2,window.devicePixelRatio||1);W=cv.clientWidth;H=Math.round(Math.max(380,Math.min(620,W*0.9)));
+  cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function alpha(hex,a){const m=hex.replace('#','');const v=parseInt(m.length===3?m.split('').map(c=>c+c).join(''):m,16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+function line(a,b,col,w,dash){ctx.beginPath();ctx.setLineDash(dash||[]);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([]);}
+const FACES=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+
+function draw(now){
+  const K={fg:css('--fg'),mute:css('--mute'),line:css('--line'),a:css('--a'),h:css('--h'),e:css('--e'),hit:css('--hit')};
+  const body=css('--f-body')||'sans-serif', mono=css('--f-mono')||'monospace';
+  ctx.clearRect(0,0,W,H);
+  const barH=Math.max(84,H*0.19), area=H-barH, sc=Math.min(W,area)/27, cx=W*0.5, cy=area*0.52;
+  const cyw=Math.cos(yaw),syw=Math.sin(yaw),ce=Math.cos(elev),se=Math.sin(elev);
+  const P=p=>{const x=p[0]-6,y=p[1]-6,z=p[2]-6,xr=x*cyw-y*syw,yr=x*syw+y*cyw;return [cx+xr*sc,cy-(z*ce+yr*se)*sc,yr*ce-z*se];};
+
+  // 枠
+  const V=[];for(let i=0;i<8;i++)V.push(P([i&1?12:0,i&2?12:0,i&4?12:0]));
+  for(let i=0;i<8;i++)for(const b of [1,2,4]) if(!(i&b)) line(V[i],V[i|b],alpha(K.mute,0.45),1);
+
+  // 面をまとめて奥から
+  const faces=[];
+  const push=(T,col,al,kind)=>{const Q=T.map(P);for(const f of FACES)faces.push({p:f.map(i=>Q[i]),d:(Q[f[0]][2]+Q[f[1]][2]+Q[f[2]][2])/3,col,al,kind});};
+  Otet.forEach(T=>push(T,K.a,0.16,'o'));
+  const HP=[poseH(0,now),poseH(1,now)];
+  HP.forEach(T=>push(T,K.h,0.42,'h'));
+  faces.sort((u,v)=>v.d-u.d);
+  for(const f of faces){ctx.beginPath();ctx.moveTo(f.p[0][0],f.p[0][1]);ctx.lineTo(f.p[1][0],f.p[1][1]);ctx.lineTo(f.p[2][0],f.p[2][1]);ctx.closePath();
+    ctx.fillStyle=alpha(f.col,f.al);ctx.fill();ctx.strokeStyle=alpha(f.kind==='h'?K.h:K.a,f.kind==='h'?0.9:0.55);ctx.lineWidth=f.kind==='h'?1.3:0.9;ctx.stroke();}
+  // 電子の席
+  Et.forEach(T=>{const Q=T.map(P);for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)line(Q[i],Q[j],alpha(K.e,0.75),1.1,[4,4]);});
+
+  // 分け合う辺・点（赤）
+  const fade=Math.max(0,1-(now-tPhase)/700);
+  Ht.forEach((T,i)=>{
+    const e=own[i], face=T.filter(v=>!(v[0]%12===0&&v[1]%12===0&&v[2]%12===0));
+    if(phase===0){for(let a=0;a<3;a++)for(let b=a+1;b<3;b++)line(P(face[a]),P(face[b]),K.hit,3.2);}
+    if(phase===1){line(P(e[0]),P(e[1]),K.hit,3.6);
+      if(fade>0){for(const v of face) if(!eq(v,e[0])&&!eq(v,e[1])){line(P(v),P(e[0]),alpha(K.hit,fade),3);line(P(v),P(e[1]),alpha(K.hit,fade),3);}}}
+    if(phase===2){const q=P(e[swap]);ctx.beginPath();ctx.arc(q[0],q[1],6,0,7);ctx.fillStyle=K.hit;ctx.fill();
+      if(fade>0) line(P(e[0]),P(e[1]),alpha(K.hit,fade),3.4);}
+  });
+  if(phase===0){const q=P(HH);ctx.beginPath();ctx.arc(q[0],q[1],4,0,7);ctx.fillStyle=K.fg;ctx.fill();}
+
+  // 見出し
+  const name=['固体','液体','気体'][phase];
+  ctx.textAlign='left';ctx.fillStyle=K.fg;ctx.font=`700 22px ${body}`;ctx.fillText(name,16,34);
+  ctx.font=`12px ${body}`;ctx.fillStyle=K.mute;
+  ctx.fillText(['面（三角形）で席にはまる','残った 1 辺を軸に振れる','残った 1 点で振り回される'][phase],16,54);
+
+  // 下の帯：3 → 2 → 1
+  const y0=area+8;ctx.strokeStyle=K.line;ctx.beginPath();ctx.moveTo(0,area);ctx.lineTo(W,area);ctx.stroke();
+  const labels=[['固体','頂点 3・辺 3'],['液体','頂点 2・辺 1'],['気体','頂点 1・辺 0']];
+  const bw=Math.min(170,(W-32-24)/3);
+  labels.forEach((L,i)=>{const x=16+i*(bw+12), on=i===phase;
+    ctx.strokeStyle=on?K.hit:K.line;ctx.lineWidth=on?2:1;ctx.strokeRect(x,y0,bw,barH-22);
+    ctx.fillStyle=on?K.hit:K.mute;ctx.font=`700 13px ${body}`;ctx.fillText(L[0],x+10,y0+22);
+    ctx.fillStyle=on?K.fg:K.mute;ctx.font=`${W<480?11:12}px ${mono}`;ctx.fillText(L[1],x+10,y0+42);
+    if(i<2){ctx.fillStyle=K.mute;ctx.font=`12px ${body}`;ctx.fillText('→',x+bw+1,y0+(barH-22)/2+4);}
+  });
+}
+
+function frame(now){
+  if(playing&&now-tPhase>DUR[phase]) setPhase((phase+1)%3,now);
+  if(playing&&!drag&&!reduce) yaw+=0.0018;
+  draw(now);requestAnimationFrame(frame);
+}
+document.getElementById('play').onclick=e=>{playing=!playing;e.target.textContent=playing?'停止':'再生';tPhase=performance.now();};
+[0,1,2].forEach(p=>document.getElementById('s'+p).onclick=()=>setPhase(p,performance.now()));
+document.getElementById('swap').onclick=e=>{swap=1-swap;e.target.setAttribute('aria-pressed',swap?'true':'false');};
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;elev=Math.max(-0.3,Math.min(1.35,elev+(e.clientY-drag[1])*0.008));drag=[e.clientX,e.clientY];});
+const up=()=>{drag=null;cv.style.cursor='grab';};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+addEventListener('resize',size);
+if(reduce) document.getElementById('play').textContent='再生';
+size();tPhase=performance.now();requestAnimationFrame(frame);
+})();
+</script>
