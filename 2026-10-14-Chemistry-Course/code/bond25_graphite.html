@@ -1,0 +1,164 @@
+<title>育つ黒鉛</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --cube:#b4bcb9; --ta:#2f6f8f; --tb:#b0652a; --e:#d08a0c; --share:#7a3fd1;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1000" height="1000" aria-label="ダイヤモンドの正四面体から 4 本目の結合を外して三角形に寝かせ、炭素 1 個から黒鉛の層を世代ごとに育て、最後に 2 枚目の層を重ねる図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>育つ黒鉛 ― 正四面体を寝かせた三角形</h1>
+  <p>ダイヤモンドの炭素は正四面体の中心にあり、4 本の結合が 4 頂点へ出る。そのうち (3,3,3) の向きの 1 本を外し、中心を残る 3 頂点の面まで下ろすと、結合は (4,−2,−2)・(−2,4,−2)・(−2,−2,4) の 3 本になる。長さ² は 27 から 24 へ、2 本を掛けて足した値は −9 から −12 へ変わる（−12 は 24 の半分で、120 度）。3 頂点を結ぶ三角形の辺の長さ² は 72 のままで、正四面体の面がそのまま残る。</p>
+  <p>この三角形の中心に炭素を 1 個置いて育てる。世代ごとの炭素は 1・3・6・9・12・15・18 と 3 ずつ増え、偶数の世代は三角形の中心（A）、奇数の世代は三角形の頂点（B）に入る。A の三角形の累計は 1・7・19・37。三角形どうしは頂点だけでつながり、辺は分け合わない。1 つの頂点に集まる三角形は、平面のシェルピンスキーでは 2 個、黒鉛では 3 個。辺 4 の大きな三角形の中には上向きの三角形が 10 個あり、シェルピンスキーの 3 段目の 9 個と、真ん中の穴に入る 1 個に分かれる。</p>
+  <p>外した 4 本目の向きには結合がないので、層は結合を持たずに重なる。2 枚目の層は、A の炭素が 1 枚目の B の炭素の真上に来るようにずらして重ねてある（層の間隔は見やすさで決めた）。</p>
+</div>
+
+<script>
+// ---- 整数の模型 ----
+const GA=[[4,-2,-2],[-2,4,-2],[-2,-2,4]], GB=GA.map(d=>d.map(x=>-x));
+const DIA=[[3,-3,-3],[-3,3,-3],[-3,-3,3],[3,3,3]];   // ダイヤモンドの 4 本（中心 (1,1,1) から）
+const NG=6, UP=[7,7,7], SH=[4,-2,-2];              // 2 枚目の層：上へ (7,7,7)、横へ (4,−2,−2)
+const key=v=>v.join(",");
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const GEN=new Map([[key([0,0,0]),0]]), ATOM=[{p:[0,0,0],g:0,A:true}], BOND=[];
+let front=[{p:[0,0,0],A:true}];
+for(let k=1;k<=NG;k++){const nxt=[];
+  for(const f of front)for(const d of(f.A?GA:GB)){const q=add(f.p,d),kq=key(q);
+    if(!GEN.has(kq)){GEN.set(kq,k);ATOM.push({p:q,g:k,A:!f.A});nxt.push({p:q,A:!f.A});}
+    if(GEN.get(kq)===k)BOND.push({a:f.p,b:q,g:k});}
+  front=nxt;}
+const SHELL=[...Array(NG+1).keys()].map(k=>ATOM.filter(a=>a.g===k).length);
+const CUMA=[];{let c=0;for(let k=0;k<=NG;k+=2){c+=SHELL[k];CUMA.push(c);}}
+const TRI=ATOM.filter(a=>a.A).map(a=>({g:a.g,T:GA.map(d=>add(a.p,d))}));
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+
+// ---- ここから先は観察者側の表示（回転・透視・補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let yaw=0.4, pitch=0.62, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now(), SCALE=1, CY=0;
+const S2=Math.SQRT2, S6=Math.sqrt(6), S3=Math.sqrt(3);
+function proj(q){
+  const X=(q[0]-q[1])/S2, Z=(q[0]+q[1]-2*q[2])/S6, Y=(q[0]+q[1]+q[2])/S3-CY;   // (1,1,1) を上に
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*X+sy*Z, z1=-sy*X+cy*Z;
+  const y2=cp*Y-sp*z1, z2=sp*Y+cp*z1;
+  const f=1/(1+z2/160);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.56-y2*SCALE*f, z2, f];
+}
+const NST=NG+2;  // 0 寝かせる、1..NG 世代、NG+1 重ねる
+const DUR=[...Array(NST).keys()].map(i=>i===0?8:i===NST-1?9:4);
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function rgba(c,a){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;const h=d.fillStyle;
+  if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+const line=(items,a,b,c,w,dash,dz=0)=>{const p=proj(a),q=proj(b);items.push({z:(p[2]+q[2])/2-0.05+dz,k:"line",P:[p,q],c,w,dash});};
+function layer(items,tops,off,gmax,alpha,newg,kNew,R){
+  for(const t of TRI){if(t.g>gmax)continue;const a=(t.g===newg?kNew:1)*alpha;
+    const V=t.T.map(v=>proj(add(v,off)));
+    items.push({z:(V[0][2]+V[1][2]+V[2][2])/3+0.3,k:"face",P:V,c:rgba(css("--ta"),0.16*a)});
+    for(let i=0;i<3;i++)items.push({z:(V[i][2]+V[(i+1)%3][2])/2,k:"line",P:[V[i],V[(i+1)%3]],c:rgba(css("--ta"),0.8*a),w:t.g===newg?2:1.3});}
+  for(const b of BOND){if(b.g>gmax)continue;const a=(b.g===newg?ease((tS-0.1)/1.2):1);
+    const q=b.b.map((x,i)=>b.a[i]+(x-b.a[i])*a);line(items,add(b.a,off),add(q,off),rgba(css("--share"),(b.g===newg?0.95:0.6)*alpha),b.g===newg?R*0.3:R*0.18,false,-0.1);}
+  for(const at of ATOM){if(at.g>gmax)continue;const a=(at.g===newg?ease((tS-1)/0.8):1);if(a<=0)continue;
+    const q=proj(add(at.p,off));tops.push({z:q[2]-1,k:"atom",P:[q],c:rgba(at.A?css("--e"):css("--ta"),alpha),r:R*(at.g===newg?0.6:0.45)*q[3]*a});}
+}
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/50, items=[], tops=[];
+  const gNow=stage===0?0:Math.min(stage,NG);
+  const ts=stage===0?cv.height/16:cv.height/(16+7*gNow); SCALE+=(ts-SCALE)*0.06;
+  const ty=stage===NST-1?(UP[0]*3/S3)/2:0; CY+=(ty-CY)*0.05;
+  if(stage===0){
+    const k=ease((tS-1.5)/2.5), c=[1-k,1-k,1-k];       // 中心 (1,1,1) → (0,0,0)（表示の補間）
+    const V=DIA.map(d=>add([1,1,1],d));                   // 4 頂点：3 つは GA の点、1 つは (4,4,4)
+    const fade=1-ease((tS-0.6)/1.2);
+    // 正四面体の辺
+    for(let i=0;i<4;i++)for(let j=i+1;j<4;j++){const top=i===3||j===3;line(items,V[i],V[j],rgba(css("--ta"),top?0.8*fade:0.9),top?1.5:2.2,top);}
+    const F=[0,1,2].map(i=>proj(V[i]));items.push({z:5,k:"face",P:F,c:rgba(css("--ta"),0.18)});
+    for(let i=0;i<3;i++)line(items,c,V[i],css("--share"),R*0.32,false,-0.2);
+    line(items,c,V[3],rgba(css("--share"),fade),R*0.32,false,-0.2);
+    for(let i=0;i<4;i++){const q=proj(V[i]);tops.push({z:q[2]-1,k:"atom",P:[q],c:rgba(css("--ta"),i===3?fade:1),r:R*0.55*q[3]});}
+    const q=proj(c);tops.push({z:q[2]-1,k:"atom",P:[q],c:css("--e"),r:R*0.65*q[3]});
+  } else {
+    layer(items,tops,[0,0,0],gNow,1,stage<=NG?gNow:-1,ease((tS-0.3)/1.6),R);
+    if(stage===NST-1){const k=ease((tS-0.3)/2);const off=add(UP,SH);
+      layer(items,tops,off.map(x=>x),Math.min(gNow,3),0.85*k,-1,1,R);
+      ATOM.filter(a=>a.A&&a.g<=3).forEach(a=>line(items,add(a.p,off),add(a.p,SH),rgba(css("--muted"),0.6*k),1.2,true,2));}
+  }
+  items.sort((p,q)=>q.z-p.z); tops.sort((p,q)=>q.z-p.z);
+  for(const it of items.concat(tops)){const P=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="face"){g.beginPath();g.moveTo(P[0][0],P[0][1]);P.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.closePath();g.fillStyle=it.c;g.fill();}
+    else if(it.k==="atom"){const q=P[0];g.beginPath();g.arc(q[0],q[1],Math.max(0.5,it.r),0,7);g.fillStyle=it.c;g.fill();g.lineWidth=1.2;g.strokeStyle=css("--panel");g.stroke();}
+  }
+  const T0=stage===0?"正四面体から 4 本目を外して寝かせる":stage===NST-1?"2 枚目の層を重ねる":gNow===0?"":`世代 ${gNow}：${gNow%2?"三角形の頂点（B）":"三角形の中心（A）"}に ${SHELL[gNow]} 個`;
+  const T1=stage===0?`長さ² ${dot(DIA[0],DIA[0])}→${dot(GA[0],GA[0])}、内積 ${dot(DIA[0],DIA[1])}→${dot(GA[0],GA[1])}（120 度）。三角形の辺の長さ² 72 はそのまま`:
+    stage===NST-1?"A の炭素が下の層の B の炭素の真上に来る。層の間に結合はない（点線）":gNow%2?"結合 3 本の先に炭素が付く。三角形の数は変わらない":"新しい三角形が、頂点だけで前の三角形とつながる";
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText(T0,R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.1}px ${css("--f-body")}`;g.fillText(T1,R,R*2.9);
+  if(stage>0){g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;
+    g.fillText(`炭素 ${SHELL.slice(0,gNow+1).join("・")}`,R,R*4.5);
+    g.fillText(`A の三角形 累計 ${CUMA.slice(0,Math.floor(gNow/2)+1).join("・")}`,R,R*5.9);}
+  const leg=[["--e","A の炭素（三角形の中心）","atom"],["--ta","B の炭素（三角形の頂点）","atom"],["--ta","A の三角形（正四面体の面）","line"],["--share","結合","thick"]];
+  let y=cv.height-R*1.45*leg.length+R*0.2;g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,k]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(k==="atom"){g.beginPath();g.arc(R*2,y,R*0.55,0,7);g.fill();}
+    else{g.lineWidth=k==="thick"?R*0.3:2.5;g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  const names=["寝かせる",...[...Array(NG).keys()].map(i=>"世代 "+(i+1)),"重ねる"];g.textAlign="right";g.textBaseline="top";
+  names.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(8+i*1.45));});
+}
+function setStage(n){stage=(n+NST)%NST;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage];};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.2,Math.min(1.5,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(NG);tS=DUR[NG];}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) yaw+=dt0*0.25*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

@@ -1,0 +1,162 @@
+<title>水素化物の階段</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --cube:#b4bcb9; --ta:#2f6f8f; --tb:#b0652a; --e:#d08a0c; --share:#7a3fd1;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --cube:#4f5b57; --ta:#6fb3d4; --tb:#e39a5c; --e:#f0b33a; --share:#b48cff; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:4/3;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1200" height="900" aria-label="中心の原子をシェルピンスキーの 2 段目（正四面体 A 4 個）として置き、空いた鏡像 B の席 4 つに水素を 0・1・2・3・4 個入れていく図。Ne・HF・H2O・NH3・CH4 の順。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>水素化物の階段 ― 席が 4 つ、H が 0 から 4 へ</h1>
+  <p>第 2 周期の原子は、シェルピンスキーの 2 段目（正四面体 A 4 個）として 2×2×2 の枠に置く。枠には鏡像 B の席が 4 つ空いている。水素 H は 1 段目の正四面体 1 個で、席に入ると中心の正四面体 3 個と辺を 1 本ずつ分け合う。</p>
+  <p>H を 1 個ずつ足すと、Ne（H 0・空き 4）→ HF（1・3）→ H₂O（2・2）→ NH₃（3・1）→ CH₄（4・0）。H と空いた席の数の和はいつも 4、分け合う辺は 3 本ずつ増えて 0・3・6・9・12。CH₄ で席がすべて埋まり、A 4 個と B 4 個が交互に並ぶ元素の枠そのものに戻る。逆に Ne は B をすべて抜いた形で、シェルピンスキーの 2 段目だけが残る。</p>
+</div>
+
+<script>
+// ---- 整数の模型 ----
+// 枠：立方体 [0,12]^3 を 2×2×2 に割る。小立方体の番地の和が奇数なら A（中心の原子の部品）、偶数なら B の席
+const BITS=[];for(const a of[0,1])for(const b of[0,1])for(const c of[0,1])BITS.push([a,b,c]);
+const odd=n=>(n[0]+n[1]+n[2])%2===1;
+const tet=(o,e,wantOdd)=>BITS.filter(n=>odd(n)===wantOdd).map(n=>[o[0]+n[0]*e,o[1]+n[1]*e,o[2]+n[2]*e]);
+const sub=n=>[n[0]*6,n[1]*6,n[2]*6];
+const OP=BITS.filter(odd).map(n=>tet(sub(n),6,true));
+const SLOT0=BITS.filter(n=>!odd(n));
+const SLOT=[SLOT0[0],SLOT0[3],SLOT0[1],SLOT0[2]];                 // H を入れる順
+const HT=SLOT.map(n=>tet(sub(n),6,false));
+const key=v=>v.join(",");
+function shared(H){const out=[];for(const P of OP){const s=H.filter(v=>P.some(w=>key(w)===key(v)));if(s.length===2)out.push(s);}return out;}
+const SH=HT.map(shared);
+const dir=n=>[n[0]*6+3-6,n[1]*6+3-6,n[2]*6+3-6];
+const ATOM=["Ne","F","O","N","C"], MOL=["Ne","HF","H₂O","NH₃","CH₄"];
+// 頂点と辺を数える（整数）
+function counts(k){const T=OP.concat(HT.slice(0,k));const V=new Set(),E=new Set();
+  T.forEach(t=>{t.forEach(v=>V.add(key(v)));for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)E.add([key(t[i]),key(t[j])].sort().join("|"));});return[V.size,E.size];}
+const CNT=[0,1,2,3,4].map(counts);
+
+// ---- ここから先は観察者側の表示（回転・透視・透明度の補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let yaw=0.7, pitch=0.42, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now(), SCALE=1;
+const STAGES=[
+ ["Ne：シェルピンスキーの 2 段目だけ","正四面体 A 4 個。B の席 4 つはすべて空き"],
+ ["HF：H を 1 個","H は鏡像 B として席に入り、F の正四面体 3 個と辺を 1 本ずつ分け合う"],
+ ["H₂O：H を 2 個","空いた席 2 つ（孤立電子対の位置）"],
+ ["NH₃：H を 3 個","空いた席 1 つ"],
+ ["CH₄：H を 4 個","席がすべて埋まり、A 4 個と B 4 個が交互に並ぶ元素の枠になる"]];
+const DUR=[5,6,6,6,8];
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function rgba(c,a){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;const h=d.fillStyle;
+  if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+function proj(q){
+  const p=[q[0]-6,q[1]-6,q[2]-6];
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*p[0]+sy*p[2], z1=-sy*p[0]+cy*p[2];
+  const y2=cp*p[1]-sp*z1, z2=sp*p[1]+cp*z1;
+  const f=1/(1+z2/64);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.58-y2*SCALE*f, z2, f];
+}
+const TE=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]], TF=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+const CE=[];BITS.forEach((a,i)=>BITS.forEach((b,j)=>{if(j<=i)return;let d=0;for(let t=0;t<3;t++)if(a[t]!==b[t])d++;if(d===1)CE.push([i,j]);}));
+function cubeLines(items,o,e,alpha,w){const V=BITS.map(n=>proj([o[0]+n[0]*e,o[1]+n[1]*e,o[2]+n[2]*e]));
+  CE.forEach(([i,j])=>items.push({z:(V[i][2]+V[j][2])/2+0.05,k:"line",P:[V[i],V[j]],c:rgba(css("--cube"),alpha),w}));}
+function tetDraw(items,T,isA,alpha,w,grow,fillA){
+  const c=[0,1,2].map(i=>(T[0][i]+T[1][i]+T[2][i]+T[3][i])/4);
+  const V=T.map(v=>proj(v.map((x,i)=>c[i]+(x-c[i])*grow))), col=css(isA?"--ta":"--tb");
+  TF.forEach(f=>items.push({z:(V[f[0]][2]+V[f[1]][2]+V[f[2]][2])/3,k:"face",P:f.map(i=>V[i]),c:rgba(col,fillA*alpha)}));
+  TE.forEach(([i,j])=>items.push({z:(V[i][2]+V[j][2])/2-0.02,k:"line",P:[V[i],V[j]],c:rgba(col,0.95*alpha),w,dash:!isA}));}
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/46, items=[], tops=[];
+  SCALE=0.31*cv.height/7;
+  cubeLines(items,[0,0,0],12,0.55,1.3);
+  BITS.forEach(n=>cubeLines(items,sub(n),6,0.25,1));
+  OP.forEach(T=>tetDraw(items,T,true,1,2.2,1,0.18));
+  const k=stage; // 入っている H の数
+  const cq=proj([6,6,6]);
+  SLOT.forEach((n,i)=>{
+    if(i>=k){ // 空いた席
+      tetDraw(items,HT[i],false,0.35,1.2,1,0.0);
+      const d=dir(n);items.push({z:-50,k:"line",P:[cq,proj([6+d[0]*1.9,6+d[1]*1.9,6+d[2]*1.9])],c:css("--e"),w:3,dash:true});
+      tops.push({z:-60,k:"lp",P:[proj([6+d[0]*1.2,6+d[1]*1.2,6+d[2]*1.2])]});
+      return;}
+    const t=(i===k-1)?tS:99, gr=ease((t-0.4)/1.4); if(gr<=0)return;
+    tetDraw(items,HT[i],false,1,2.4,gr,0.32);
+    const q=proj(HT[i].reduce((a,v)=>a.map((x,j)=>x+v[j]/4),[0,0,0]));tops.push({z:q[2]-3,k:"lab",P:[q],t:"H"});
+    if(t>2.2)SH[i].forEach(s=>{const a=proj(s[0]),b=proj(s[1]);items.push({z:(a[2]+b[2])/2-0.1,k:"line",P:[a,b],c:css("--share"),w:R*0.38});});});
+  tops.push({z:cq[2]-3,k:"lab",P:[cq],t:ATOM[k],c:true});
+  const over=`${MOL[k]}　H ${k}・空いた席 ${4-k}・分け合う辺 ${3*k} 本・頂点 ${CNT[k][0]}・辺 ${CNT[k][1]}`;
+  items.sort((p,q)=>q.z-p.z); tops.sort((p,q)=>q.z-p.z);
+  for(const it of items.concat(tops)){const P=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="face"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.lineTo(P[2][0],P[2][1]);g.closePath();g.fillStyle=it.c;g.fill();}
+    else if(it.k==="lab"){const q=P[0],r=R*1.15;g.beginPath();g.arc(q[0],q[1],it.c?r*1.15:r,0,7);g.fillStyle=it.c?css("--ta"):css("--tb");g.fill();
+      g.fillStyle=css("--panel");g.font=`700 ${R*(it.t.length>1?1.0:1.2)}px ${css("--f-mono")}`;g.textAlign="center";g.textBaseline="middle";g.fillText(it.t,q[0],q[1]+1);}
+    else if(it.k==="lp"){const q=P[0];g.fillStyle=css("--e");[-1,1].forEach(s=>{g.beginPath();g.arc(q[0]+s*R*0.45,q[1],R*0.32,0,7);g.fill();});}
+  }
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.55}px ${css("--f-body")}`;g.fillText(STAGES[stage][0],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.2}px ${css("--f-body")}`;g.fillText(STAGES[stage][1],R,R*2.9);
+  g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;g.fillText(over,R,R*4.6);
+  const leg=[["--ta","中心の原子の正四面体 A（実線）","line"],["--tb","H／空いた席：鏡像 B（破線）","dash"],["--share","H と中心が分け合う辺","thick"],["--e","空いた席（孤立電子対の位置）","dot"]];
+  let y=cv.height-R*1.45*leg.length+R*0.1;g.font=`${R*1.05}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,kind]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(kind==="dot"){g.beginPath();g.arc(R*1.6,y,R*0.32,0,7);g.arc(R*2.5,y,R*0.32,0,7);g.fill();}
+    else{g.lineWidth=kind==="thick"?R*0.38:3;if(kind==="dash")g.setLineDash([6,5]);g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();g.setLineDash([]);}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  g.textAlign="right";g.textBaseline="top";g.font=`${R*1.05}px ${css("--f-body")}`;
+  MOL.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(0.9+i*1.5));});
+}
+function setStage(n){stage=(n+STAGES.length)%STAGES.length;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage];};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.2,Math.min(1.2,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(4);tS=DUR[4];}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) yaw+=dt0*0.25*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
