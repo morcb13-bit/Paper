@@ -1,0 +1,177 @@
+<title>ベンゼン環</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --ta:#2f6f8f; --c:#1d2422; --h:#d08a0c; --share:#7a3fd1; --ax:#c0392b; --hole:#9aa6a1;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1000" height="1000" aria-label="黒鉛の層の中のシェルピンスキー 2 段目から、真ん中の穴を囲む炭素 6 個を取り出してベンゼン環にし、水素を付け、ケクレの 2 通りを入れ替え、外した 4 本目を上下交互に示し、折ってシクロヘキサンにする図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>ベンゼン環 ― シェルピンスキーの穴を囲む六角形</h1>
+  <p>黒鉛の層は、正四面体の面（辺の長さ² 72 の三角形）の中心に炭素を置き、三角形の頂点にも炭素を置いて、結合 (4,−2,−2)・(−2,4,−2)・(−2,−2,4) でつないだもの。この層で、炭素から出て 6 歩で戻る道を数えると、どの炭素も 3 つの六角形に入っている。</p>
+  <p>六角形 1 つを三角形の言葉で読むと、シェルピンスキーの 2 段目になる。大きな三角形（辺の長さ² 288）の角に小さな三角形が 3 つあり、真ん中に穴が 1 つある。六角形の炭素は、小さな三角形の中心 3 個（A）と、穴の頂点 3 個（B）。ベンゼン環は、シェルピンスキーの穴を囲む輪である。炭素は中心から距離² 24、隣どうしも 24 で、正六角形になる。</p>
+  <p>どの炭素にも、環に入らない結合が 1 本残る。その先に H を付けると C₆H₆。A の H は大きな三角形の 3 つの角に入り、B の H は穴の辺の外に出る。H 6 個は中心から距離² 96（炭素の 4 倍）の正六角形に並ぶ。C–H の長さ²は模型では C–C と同じ 24 にしてある。</p>
+  <p>環の 6 本から、どの炭素にもちょうど 1 本を選ぶ選び方を 64 通りすべて調べると、残るのは 2 通りだけで、教科書のケクレ構造の 2 通りと数が合う。小さな三角形ごとに見ると、A は環の 2 本のうち 1 本を選んでいて、3 つの三角形がそろって「前」を選ぶか、そろって「後」を選ぶかの 2 つしかない。座標の巡回（120 度）では 2 通りはそれぞれ自分に戻り、鏡映（x と y の入れ替え）と 60 度の回し方では互いに入れ替わる。</p>
+  <p>黒鉛の三角形は、ダイヤモンドの正四面体から (3,3,3) の向きの 4 本目を外したもの。ベンゼン環ではこの外した 4 本目が、A では上（高さ +9）、B では下（−9）を向き、上 3・下 3 の交互になる。A の炭素と B の H を (1,1,1) だけ持ち上げると、結合はダイヤモンドの 4 本の向き（長さ² 27）に戻り、炭素の高さは 3・0・3・0・3・0 の椅子形になる。外した 4 本目の先に H を 6 個付けると C₆H₁₂（シクロヘキサン）。ベンゼンとシクロヘキサンの H の差 6 は、外した 4 本目の数そのもの。</p>
+  <p>座標はすべて整数で、数は m38_benzene.py が出したもの。回転・透視・段のあいだの動きだけが表示のための浮動小数。B13 の離散の目で見るとこう見える、という図で、共鳴の説明を置き換えるものではない。</p>
+</div>
+
+<script>
+// ---- 整数の模型（m38_benzene.py と同じ。中心は六角形の中心） ----
+const GA=[[4,-2,-2],[-2,4,-2],[-2,-2,4]], GB=GA.map(d=>d.map(x=>-x));
+const UPD=[3,3,3];
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], neg=a=>a.map(x=>-x), key=v=>v.join(",");
+const C=[[4,-2,-2],[2,2,-4],[-2,4,-2],[-4,2,2],[-2,-2,4],[2,-4,2]];   // A,B,A,B,A,B
+const isA=i=>i%2===0;
+const H=C.map((p,i)=>{for(const d of(isA(i)?GA:GB)){const q=add(p,d);if(!C.some(c=>key(c)===key(q)))return q;}});
+const KEK=[[0,1,0,1,0,1],[1,0,1,0,1,0]];            // 結合 i は C[i]–C[i+1]
+const AX=C.map((p,i)=>isA(i)?UPD:neg(UPD));
+const LIFT=[1,1,1];
+// 黒鉛の層（背景）：A の炭素から 4 世代
+const GEN=new Map(), ATOM=[], BOND=[];
+{let front=[{p:C[0],A:true}];GEN.set(key(C[0]),0);ATOM.push({p:C[0],A:true});
+ for(let k=1;k<=5;k++){const nxt=[];for(const f of front)for(const d of(f.A?GA:GB)){const q=add(f.p,d),kq=key(q);
+   if(!GEN.has(kq)){GEN.set(kq,k);ATOM.push({p:q,A:!f.A});nxt.push({p:q,A:!f.A});}
+   if(f.A)BOND.push([f.p,q]);}front=nxt;}}
+const inSet=(L,q)=>L.some(c=>key(c)===key(q));
+const BIGA=[0,2,4].map(i=>GA.map(d=>add(C[i],d)));                // 小さな三角形 3 つ
+const HOLE=[C[1],C[3],C[5]];                                         // 穴
+const TRI=ATOM.filter(a=>a.A).map(a=>GA.map(d=>add(a.p,d)));
+
+// ---- ここから先は観察者側の表示（回転・透視・補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let yaw=0.3, pitch=0.95, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now(), SCALE=cv.height/30;
+const S2=Math.SQRT2, S6=Math.sqrt(6), S3=Math.sqrt(3);
+function proj(q){
+  const X=(q[0]-q[1])/S2, Z=(q[0]+q[1]-2*q[2])/S6, Y=(q[0]+q[1]+q[2])/S3;
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*X+sy*Z, z1=-sy*X+cy*Z, y2=cp*Y-sp*z1, z2=sp*Y+cp*z1, f=1/(1+z2/120);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.55-y2*SCALE*f, z2, f];
+}
+const NAMES=["シェルピンスキー 2 段目","穴を囲む六角形","H を付ける","ケクレの 2 通り","外した 4 本目","折るとシクロヘキサン"];
+const DUR=[7,6,6,10,7,10], NST=NAMES.length;
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+const cache={};function rgba(c,a){if(!cache[c]){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;cache[c]=d.fillStyle;}
+  const h=cache[c];if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+const mix=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t);
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/50, items=[];
+  const L=(a,b,c,w,dash,dz=0)=>{const p=proj(a),q=proj(b);items.push({z:(p[2]+q[2])/2+dz,k:"line",P:[p,q],c,w,dash});};
+  const F=(V,c,dz=0.5)=>{const P=V.map(proj);items.push({z:P.reduce((s,p)=>s+p[2],0)/P.length+dz,k:"face",P,c});};
+  const A=(p,c,r)=>{const q=proj(p);items.push({z:q[2]-1,k:"atom",P:[q],c,r:r*q[3]});};
+  // 背景の黒鉛：段 0 で濃く、段 1 から薄れる
+  const bg=stage===0?1:stage===1?1-ease(tS/2.5)*0.85:0.15;
+  if(bg>0.01){
+    for(const T of TRI)for(let i=0;i<3;i++)L(T[i],T[(i+1)%3],rgba(css("--ta"),0.35*bg),1,false,0.3);
+    for(const b of BOND)L(b[0],b[1],rgba(css("--share"),0.25*bg),R*0.12,false,0.2);
+    for(const a of ATOM)if(!inSet(C,a.p))A(a.p,rgba(css("--c"),0.35*bg),R*0.3);
+  }
+  // シェルピンスキー 2 段目：小さな三角形 3 つと穴
+  const sk=stage===0?ease((tS-1)/1.5):stage<=2?1-0.5*(stage===2?ease(tS/2):0):stage===3?0.5:stage===4?0.5-0.4*ease(tS/2):0.1-0.1*ease(tS/1.5);
+  if(!drag){const tp=stage>=4?0.42:1.05;pitch+=(tp-pitch)*0.03;}
+  for(const T of BIGA){F(T,rgba(css("--ta"),0.2*sk));for(let i=0;i<3;i++)L(T[i],T[(i+1)%3],rgba(css("--ta"),0.9*sk),2.2);}
+  for(let i=0;i<3;i++)L(HOLE[i],HOLE[(i+1)%3],rgba(css("--hole"),0.9*sk),1.6,true);
+  // 段 5 の持ち上げ
+  const up=stage===5?ease((tS-1)/3):0;
+  const CP=C.map((p,i)=>isA(i)?mix(p,add(p,LIFT),up):p);
+  const HP=H.map((h,i)=>isA(i)?h:mix(h,add(h,LIFT),up));
+  // 環の結合（ケクレ）
+  const ringK=stage===0?0:stage===1?ease(tS/1.5):1;
+  let kk=-1, kw=0;
+  if(stage===3){const ph=Math.floor((tS-0.5)/2.4);kk=ph<0?-1:ph%2;kw=ease(((tS-0.5)%2.4)/0.5);}
+  for(let i=0;i<6;i++){const a=CP[i],b=CP[(i+1)%6];
+    L(a,b,rgba(css("--share"),0.95*ringK),R*0.3,false,-0.1);
+    if(kk>=0&&KEK[kk][i]){ // 二重結合：中心へ寄せた 2 本目
+      const ia=a.map(x=>x*0.72), ib=b.map(x=>x*0.72);L(ia,ib,rgba(css("--share"),kw),R*0.22,false,-0.1);}}
+  // 環の外の結合と H
+  const hk=stage<2?0:stage===2?ease((tS-0.5)/1.5):1;
+  for(let i=0;i<6;i++){if(hk<=0)break;L(CP[i],mix(CP[i],HP[i],hk),rgba(css("--share"),0.9),R*0.22,false,-0.1);A(mix(CP[i],HP[i],hk),css("--h"),R*0.5);}
+  // 外した 4 本目
+  const ak=stage<4?0:stage===4?ease((tS-0.5)/1.5):1;
+  for(let i=0;i<6;i++){if(ak<=0)break;const e=mix(CP[i],add(CP[i],AX[i]),ak);
+    L(CP[i],e,rgba(css("--ax"),stage===5?1-ease((tS-4)/1.5)*0.0:0.95),stage===5&&tS>4?R*0.22:2.4,!(stage===5&&tS>4),-0.1);
+    if(stage===5){const hx=ease((tS-4.2)/1.3);if(hx>0)A(e,rgba(css("--h"),hx),R*0.5*hx);}}
+  for(let i=0;i<6;i++)A(CP[i],css("--c"),R*0.62);
+  items.sort((p,q)=>q.z-p.z);
+  for(const it of items){const P=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="face"){g.beginPath();g.moveTo(P[0][0],P[0][1]);P.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.closePath();g.fillStyle=it.c;g.fill();}
+    else{const q=P[0];g.beginPath();g.arc(q[0],q[1],Math.max(0.5,it.r),0,7);g.fillStyle=it.c;g.fill();g.lineWidth=1.2;g.strokeStyle=css("--panel");g.stroke();}}
+  // 文字
+  const T1=[
+    "黒鉛の層の中で、小さな三角形 3 つと真ん中の穴（辺の長さ² 288 の大きな三角形）",
+    "穴を囲む炭素 6 個：三角形の中心 3（A）と穴の頂点 3（B）。距離² 24 の正六角形",
+    "残る 1 本の先に H。A の H は大きな三角形の角、6 個とも中心から距離² 96",
+    kk<0?"どの炭素にもちょうど 1 本：64 通りのうち 2 通り":`ケクレ ${kk+1}：3 つの三角形がそろって「${kk?"後":"前"}」を選ぶ（鏡映で入れ替わる）`,
+    "外した 4 本目（(3,3,3) の向き）：A は上 +9、B は下 −9。上 3・下 3",
+    tS<4?"A の炭素と B の H を (1,1,1) 持ち上げる：高さ 3・0・3・0・3・0、C–C の長さ² 27":"外した 4 本目に H を 6 個：C₆H₁₂（シクロヘキサン）。H の差 6 ＝ 外した 4 本目"][stage];
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText(NAMES[stage],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.1}px ${css("--f-body")}`;g.fillText(T1,R,R*2.9);
+  g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;
+  g.fillText(stage<2?"C 6":stage<5||tS<4.2?"C₆H₆":"C₆H₁₂",R,R*4.5);
+  const leg=[["--c","炭素","atom"],["--h","水素","atom"],["--ta","正四面体の面（三角形）","line"],["--share","結合","thick"],["--ax","外した 4 本目","dash"]];
+  let y=cv.height-R*1.45*leg.length+R*0.2;g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,k]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(k==="atom"){g.beginPath();g.arc(R*2,y,R*0.55,0,7);g.fill();}
+    else{g.lineWidth=k==="thick"?R*0.3:2.5;if(k==="dash")g.setLineDash([7,6]);g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();g.setLineDash([]);}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  g.textAlign="right";g.textBaseline="top";
+  NAMES.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(6.5+i*1.45));});
+}
+function setStage(n){stage=(n+NST)%NST;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage]-0.01;};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+let drag=null;
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(3);tS=3;}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) yaw+=dt0*0.22*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]-0.01);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

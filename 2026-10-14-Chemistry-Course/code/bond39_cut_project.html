@@ -1,0 +1,155 @@
+<title>次々に現れる六角形</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --ta:#2f6f8f; --c:#1d2422; --h:#d08a0c; --share:#7a3fd1; --ax:#c0392b; --hole:#9aa6a1; --tb:#b0652a; --h1:#7a3fd1; --h2:#c0392b; --h3:#1e8a5a; --h4:#c27c0e;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; --h1:#b48cff; --h2:#ff7a6b; --h3:#5fd39a; --h4:#f0b33a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; --h1:#b48cff; --h2:#ff7a6b; --h3:#5fd39a; --h4:#f0b33a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1000" height="1000" aria-label="二層のシェルピンスキー（星型正八面体）の中に、立方体の対角線ごとに 1 本ずつ、合わせて 4 本の六角形の輪を描き、図を回して見る向きを対角線に合わせるたびに、その輪が正六角形として現れる様子と、残る 1 本の対角線から見たトリプチセンの 3 又を示す図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>次々に現れる六角形 ― 二層のシェルピンスキーをカットアンドプロジェクトで見る</h1>
+  <p>大きな正四面体（辺の長さ² 288）を 2 つ、重心をそろえて互いの鏡像に重ねると星型正八面体になる。どちらもシェルピンスキーの 2 段目で、角の小さな正四面体（辺の長さ² 72）が 4 個ずつ、合わせて 8 個ある。8 個の中心は辺 6 の立方体の角に並び、隣どうしの小さな正四面体が辺を分け合うところが立方体の辺（長さ² 36）にあたる。</p>
+  <p>立方体には対角線が 4 本ある。対角線 1 本の両端の 2 つを除くと、残る 6 つの角は立方体の辺でつながって輪になる。高さは +3・−3 と交互で、への字 3 つの輪である。輪は対角線ごとに 1 本、合わせて 4 本ある。立方体の 12 本の辺は、どれもちょうど 2 本の輪に、8 つの角は、どれもちょうど 3 本の輪に入っている。</p>
+  <p>図全体を回して、見る向きを対角線の 1 本に合わせると、その対角線の輪だけが正六角形に見える。向きを次の対角線へ移すと、さっきの輪は崩れ、別の輪が正六角形として現れる。立体の中の同じ点と同じ辺が、どの向きから写すかによって次々に別の六角形を見せる。高い次元の格子を向きを選んで写すと違う模様が現れる、カットアンドプロジェクトの見え方そのものである。</p>
+  <p>への字の頂点と底にあたる向かい合う 2 つの角を C9・C10 とすると、2 つを両方含む輪は 3 本ある。どの輪でも C9 と C10 は向かい合う位置にある。3 本の輪から、C9 から C10 までの半分（への字の頂点から底まで、辺 3 本）を 1 本ずつ取ると、重ならない 3 本の道になる。これがトリプチセンの芯である。残る 1 本の対角線、つまり C9–C10 の向きから見ると、3 本の道は C9 から 120 度に分かれる 3 又に見える。C9 には H が 1 つ付き、3 又＋1 個になる。</p>
+  <p>座標はすべて整数（m41_stella_benzene.py・m50_four_hex.py）。回転・透視・段のあいだの動きだけが表示のための浮動小数。B13 の離散の目で見るとこう見える、という図である。</p>
+</div>
+
+<script>
+// ---- 整数の模型（m41・m50 と同じ） ----
+const SG=[];for(const a of[1,-1])for(const b of[1,-1])for(const c of[1,-1])SG.push([a,b,c]);
+const TET=SG.map(s=>[[6*s[0],0,0],[0,6*s[1],0],[0,0,6*s[2]],[6*s[0],6*s[1],6*s[2]]]);
+const BIGA=[[6,6,6],[6,-6,-6],[-6,6,-6],[-6,-6,6]], BIGB=BIGA.map(v=>v.map(x=>-x));
+const CEN=SG.map(s=>s.map(x=>3*x));
+const key=v=>v.join(","), eq=(a,b)=>key(a)===key(b);
+const AX=[[1,1,1],[-1,-1,1],[-1,1,-1],[1,-1,-1]];
+const d2=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;
+const HEX=AX.map(ax=>{const rest=CEN.filter(c=>Math.abs(c[0]*ax[0]+c[1]*ax[1]+c[2]*ax[2])!==9);const r=[rest[0]];
+  while(r.length<6)r.push(rest.find(c=>!r.some(x=>eq(x,c))&&d2(c,r[r.length-1])===36));return r;});
+const P=[3,3,-3], Q=[-3,-3,3], H9=[6,6,-6], H10=[-6,-6,6];
+const PATHS=[[P,[3,3,3],[3,-3,3],Q],[P,[3,-3,-3],[-3,-3,-3],Q],[P,[-3,3,-3],[-3,3,3],Q]];
+const PATHHEX=[3,2,0];                                   // 道ごとの輪（m50）
+
+// ---- ここから先は観察者側の表示（回転・透視・補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let play=true, speed=0.45, stage=0, tS=0, last=performance.now(), drag=null, orbit=0;
+const nrm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l);};
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const dotf=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+let VIEW=nrm([1,0.3,0.6]), UP=nrm([0,0,1]);
+function basis(v){let u=UP.map((x,i)=>x-dotf(UP,v)*v[i]);if(Math.hypot(...u)<0.15)u=Math.abs(v[2])<0.9?[0,0,1]:[1,0,0];const y=nrm(u.map((x,i)=>x-dotf(u,v)*v[i])),x=cross(y,v);return [x,y];}
+function proj(q){const [ex,ey]=basis(VIEW);const X=dotf(q,ex),Y=dotf(q,ey),Z=dotf(q,VIEW),f=1/(1-Z/120);
+  return [cv.width/2+X*cv.height/30*f, cv.height*0.55-Y*cv.height/30*f, -Z, f];}
+const NAMES=["本当の姿：二層のシェルピンスキー","対角線 1 から","対角線 2 から","対角線 3 から","対角線 4 から","C9–C10 から：3 又＋1 個","横から：トリプチセンの芯"];
+const DUR=[8,6,6,6,6,8,8], NST=NAMES.length;
+const HC=["--h1","--h2","--h3","--h4"];
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+const cache={};function rgba(c,a){if(!cache[c]){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;cache[c]=d.fillStyle;}
+  const h=cache[c];if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+function target(){
+  if(stage===0)return [nrm([Math.cos(orbit),Math.sin(orbit),0.55]),[0,0,1]];
+  if(stage>=1&&stage<=4){const a=nrm(AX[stage-1]);return [a,Math.abs(a[2])<0.9?[0,0,1]:[1,0,0]];}
+  if(stage===5)return [nrm(AX[1]),[0,0,1]];
+  return [nrm([1.15,-1,0.15]),nrm(AX[1])];
+}
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/50, items=[];
+  const L=(a,b,c,w,dash,dz=0)=>{const p=proj(a),q=proj(b);items.push({z:(p[2]+q[2])/2+dz,k:"line",P:[p,q],c,w,dash});};
+  const A=(p,c,r)=>{const q=proj(p);items.push({z:q[2]-1,k:"atom",P:[q],c,r:r*q[3]});};
+  if(!drag){const [T,U]=target();VIEW=nrm(VIEW.map((x,i)=>x+(T[i]-x)*0.045));UP=nrm(UP.map((x,i)=>x+(U[i]-x)*0.045));}
+  // 二層のシェルピンスキー：大きな正四面体 2 つと小さな 8 個
+  const fade=stage>=5?0.45:1;
+  for(const[B,col]of[[BIGA,"--ta"],[BIGB,"--tb"]])for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)L(B[i],B[j],rgba(css(col),0.55*fade),1.4,false,0.3);
+  SG.forEach((s,n)=>{const col=css(s[0]*s[1]*s[2]>0?"--ta":"--tb");const T=TET[n];
+    for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)L(T[i],T[j],rgba(col,0.28*fade),1,false,0.3);});
+  // 4 本の輪
+  const hl=stage>=1&&stage<=4?stage-1:-1;
+  HEX.forEach((r,h)=>{const on=stage===0||h===hl, col=css(HC[h]);
+    let a=stage===0?0.85:on?1:0.16, w=stage===0?R*0.14:on?R*0.3:R*0.08;
+    if(stage>=5){a=0.12;w=R*0.07;}
+    for(let i=0;i<6;i++)L(r[i],r[(i+1)%6],rgba(col,a),w,false,-0.2);});
+  // トリプチセンの芯
+  if(stage>=5){const k=ease((tS-0.5)/1.5);
+    PATHS.forEach((p,n)=>{const col=css(HC[PATHHEX[n]]);for(let i=0;i<3;i++)L(p[i],p[i+1],rgba(col,k),R*0.32,false,-0.3);});
+    L(P,H9,rgba(css("--h"),k),R*0.2,false,-0.3);L(Q,H10,rgba(css("--h"),k),R*0.2,false,-0.3);
+    A(H9,rgba(css("--h"),k),R*0.5);A(H10,rgba(css("--h"),k),R*0.5);}
+  for(const c of CEN){const pq=(eq(c,P)||eq(c,Q))&&stage>=5;A(c,pq?css("--ax"):css("--c"),pq?R*0.75:R*0.55);}
+  items.sort((p,q)=>q.z-p.z);
+  for(const it of items){const PP=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(PP[0][0],PP[0][1]);g.lineTo(PP[1][0],PP[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else{const q=PP[0];g.beginPath();g.arc(q[0],q[1],Math.max(0.5,it.r),0,7);g.fillStyle=it.c;g.fill();g.lineWidth=1.2;g.strokeStyle=css("--panel");g.stroke();}}
+  if(stage>=5){g.font=`700 ${R*1.2}px ${css("--f-body")}`;g.fillStyle=css("--fg");g.textAlign="left";g.textBaseline="bottom";
+    const p=proj(P),q=proj(Q);if(stage===5)g.fillText("C9・C10（重なる）",p[0]+R*0.9,p[1]-R*0.4);else{g.fillText("C9",p[0]+R*0.9,p[1]-R*0.2);g.fillText("C10",q[0]+R*0.9,q[1]+R*1.4);}}
+  const T1=[
+    "大きな正四面体 2 つ（鏡像）の角に小さな正四面体 8 個。中心は立方体の角。その中に輪が 4 本",
+    "対角線 (1,1,1) に合わせると、この輪だけが正六角形（ベンゼン）",
+    "向きを次の対角線へ。さっきの輪は崩れ、別の輪が正六角形に",
+    "同じ点と同じ辺が、写す向きごとに別の六角形を見せる",
+    "4 本目の輪。どの輪もへの字 3 つ（高さ +3・−3 の交互）",
+    "C9・C10 を含む 3 本の輪から半分ずつ。C9–C10 の向きから見ると 120 度の 3 又＋H",
+    "横から：C9 から C10 まで、への字の頂点から底への道が 3 本"][stage];
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText(NAMES[stage],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.1}px ${css("--f-body")}`;g.fillText(T1,R,R*2.9);
+  const leg=[["--h1","輪 1（軸 (1,1,1)）","thick"],["--h2","輪 2（軸 (−1,−1,1)）","thick"],["--h3","輪 3（軸 (−1,1,−1)）","thick"],["--h4","輪 4（軸 (1,−1,−1)）","thick"],["--c","正四面体の中心（炭素）","atom"]];
+  let y=cv.height-R*1.45*leg.length+R*0.2;g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,k]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(k==="atom"){g.beginPath();g.arc(R*2,y,R*0.55,0,7);g.fill();}
+    else{g.lineWidth=R*0.3;g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  g.textAlign="right";g.textBaseline="top";
+  NAMES.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(5+i*1.45));});
+}
+function setStage(n){stage=(n+NST)%NST;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage]-0.01;};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;const dx=(e.clientX-drag[0])*0.01, dy=(e.clientY-drag[1])*0.01;
+  const [ex,ey]=basis(VIEW);VIEW=nrm(VIEW.map((x,i)=>x+ex[i]*dx-ey[i]*dy));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){stopUI();setStage(1);tS=5;}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k; orbit+=dt0*0.35*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]-0.01);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

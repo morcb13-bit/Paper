@@ -1,0 +1,172 @@
+<title>折れて見える丁番</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --ta:#2f6f8f; --c:#1d2422; --h:#d08a0c; --share:#7a3fd1; --ax:#c0392b; --hole:#9aa6a1; --tb:#b0652a;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1000" height="1000" aria-label="星型正八面体の 8 個の正四面体の中心（立方体の角）を、軸 (1,1,1) から見るとベンゼンの六角形、への字の頂点と底を通る対角線から見るとトリプチセンの芯の 3 分岐になることを、視点を回して示す図。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>折れて見える丁番 ― ベンゼンとトリプチセンは同じ立方体の別の対角線</h1>
+  <p>星型正八面体の 8 個の正四面体の中心は、辺 6 の立方体の 8 つの角にある。隣どうしの正四面体が辺を分け合うところは、立方体の辺（長さ² 36）にあたる。</p>
+  <p>軸 (1,1,1) の向きから見ると、ベンゼンの炭素 6 個は正六角形に並び、ふた 2 つは真ん中に重なる。横から見ると炭素の高さは +3・−3 と交互で、六角形はへの字 3 つがつながった輪である。向かい合う炭素 P＝(3,3,−3) と Q＝(−3,−3,3) は、への字の頂点と底にあたる。</p>
+  <p>P–Q も立方体の対角線（長さ² 108）で、(1,1,1) と同じく 3 回軸になっている。視点を P–Q の向きへ回すと P と Q が重なり、P から出る 3 本の辺は互いにちょうど 120 度に開く。P の隣 3 つは、ベンゼンの炭素 2 つと上のふたである。Q の隣 3 つは、炭素 2 つと下のふたである。</p>
+  <p>P を C9、Q を C10 とし、P→隣→隣→Q と立方体の辺を 3 本たどる道を 3 本、重ならないように選ぶ。選び方は 2 通りあり、これがトリプチセンの芯になる。芯は 8 個の正四面体をちょうど使い切り、どの結合も隣と辺を分け合う。</p>
+  <p>ベンゼンの輪は、P–Q の線を丁番にして、二つの半分（P→→→Q の道 2 本）に分かれる。P–Q の軸に沿って見ると、二つの半分は 120 度に開いた羽根に見え、ふたを通る 3 本目の道が 3 枚目の羽根になる。輪そのものは何も曲げていない。見る軸を (1,1,1) から P–Q に替えただけで、平らな六角形が丁番で折れたように見える。</p>
+  <p>P の腕 3 本と Q の腕 3 本は、軸に沿って見ると互いに 60 度ずれる。立方体を対角線の向きから見ると正六角形になるのと同じことで、羽根の付け根の辺（隣→隣）は軸と平行ではなく、ひねられて見える。</p>
+  <p>座標はすべて整数（m41_stella_benzene.py・m47_cube_axis.py）。回転・透視・段のあいだの動きだけが表示のための浮動小数。B13 の離散の目で見るとこう見える、という図である。</p>
+</div>
+
+<script>
+// ---- 整数の模型（m41・m47 と同じ） ----
+const SG=[];for(const a of[1,-1])for(const b of[1,-1])for(const c of[1,-1])SG.push([a,b,c]);
+const TET=SG.map(s=>[[6*s[0],0,0],[0,6*s[1],0],[0,0,6*s[2]],[6*s[0],6*s[1],6*s[2]]]);
+const CEN=SG.map(s=>s.map(x=>3*x));
+const key=v=>v.join(","), eq=(a,b)=>key(a)===key(b);
+const RING=[[3,3,-3],[3,-3,-3],[3,-3,3],[-3,-3,3],[-3,3,3],[-3,3,-3]];
+const CAP=[[3,3,3],[-3,-3,-3]];
+const P=RING[0], Q=RING[3];
+const CUBE=[];for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){const a=CEN[i],b=CEN[j];if((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2===36)CUBE.push([a,b]);}
+// トリプチセンの芯（重ならない 3 本、m47 の 1 通り目）
+const PATHS=[[P,[3,3,3],[3,-3,3],Q],[P,[3,-3,-3],[-3,-3,-3],Q],[P,[-3,3,-3],[-3,3,3],Q]];
+
+// ---- ここから先は観察者側の表示（回転・透視・補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let play=true, spin=true, speed=0.45, stage=0, tS=0, last=performance.now(), drag=null, dragYaw=0, dragPitch=0, roll=0;
+const nrm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l);};
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const dotf=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const A111=nrm([1,1,1]), APQ=nrm([-1,-1,1]);
+const SIDE111=nrm([1,-1,0]), SIDEPQ=nrm([1,-1,0]);           // 横から：軸に垂直
+let VIEW=A111.slice();
+let UP=A111.slice();
+function basis(v){let u=UP.map((x,i)=>x-dotf(UP,v)*v[i]);if(Math.hypot(...u)<0.15)u=Math.abs(v[2])<0.9?[0,0,1]:[1,0,0];const y=nrm(u.map((x,i)=>x-dotf(u,v)*v[i])),x=cross(y,v);return [x,y];}
+function proj(q){
+  const [ex,ey]=basis(VIEW); const c=Math.cos(roll), s=Math.sin(roll);
+  const X=dotf(q,ex), Y=dotf(q,ey), Z=dotf(q,VIEW);
+  const x=c*X-s*Y, y=s*X+c*Y, f=1/(1-Z/90);
+  return [cv.width/2+x*cv.height/32*f, cv.height*0.55-y*cv.height/32*f, -Z, f];
+}
+const NAMES=["立方体の角＝正四面体の中心","(1,1,1) から：ベンゼン","横から：への字 3 つ","P–Q から：3 つに分かれる","トリプチセンの芯","横から：丁番で折れて見える"];
+const DUR=[6,6,7,8,7,8], NST=NAMES.length;
+const TARGET=[nrm([1,1,1.6]),A111,nrm([1.15,-1,-0.15]),APQ,nrm([-1,-1,1.25]),nrm([1.15,-1,0.15])];
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+const cache={};function rgba(c,a){if(!cache[c]){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;cache[c]=d.fillStyle;}
+  const h=cache[c];if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+const FACES=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/50, items=[];
+  const L=(a,b,c,w,dash,dz=0)=>{const p=proj(a),q=proj(b);items.push({z:(p[2]+q[2])/2+dz,k:"line",P:[p,q],c,w,dash});};
+  const F=(V,c,dz=0.4)=>{const PP=V.map(proj);items.push({z:PP.reduce((s,p)=>s+p[2],0)/PP.length+dz,k:"face",P:PP,c});};
+  const A=(p,c,r)=>{const q=proj(p);items.push({z:q[2]-1,k:"atom",P:[q],c,r:r*q[3]});};
+  // 視点：段ごとの向きへ寄せる（ドラッグ中は自由）
+  if(!drag){const T=TARGET[stage];VIEW=nrm(VIEW.map((x,i)=>x+(T[i]-x)*0.04));}
+  {const U=stage>=3?APQ:A111;UP=nrm(UP.map((x,i)=>x+(U[i]-x)*0.04));}
+  // 正四面体（薄く）
+  const tA=stage>=3?0.35:0.6;
+  SG.forEach((s,n)=>{const col=css(s[0]*s[1]*s[2]>0?"--ta":"--tb");
+    for(const f of FACES)F(f.map(i=>TET[n][i]),rgba(col,0.05*tA));
+    for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)L(TET[n][i],TET[n][j],rgba(col,0.35*tA),1,false,0.3);});
+  // 立方体の辺（分け合う辺）
+  const isRing=(a,b)=>RING.some((r,i)=>(eq(r,a)&&eq(RING[(i+1)%6],b))||(eq(r,b)&&eq(RING[(i+1)%6],a)));
+  const onPath=(a,b)=>PATHS.some(p=>p.some((v,i)=>i<3&&((eq(v,a)&&eq(p[i+1],b))||(eq(v,b)&&eq(p[i+1],a)))));
+  const kp=stage<4?0:stage===4?ease((tS-0.5)/1.5):1;
+  for(const[a,b]of CUBE){
+    const ring=isRing(a,b), path=onPath(a,b);
+    let col=rgba(css("--hole"),0.6), w=1.4, dash=true;
+    if(ring&&stage>=1&&stage<4){col=css("--share");w=R*0.28;dash=false;}
+    if(stage>=4){ if(path){col=rgba(css("--ax"),0.4+0.6*kp);w=R*(0.15+0.18*kp);dash=false;}
+                  else if(ring){col=rgba(css("--share"),0.9-0.5*kp);w=R*0.2;dash=false;} }
+    L(a,b,col,w,dash,-0.2);}
+  // 軸
+  const ax=stage===1||stage===2?[[-9,-9,-9],[9,9,9]]:stage>=3?[[6,6,-6].map(x=>x*1.6),[-6,-6,6].map(x=>x*1.6)]:null;
+  if(ax)L(ax[0],ax[1],rgba(css("--muted"),0.8),1.6,true,-0.1);
+  // 角（炭素・ふた）
+  for(const c of CEN){const isCap=CAP.some(x=>eq(x,c)), isPQ=eq(c,P)||eq(c,Q);
+    let col=isCap?css("--ax"):css("--c"), r=R*0.6;
+    if(stage>=3&&isPQ){col=css("--h");r=R*0.75;}
+    if(stage>=4&&isCap)col=css("--c");
+    A(c,col,r);}
+  items.sort((p,q)=>q.z-p.z);
+  for(const it of items){const PP=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(PP[0][0],PP[0][1]);g.lineTo(PP[1][0],PP[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="face"){g.beginPath();g.moveTo(PP[0][0],PP[0][1]);PP.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.closePath();g.fillStyle=it.c;g.fill();}
+    else{const q=PP[0];g.beginPath();g.arc(q[0],q[1],Math.max(0.5,it.r),0,7);g.fillStyle=it.c;g.fill();g.lineWidth=1.2;g.strokeStyle=css("--panel");g.stroke();}}
+  // P・Q の札
+  if(stage>=3){g.font=`700 ${R*1.2}px ${css("--f-body")}`;g.fillStyle=css("--fg");g.textAlign="left";g.textBaseline="bottom";
+    const p=proj(P),q=proj(Q);g.fillText(stage>=4?"C9（P）":"P",p[0]+R*0.8,p[1]-R*0.4);g.fillText(stage>=4?"C10（Q）":"Q",q[0]+R*0.8,q[1]+R*1.6);}
+  const T1=[
+    "8 個の正四面体の中心は辺 6 の立方体の角。辺を分け合うところが立方体の辺（長さ² 36）",
+    "軸 (1,1,1) に沿って見ると炭素 6 個は正六角形、ふた 2 つは真ん中に重なる",
+    "横から見ると高さは +3・−3 の交互：への字 3 つ。P はへの字の頂点、Q は底",
+    "P–Q（対角線、長さ² 108）に沿って見ると P と Q が重なり、P の 3 本は 120 度に開く",
+    "P→隣→隣→Q を 3 本、重ならずに（2 通り）。8 個を使い切る芯で、結合はすべて辺の共有",
+    "ベンゼンの輪は P–Q を丁番に二つの半分。何も曲げずに、見る軸を替えると折れて見える"][stage];
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText(NAMES[stage],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.1}px ${css("--f-body")}`;g.fillText(T1,R,R*2.9);
+  const leg=[["--c","炭素（正四面体の中心）","atom"],["--ax",stage>=4?"トリプチセンの芯の道":"ふた（ベンゼン）","line"],["--h","P と Q（への字の頂点と底）","atom"],["--share","ベンゼンの輪（分け合う辺）","thick"],["--hole","立方体の辺（ほかの分け合う辺）","dash"]];
+  let y=cv.height-R*1.45*leg.length+R*0.2;g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,k]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(k==="atom"){g.beginPath();g.arc(R*2,y,R*0.55,0,7);g.fill();}
+    else{g.lineWidth=k==="thick"?R*0.3:2.5;if(k==="dash")g.setLineDash([7,6]);g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();g.setLineDash([]);}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  g.textAlign="right";g.textBaseline="top";
+  NAMES.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(5+i*1.45));});
+}
+function setStage(n){stage=(n+NST)%NST;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage]-0.01;};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;const dx=(e.clientX-drag[0])*0.01, dy=(e.clientY-drag[1])*0.01;
+  const [ex,ey]=basis(VIEW);VIEW=nrm(VIEW.map((x,i)=>x+ex[i]*dx-ey[i]*dy));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(4);tS=5;VIEW=TARGET[4].slice();}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) roll+=dt0*0.15*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]-0.01);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

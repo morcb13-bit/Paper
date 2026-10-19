@@ -1,0 +1,167 @@
+<title>星型正八面体のベンゼン</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* layout: 図が一番上（見出し・段・数・凡例は図の中）、すぐ下に操作、説明はその下 */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --fg:#1d2422; --muted:#5f6b67; --line:#c9cfcc;
+  --ta:#2f6f8f; --c:#1d2422; --h:#d08a0c; --share:#7a3fd1; --ax:#c0392b; --hole:#9aa6a1; --tb:#b0652a;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --fg:#e4e9e6; --muted:#9aa6a1; --line:#33403c;
+  --ta:#6fb3d4; --c:#e4e9e6; --h:#f0b33a; --share:#b48cff; --ax:#ff7a6b; --hole:#5f6b67; --tb:#e39a5c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:12px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+canvas{width:100%;aspect-ratio:1/1;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:grab;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+button{font:inherit;font-size:.82rem;padding:4px 10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--share)} button:focus-visible{outline:2px solid var(--share);outline-offset:2px}
+button[aria-pressed="true"]{border-color:var(--share);color:var(--share)}
+.spd{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.spd input{width:110px}
+h1{font-size:1.3rem;margin:8px 0 0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+</style>
+
+<div class="wrap">
+  <canvas id="cv" width="1000" height="1000" aria-label="正八面体の 8 つの面に正四面体を立てて星型正八面体をつくり、軸の上下の 2 個をふた、残る 6 個を帯として、帯の正四面体の中心に炭素、とがった先に水素を置いたベンゼン。真上から見ると平面の正六角形になる。ドラッグで回せる"></canvas>
+  <div class="ctrl">
+    <button id="play" aria-pressed="true">再生中</button>
+    <button id="step">次の段</button>
+    <button id="spin" aria-pressed="true">回転</button>
+    <label class="spd" for="spd">速さ <input id="spd" type="range" min="1" max="100" value="45"></label>
+  </div>
+  <h1>星型正八面体のベンゼン ― 炭素は正四面体の中心に</h1>
+  <p>辺 12 の立方体の面の中心 6 つを結ぶと、辺の長さ² 72 の正八面体になる。その 8 つの面に同じ大きさの正四面体を 1 個ずつ立てると星型正八面体になる。8 個の正四面体は 4 個ずつ二つの大きな正四面体（辺の長さ² 288）の角になり、二つの大きな正四面体は重心を共有する。互いの鏡像で、A と B と呼ぶ。</p>
+  <p>(1,1,1) の向きを軸にとると、8 個は軸の上下の 2 個（ふた）と、そのまわりを一周する 6 個（帯）に分かれる。帯の 6 個は隣どうしが正八面体の辺を 1 本ずつ分け合い、A と B が交互に並んで輪に閉じる。</p>
+  <p>帯の正四面体の中心に炭素を置く。炭素どうしは分け合った辺でつながる（共有結合＝辺を分け合う）。炭素 1 個の正四面体の辺と頂点の内訳は次のとおり。</p>
+  <ul>
+    <li>隣の炭素と分け合う辺が 2 本</li>
+    <li>ふたと分け合う辺が 1 本</li>
+    <li>誰とも分けないとがった先が 1 つで、ここに H が入る</li>
+  </ul>
+  <p>炭素から H までの長さ² は 27 で、ダイヤモンドの結合と同じ。上のふた（A）は B の炭素 3 個と、下のふた（B）は A の炭素 3 個と辺を分け合う。ふたは 1 本ずつの結合に属さず、環をまたいで炭素 3 個にかかる。</p>
+  <p>炭素の高さは +3・−3 と交互で、立体の上では環は少し上下する。軸に沿って真上から見ると、炭素の影は正六角形に並び、影の長さ² は 24 になる。H の影は中心から距離² 96。これは平面で描いたベンゼン（黒鉛の層から切り出した六角形）の座標とそのまま一致する。平面のベンゼンは、この立体の影である。</p>
+  <p>x と y の入れ替え（鏡映）でも、60 度の回し方（座標を巡回して反転）でも、星型正八面体は正四面体の一つひとつまで自分に重なり、ふたはふたに移る。だから環の 6 本の結合は形の上で区別がつかない。ケクレ構造の 2 通りは、形ではなく選び方の違いになる。</p>
+  <p>座標はすべて整数（m41_stella_benzene.py）。回転・透視・段のあいだの動きだけが表示のための浮動小数。B13 の離散の目で見るとこう見える、という図で、共鳴の説明を置き換えるものではない。</p>
+</div>
+
+<script>
+// ---- 整数の模型（m41_stella_benzene.py と同じ） ----
+const SG=[];for(const a of[1,-1])for(const b of[1,-1])for(const c of[1,-1])SG.push([a,b,c]);
+const OCT=[[6,0,0],[-6,0,0],[0,6,0],[0,-6,0],[0,0,6],[0,0,-6]];
+const TET=SG.map(s=>[[6*s[0],0,0],[0,6*s[1],0],[0,0,6*s[2]],[6*s[0],6*s[1],6*s[2]]]);
+const par=s=>s[0]*s[1]*s[2]>0?"A":"B";
+const isCap=s=>s[0]===s[1]&&s[1]===s[2];
+const RING=[[1,1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1],[-1,1,1],[-1,1,-1]];
+const C=RING.map(s=>s.map(x=>3*x)), H=RING.map(s=>s.map(x=>6*x));
+const tetOf=s=>TET[SG.findIndex(t=>t[0]===s[0]&&t[1]===s[1]&&t[2]===s[2])];
+const shared=(P,Q)=>{const k=v=>v.join(",");const q=new Set(Q.map(k));return P.filter(v=>q.has(k(v)));};
+const RINGEDGE=RING.map((s,i)=>shared(tetOf(s),tetOf(RING[(i+1)%6])));
+const CAPEDGE=RING.map(s=>shared(tetOf(s),tetOf(par(s)==="A"?[-1,-1,-1]:[1,1,1])));
+const OCTE=[];for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const a=OCT[i],b=OCT[j];if(a.reduce((t,x,k)=>t+(x-b[k])**2,0)===72)OCTE.push([a,b]);}
+
+// ---- ここから先は観察者側の表示（回転・透視・補間だけ浮動小数） ----
+const cv=document.getElementById("cv"), g=cv.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let yaw=0.5, pitch=0.35, spin=true, play=true, speed=0.45, stage=0, tS=0, last=performance.now(), SCALE=cv.height/30, drag=null;
+const S2=Math.SQRT2, S6=Math.sqrt(6), S3=Math.sqrt(3);
+function proj(q){
+  const X=(q[0]-q[1])/S2, Z=(q[0]+q[1]-2*q[2])/S6, Y=(q[0]+q[1]+q[2])/S3;
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  const x1=cy*X+sy*Z, z1=-sy*X+cy*Z, y2=cp*Y-sp*z1, z2=sp*Y+cp*z1, f=1/(1+z2/110);
+  return [cv.width/2+x1*SCALE*f, cv.height*0.53-y2*SCALE*f, z2, f];
+}
+const NAMES=["正八面体","8 面に正四面体","ふたと帯","炭素は正四面体の中心","とがった先に H","真上から見た影"];
+const DUR=[5,7,7,8,6,9], NST=NAMES.length;
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+const cache={};function rgba(c,a){if(!cache[c]){const d=document.createElement("canvas").getContext("2d");d.fillStyle=c;cache[c]=d.fillStyle;}
+  const h=cache[c];if(h[0]==="#")return`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;return h;}
+const mix=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t);
+const FACES=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]];
+function draw(){
+  g.clearRect(0,0,cv.width,cv.height);
+  const R=cv.height/50, items=[];
+  const L=(a,b,c,w,dash,dz=0)=>{const p=proj(a),q=proj(b);items.push({z:(p[2]+q[2])/2+dz,k:"line",P:[p,q],c,w,dash});};
+  const F=(V,c,dz=0.4)=>{const P=V.map(proj);items.push({z:P.reduce((s,p)=>s+p[2],0)/P.length+dz,k:"face",P,c});};
+  const A=(p,c,r)=>{const q=proj(p);items.push({z:q[2]-1,k:"atom",P:[q],c,r:r*q[3]});};
+  // 視点：最後の段で真上へ
+  if(!drag){const tp=stage===5?1.5:0.35;pitch+=(tp-pitch)*0.035;}
+  // 正八面体
+  const ko=stage===0?ease(tS/1.5):1, fo=stage>=3?0.35:1;
+  for(const[a,b]of OCTE)L(a,b,rgba(css("--hole"),0.9*ko*fo),1.6,stage>0,0.2);
+  // 8 個の正四面体（ふたは段 2 以降で赤み）
+  SG.forEach((s,n)=>{
+    const k=stage===0?0:stage===1?ease((tS-0.5-n*0.5)/1.2):1; if(k<=0)return;
+    const T=TET[n], base=T.slice(0,3), cen3=[base[0][0]+base[1][0]+base[2][0],base[0][1]+base[1][1]+base[2][1],base[0][2]+base[1][2]+base[2][2]].map(x=>x/3);
+    const V=[...base,mix(cen3,T[3],k)];
+    const cap=isCap(s)&&stage>=2, col=cap?css("--ax"):css(par(s)==="A"?"--ta":"--tb");
+    const a=(stage>=3?(cap?0.55:0.5):1)*(stage===5?0.6:1);
+    for(const f of FACES)F(f.map(i=>V[i]),rgba(col,(cap?0.16:0.11)*a));
+    for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)L(V[i],V[j],rgba(col,0.8*a),cap?2:1.4,false,0.2);
+  });
+  // 分け合う辺：帯どうし（結合）とふたとの辺
+  const ke=stage<3?0:stage===3?ease((tS-1)/1.5):1;
+  if(ke>0){RINGEDGE.forEach(e=>L(e[0],e[1],rgba(css("--share"),ke),R*0.28,false,-0.2));
+    if(stage<5)CAPEDGE.forEach(e=>L(e[0],e[1],rgba(css("--ax"),ke),R*0.2,false,-0.2));}
+  // 炭素と C–C
+  const kc=stage<3?0:stage===3?ease((tS-0.3)/1):1;
+  if(kc>0){for(let i=0;i<6;i++)L(C[i],C[(i+1)%6],rgba(css("--c"),0.55*kc),2.2,true,-0.4);
+    for(let i=0;i<6;i++)A(C[i],rgba(css("--c"),kc),R*0.62);}
+  // H
+  const kh=stage<4?0:stage===4?ease((tS-0.5)/1.5):1;
+  for(let i=0;i<6&&kh>0;i++){L(C[i],mix(C[i],H[i],kh),css("--share"),R*0.2,false,-0.4);A(mix(C[i],H[i],kh),css("--h"),R*0.55);}
+  items.sort((p,q)=>q.z-p.z);
+  for(const it of items){const P=it.P;
+    if(it.k==="line"){g.beginPath();g.moveTo(P[0][0],P[0][1]);g.lineTo(P[1][0],P[1][1]);g.strokeStyle=it.c;g.lineWidth=it.w;g.lineCap="round";if(it.dash)g.setLineDash([7,6]);g.stroke();g.setLineDash([]);}
+    else if(it.k==="face"){g.beginPath();g.moveTo(P[0][0],P[0][1]);P.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.closePath();g.fillStyle=it.c;g.fill();}
+    else{const q=P[0];g.beginPath();g.arc(q[0],q[1],Math.max(0.5,it.r),0,7);g.fillStyle=it.c;g.fill();g.lineWidth=1.2;g.strokeStyle=css("--panel");g.stroke();}}
+  const T1=[
+    "辺 12 の立方体の面の中心 6 つ。辺の長さ² 72 の正八面体",
+    "8 つの面に正四面体（辺² 72）。A の 4 個と B の 4 個で、重心を共有する大きな正四面体 2 つ",
+    "軸 (1,1,1) の上下 2 個がふた、残る 6 個が帯。帯は隣どうし辺を 1 本ずつ分け合って一周",
+    "炭素は帯の正四面体の中心。分け合う辺が結合（隣と 2 本、ふたと 1 本）",
+    "誰とも分けないとがった先に H（C–H の長さ² 27）。C₆H₆",
+    "真上から見ると炭素の影は正六角形（影の長さ² 24）。平面のベンゼンはこの立体の影"][stage];
+  g.textAlign="left";g.textBaseline="top";
+  g.fillStyle=css("--fg");g.font=`700 ${R*1.6}px ${css("--f-body")}`;g.fillText(NAMES[stage],R,R*0.9);
+  g.fillStyle=css("--muted");g.font=`${R*1.1}px ${css("--f-body")}`;g.fillText(T1,R,R*2.9);
+  g.fillStyle=css("--fg");g.font=`${R*1.1}px ${css("--f-mono")}`;g.fillText(stage<3?"正四面体 8・正八面体 1":stage<4?"C 6":"C₆H₆",R,R*4.5);
+  const leg=[["--c","炭素（正四面体の中心）","atom"],["--h","水素（とがった先）","atom"],["--ta","A の正四面体","line"],["--tb","B の正四面体","line"],["--ax","ふた（上下 2 個）","line"],["--share","分け合う辺（結合）","thick"]];
+  let y=cv.height-R*1.45*leg.length+R*0.2;g.font=`${R*1.1}px ${css("--f-body")}`;g.textBaseline="middle";
+  for(const[c,t,k]of leg){g.strokeStyle=css(c);g.fillStyle=css(c);
+    if(k==="atom"){g.beginPath();g.arc(R*2,y,R*0.55,0,7);g.fill();}
+    else{g.lineWidth=k==="thick"?R*0.3:2.5;g.beginPath();g.moveTo(R,y);g.lineTo(R*3,y);g.stroke();}
+    g.fillStyle=css("--fg");g.fillText(t,R*3.4,y);y+=R*1.45;}
+  g.textAlign="right";g.textBaseline="top";
+  NAMES.forEach((n,i)=>{g.fillStyle=i===stage?css("--share"):css("--muted");g.fillText((i===stage?"● ":"○ ")+n,cv.width-R,R*(6.5+i*1.45));});
+}
+function setStage(n){stage=(n+NST)%NST;tS=0;}
+const pb=document.getElementById("play");
+const stopUI=()=>{play=false;pb.setAttribute("aria-pressed",false);pb.textContent="止めている";};
+pb.onclick=()=>{play=!play;pb.setAttribute("aria-pressed",play);pb.textContent=play?"再生中":"止めている";};
+document.getElementById("step").onclick=()=>{stopUI();setStage(stage+1);tS=DUR[stage]-0.01;};
+document.getElementById("spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin);};
+document.getElementById("spd").oninput=e=>{speed=e.target.value/100;};
+cv.addEventListener("pointerdown",e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);});
+cv.addEventListener("pointermove",e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*0.01;pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-drag[1])*0.01));drag=[e.clientX,e.clientY];});
+cv.addEventListener("pointerup",()=>drag=null);
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){spin=false;document.getElementById("spin").setAttribute("aria-pressed",false);stopUI();setStage(4);tS=5;}
+function tick(t){
+  const dt0=Math.min(0.05,(t-last)/1000); last=t;
+  const k=0.3+speed*1.7, dt=dt0*k;
+  if(spin) yaw+=dt0*0.22*k;
+  tS=Math.min(tS+dt, play?1e9:DUR[stage]-0.01);
+  if(play&&tS>DUR[stage]) setStage(stage+1);
+  draw(); requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
