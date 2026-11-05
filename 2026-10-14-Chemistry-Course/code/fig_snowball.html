@@ -1,0 +1,175 @@
+<title>雪だるま式に増える電子</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 一列：タイトル → 動く図 → 説明。図は正方形のキャンバス、世代の表示は図の直下 */
+:root{
+  --bg:#f3f4f2; --panel:#e6e9e4; --fg:#1d2420; --mute:#5c6660; --edge:#8a958f;
+  --h:#1f6fb8; --o:#c0392b; --o2:#8e44ad; --el:#d98a14; --share:#2e8b57;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121614; --panel:#1c221f; --fg:#e4e9e5; --mute:#97a29b; --edge:#6c7871;
+  --h:#5aa9ef; --o:#ef6f5e; --o2:#c08ae0; --el:#f0a83a; --share:#5fc48c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#1c221f; --fg:#e4e9e5; --mute:#97a29b; --edge:#6c7871;
+  --h:#5aa9ef; --o:#ef6f5e; --o2:#c08ae0; --el:#f0a83a; --share:#5fc48c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--serif);font-weight:600;font-size:1.6rem;margin:0;text-wrap:balance}
+.sub{color:var(--mute);margin:0;font-size:.92rem}
+canvas{width:100%;max-width:100%;aspect-ratio:1/1;background:var(--panel);border-radius:6px;display:block;touch-action:none}
+.stat{font-family:var(--mono);font-size:.85rem;color:var(--mute);font-variant-numeric:tabular-nums;min-height:2.6em;white-space:pre-line}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;padding:7px 12px;border:1px solid var(--edge);background:var(--bg);color:var(--fg);border-radius:4px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--el);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.84rem;color:var(--mute)}
+.text{line-height:1.8;font-size:.95rem;max-width:65ch}
+.text p{margin:0 0 .8em}
+table{border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid var(--edge);padding:4px 10px;text-align:left}
+.tw{overflow-x:auto}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono&display=swap">
+
+<div class="wrap">
+  <h1>雪だるま式に増える電子 ― 水素の爆発</h1>
+  <p class="sub">O は 2 段のシェルピンスキーのギャスケット、H と電子は 1 段（正四面体 1 個）。</p>
+  <canvas id="cv" width="720" height="720" aria-label="電子のギャスケットが酸素分子を次々に引き離し、増えていく図"></canvas>
+  <div class="stat" id="st"></div>
+  <div class="ctl"><button id="bp">一時停止</button><button id="br">はじめから</button></div>
+  <div class="legend">
+    <span style="color:var(--o)">▲ O</span><span style="color:var(--o2)">▲ 相手の O</span>
+    <span style="color:var(--el)">▲ 電子のギャスケット</span><span style="color:var(--el)">● 手の電子</span>
+    <span style="color:var(--h)">▲ H</span>
+  </div>
+  <div class="text">
+    <p>酸素分子 O₂ は、2 段のギャスケット二つが面を分け合ったもの。どちらの O も、席 A と席 B に手の電子を 1 個ずつ持っている。</p>
+    <p>火花から電子のギャスケットが 3 個来て、O₂ の隙間の席に 1 個ずつ入る。1 個入るごとに、二つの O は面 → 辺 → 点 → 離れると一段ずつはがれる。楔の入った席には、手の電子と合わせて電子が 2 個いる。</p>
+    <p>離れた O の席に H が入ると、H は席にいた電子を押し出す。楔の入った 3 席から 2 個ずつ、残る 1 席から 1 個で、7 個の電子が出る。入った電子は 3 個、出た電子は 7 個。</p>
+    <p>出た 7 個は、隣の O₂ の楔になる。3 個で O₂ 1 個がほどけるので、7 個で 2 個がほどけ、1 個が残る。次は 2 組から 14 個と残りの 1 個で 15 個、5 個の O₂ がほどける。O₂ の数は 1、2、5、11、26、61、142…と、世代ごとにおよそ倍以上に増えていく。これが爆発である。</p>
+    <p>H が楔の電子だけを押し出す（出る電子 3 個）なら、O₂ は世代ごとに 1 個ずつしかほどけず、増えない。爆発になるのは、H が O 自身の手の電子まで押し出すからである。</p>
+    <div class="tw"><table>
+      <tr><th>世代</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+      <tr><td>ほどける O₂</td><td>1</td><td>2</td><td>5</td><td>11</td><td>26</td><td>61</td><td>142</td><td>331</td></tr>
+      <tr><td>出る 3 なら</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+    </table></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const BITS=[];for(const a of[0,1])for(const b of[0,1])for(const c of[0,1])BITS.push([a,b,c]);
+const odd=n=>(n[0]+n[1]+n[2])%2===1;
+const tet=(o,e,w)=>BITS.filter(b=>odd(b)===w).map(b=>o.map((x,i)=>x+b[i]*e));
+const add=(p,q)=>p.map((x,i)=>x+q[i]),lerp=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t);
+const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+const O1=BITS.filter(odd).map(n=>tet(n.map(x=>6*x),6,true));
+const mirror=p=>{const k=2*(p[0]+p[1]+p[2]-12)/3;return p.map(x=>x-k)};
+const flipE=p=>[12-p[0],12-p[1],-p[2]], flipP=p=>[24-p[0],-p[1],-p[2]], apart=p=>add(flipP(p),[8,-8,-8]);
+const MAPS=[mirror,flipE,flipP,apart];
+const seatA=tet([0,0,0],6,false), seatB=tet([6,6,0],6,false);
+const cen=T=>T.reduce((s,p)=>add(s,p),[0,0,0]).map(x=>x/4);
+// 席：O1 の A・B、O2 の A・B（O2 側はその時の置き方で写す）
+const SEAT=(side,ab,f)=>{const T=ab==='A'?seatA:seatB;return side==='O1'?T:T.map(f)};
+const WEDGE=[['O1','A'],['O2','A'],['O1','B']];
+const HROUTE=[['O1','A'],['O2','A'],['O1','B'],['O2','B']];
+const PUSH=[2,2,2,1];                       // H が押し出す電子（楔＋手、楔＋手、楔＋手、手）
+// ── 予定表：世代 0（1 組）、1（2 組）、2（5 組）
+const POS=[[[0,0,0]],[[-48,0,40],[48,0,40]],[[-130,0,110],[-65,0,110],[0,0,110],[65,0,110],[130,0,110]]];
+const units=[];
+const FLY=1.1, GAP=0.35;
+function mapAt(u,t){let k=0;for(const w of u.land)if(t>=w)k++;return k}
+function addUnits(g,arrivals){            // arrivals：電子の [出る時刻, 出る位置(世界)] の並び
+  const list=[];
+  POS[g].forEach((p,j)=>{
+    const u={g,p,land:[],src:[],H0:[],hEnter:[],pops:[]};
+    for(let k=0;k<3;k++){const a=arrivals[3*j+k];const prev=k?u.land[k-1]:0;
+      u.land.push(Math.max(a[0]+FLY,prev+GAP));u.src.push(a)}
+    const h0=u.land[2]+0.4;
+    for(let i=0;i<4;i++)u.hEnter.push(h0+0.55*(i+1));
+    units.push(u);list.push(u)});
+  return list}
+// 世代 0：火花から 3 個
+const spark=[[0.3,[-40,30,-30]],[1.0,[-40,30,-30]],[1.7,[-40,30,-30]]];
+let gen=addUnits(0,spark);
+const extra=[];
+for(let g=1;g<=3;g++){
+  // 親が押し出した電子を、出た順に並べる
+  const pops=[];
+  for(const u of gen)for(let i=0;i<4;i++){const[side,ab]=HROUTE[i];const f=MAPS[3];
+    const c=add(cen(SEAT(side,ab,f)),u.p);for(let k=0;k<PUSH[i];k++)pops.push([u.hEnter[i]+k*0.12,c,u,i])}
+  for(const p of pops)p[2].pops.push(p);
+  pops.push(...extra.splice(0));pops.sort((a,b)=>a[0]-b[0]);
+  if(g<=2){gen=addUnits(g,pops);
+    const used=3*POS[g].length;for(const p of pops.slice(0,used))p[4]=g;   // 行き先の世代
+    extra.push(...pops.slice(used))}
+  else{for(const p of pops)p[4]=99;extra.push(...pops)}
+}
+// 子の楔の出どころ（飛行）：units[*].src[k] = [時刻, 位置, ...]
+const TEND=Math.max(...units.map(u=>u.hEnter[3]))+3.5;
+const cv=document.getElementById('cv'),g=cv.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let ang=0.0,tilt=0.62,drag=null;
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY,ang,tilt];cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;ang=drag[2]+(e.clientX-drag[0])*0.01;tilt=Math.max(-1.3,Math.min(1.3,drag[3]+(e.clientY-drag[1])*0.01))});
+cv.addEventListener('pointerup',()=>drag=null);
+let zoom=1;
+function proj(p){const c=[0,0,60];const x=p[0]-c[0],y=p[1]-c[1],z=p[2]-c[2],ca=Math.cos(ang),sa=Math.sin(ang),ct=Math.cos(tilt),st=Math.sin(tilt);
+  let X=x*ca-z*sa,Z=x*sa+z*ca;const Y=y*ct-Z*st;const s=cv.width/(330*zoom);return[cv.width/2+X*s,cv.height/2-Y*s]}
+function seg(p,q){const a=proj(p),b=proj(q);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()}
+function tetDraw(T,stroke,fill){const P=T.map(proj);g.fillStyle=fill;
+  for(const f of[[0,1,2],[0,1,3],[0,2,3],[1,2,3]]){g.beginPath();g.moveTo(...P[f[0]]);g.lineTo(...P[f[1]]);g.lineTo(...P[f[2]]);g.closePath();g.fill()}
+  g.strokeStyle=stroke;for(let i=0;i<4;i++)for(let j=i+1;j<4;j++)seg(T[i],T[j])}
+function dot(p,r,c){const q=proj(p);g.fillStyle=c;g.beginPath();g.arc(q[0],q[1],r,0,7);g.fill()}
+const shift=(T,v)=>T.map(p=>add(p,v));
+const small=(c)=>tet(add(c,[-3,-3,-3]),6,false);   // 電子のギャスケット（一辺 6）を中心 c に置く
+let t=0,paused=false;
+bp.onclick=()=>{paused=!paused;bp.textContent=paused?'再生':'一時停止'};
+br.onclick=()=>{t=0;paused=false;bp.textContent='一時停止'};
+function frame(){
+  const col={o:css('--o'),o2:css('--o2'),el:css('--el'),h:css('--h'),share:css('--share')};
+  g.clearRect(0,0,cv.width,cv.height);
+  for(const u of units){
+    const k=mapAt(u,t);let f=MAPS[Math.min(k,2)];
+    if(k>=3){const v=ease((t-u.land[2])/0.6);f=p=>lerp(flipP(p),apart(p),v)}
+    g.lineWidth=1.1;
+    for(const T of O1)tetDraw(shift(T,u.p),col.o,col.o+'22');
+    for(const T of O1)tetDraw(shift(T.map(f),u.p),col.o2,col.o2+'22');
+    // 手の電子（押し出されるまで）
+    HROUTE.forEach(([side,ab],i)=>{if(t<u.hEnter[i])dot(add(cen(SEAT(side,ab,f)),u.p),2.6,col.el)});
+    // 入った楔（押し出されるまで席にいる）
+    WEDGE.forEach(([side,ab],w)=>{if(t>=u.land[w]&&t<u.hEnter[w]){const T=shift(SEAT(side,ab,f),u.p);g.lineWidth=1.2;tetDraw(T,col.el,col.el+'40')}});
+    // 飛んでくる楔
+    u.src.forEach((s,w)=>{const t0=u.land[w]-FLY;if(t>=s[0]&&t<u.land[w]){const v=ease((t-Math.max(s[0],t0))/FLY);
+      const [side,ab]=WEDGE[w];const tgt=add(cen(SEAT(side,ab,MAPS[w])),u.p);g.lineWidth=1.2;tetDraw(small(lerp(s[1],tgt,v)),col.el,col.el+'55')}});
+    // H：H2 二つが待ち、分かれて席に入る
+    const base=[[-16,8,-14],[30,8,-14]];
+    HROUTE.forEach(([side,ab],i)=>{const tgt=shift(SEAT(side,ab,side==='O1'?f:MAPS[3]),u.p);
+      const wait=shift(SEAT(side,ab,side==='O1'?(p=>p):MAPS[3]),add(u.p,base[side==='O1'?0:1]));
+      const t1=u.hEnter[i]-0.55;let T;
+      if(t<t1)T=wait;else if(t<u.hEnter[i])T=wait.map((p,j)=>lerp(p,tgt[j],ease((t-t1)/0.55)));else T=tgt;
+      if(t>=u.hEnter[i]&&side==='O2')T=shift(SEAT(side,ab,f),u.p);
+      g.lineWidth=1.2;tetDraw(T,col.h,col.h+'2a')});
+  }
+  // 押し出された電子：行き先の世代の楔として飛ぶ（上で描く）。行き先がないものは外へ
+  for(const u of units)for(const p of u.pops){if(p[4]!==99)continue;if(t<p[0])continue;const v=Math.min(1,(t-p[0])/2.2);
+    const out=add(p[1],[ (p[1][0])*0.8+((p[3]*37)%40-20), 30, 90]);if(v<1)dot(lerp(p[1],out,ease(v)),3,col.el)}
+  // 表示
+  let open=0,next=0;for(const u of units)if(t>=u.land[2])open++;
+  let flying=0;for(const u of units)for(const p of u.pops)if(t>=p[0])flying++;
+  const used=units.filter(u=>t>=u.land[2]).length*3;
+  document.getElementById('st').textContent=
+    `ほどけた O₂ ${open}　入った楔の電子 ${used}　押し出された電子 ${flying}\n世代ごとの O₂：1 → 2 → 5 → 11 → 26 → 61 …（出る 7・要る 3）`;
+}
+let last=0;
+function loop(ts){const dt=last?Math.min(50,ts-last):16;last=ts;
+  if(!paused){t+=dt/1000;if(t>=TEND)t=0}
+  zoom=1;
+  if(!drag&&!matchMedia('(prefers-reduced-motion: reduce)').matches)ang=Math.sin(t*0.15)*0.25;
+  frame();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+})();
+</script>

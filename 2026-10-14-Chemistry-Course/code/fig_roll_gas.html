@@ -1,0 +1,149 @@
+<title>転がる電子と気体の酸素</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 一列：タイトル → 動く図 → 説明。図は正方形のキャンバス、歩の表示と操作は図の直下 */
+:root{
+  --bg:#f3f4f2; --panel:#e6e9e4; --fg:#1d2420; --mute:#5c6660; --edge:#8a958f;
+  --o:#8e44ad; --water:#1f6fb8; --el:#d98a14; --fire:#e8501e;
+  --serif:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121614; --panel:#1c221f; --fg:#e4e9e5; --mute:#97a29b; --edge:#6c7871;
+  --o:#c08ae0; --water:#5aa9ef; --el:#f0a83a; --fire:#ff6a3a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#1c221f; --fg:#e4e9e5; --mute:#97a29b; --edge:#6c7871;
+  --o:#c08ae0; --water:#5aa9ef; --el:#f0a83a; --fire:#ff6a3a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+h1{font-family:var(--serif);font-weight:600;font-size:1.6rem;margin:0;text-wrap:balance}
+.sub{color:var(--mute);margin:0;font-size:.92rem}
+canvas{width:100%;max-width:100%;aspect-ratio:1/1;background:var(--panel);border-radius:6px;display:block;touch-action:none}
+.stat{font-family:var(--mono);font-size:.85rem;color:var(--mute);font-variant-numeric:tabular-nums;min-height:1.3em}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;padding:7px 12px;border:1px solid var(--edge);background:var(--bg);color:var(--fg);border-radius:4px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--el);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.84rem;color:var(--mute)}
+.text{line-height:1.8;font-size:.95rem;max-width:65ch}
+.text p{margin:0 0 .8em}
+table{border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid var(--edge);padding:4px 10px;text-align:left}
+.tw{overflow-x:auto}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono&display=swap">
+
+<div class="wrap">
+  <h1>転がる電子と気体の酸素</h1>
+  <p class="sub">一辺 6 の立方格子。O₂ は 2×2×2 の塊、電子は正四面体 1 個。置き場所だけが乱数で、後はオートマトン。</p>
+  <canvas id="cv" width="720" height="720" aria-label="気体の中を電子が転がり、酸素分子が次々に反応する図"></canvas>
+  <div class="stat" id="st">計算中…</div>
+  <div class="ctl"><button id="bp">一時停止</button><button id="br">はじめから</button><button id="bs">4 倍速にする</button></div>
+  <div class="legend">
+    <span style="color:var(--o)">▲ 待っている O₂</span>
+    <span style="color:var(--fire)">▲ 反応した瞬間</span>
+    <span style="color:var(--water)">▲ 反応した後（H₂O）</span>
+    <span style="color:var(--el)">● 転がる電子（濃いほど多くの経路が通る）</span>
+  </div>
+  <div class="text">
+    <p>気体の中に、O₂ が 2×2×2 の立方体の塊として 172 組置かれている（14×14×14 の立方体のうち、塊を置く場所は乱数で半分ほど）。乱数を使うのはこの置き場所だけで、後は形だけで進む。</p>
+    <p>電子は正四面体 1 個で、辺を軸に倒れるたびに面の隣の立方体へ移る。向きは立方体の番地の偶奇で決まる。O の正四面体がある立方体には同じ向きで重なるので倒れられず、倒れかけて元に戻る。O₂ の席がある立方体にはぴったり重なる。経路は一つに選ばず、倒れられる向きのすべてをたどる。</p>
+    <p>席は、通った経路の分を溜める。電子 1 個分に届くと楔が入って埋まる。楔 3 個がそろった O₂ は反応し、席から電子 7 個を転がり出す。</p>
+    <p>真ん中の 1 組を火花にすると、42 歩目に最初の飛び火が起き、250 歩で 172 組のうち 129 組が反応する。一歩に反応する組は多くても 4 組で、じわじわと燃え広がる。</p>
+    <div class="tw"><table>
+      <tr><th>濃さ</th><th>6/6</th><th>5/6</th><th>4/6</th><th>3/6（この図）</th><th>2/6</th><th>1/6</th></tr>
+      <tr><td>250 歩で反応した組</td><td>1/343</td><td>4/294</td><td>74/224</td><td>129/172</td><td>94/109</td><td>45/60</td></tr>
+    </table></div>
+    <p>すき間のない気体では、席から一歩倒れた先がすべて O の正四面体でふさがっていて、電子は一歩も出られない。燃え広がるのは、電子の転がるすき間がある中くらいの濃さである。</p>
+  </div>
+</div>
+
+<script>
+(function(){
+// ── rx_roll_gas.py と同じ計算（BigInt の足し算だけ）
+const B=7,DENS=3,SEED=0,T=250,N=2*B,C=B>>1;
+function Fib(seed){let a=1,b=2+seed;while(b>=6)b-=6;const s=[];for(let k=0;k<55;k++){const n=a+b;a=b;b=n;if(b>=6)b-=6;s.push(b)}let i=0;
+  return()=>{let v=s[(i+31)%55]+s[i];if(v>=6)v-=6;s[i]=v;i=i<54?i+1:0;return v}}
+const rng=Fib(SEED);const mol=[];const molAt=new Map();
+for(let bx=0;bx<B;bx++)for(let by=0;by<B;by++)for(let bz=0;bz<B;bz++){
+  if((bx===C&&by===C&&bz===C)||rng()<DENS){molAt.set((bx*B+by)*B+bz,mol.length);mol.push([bx,by,bz])}}
+const id=(x,y,z)=>(x*N+y)*N+z;
+const solid=new Uint8Array(N*N*N),isSeat=new Uint8Array(N*N*N),seatsOf=mol.map(()=>[]);
+mol.forEach((m,k)=>{for(let a=0;a<2;a++)for(let b=0;b<2;b++)for(let d=0;d<2;d++){const q=[2*m[0]+a,2*m[1]+b,2*m[2]+d];
+  if((a+b+d)%2)solid[id(...q)]=1;else{isSeat[id(...q)]=1;seatsOf[k].push(q)}}});
+seatsOf.forEach(L=>L.sort((p,q)=>p[0]-q[0]||p[1]-q[1]||p[2]-q[2]));
+const blocked=new Uint8Array(solid),full=new Uint8Array(N*N*N),state=new Uint8Array(mol.length);
+const seatV=new Map();for(let i=0;i<N*N*N;i++)if(isSeat[i])seatV.set(i,0n);
+let scale=1n,U=new Map();
+const frames=[];   // 各歩：反応した組、電子の濃さ
+function ignite(k){state[k]=1;const ss=seatsOf[k].map(q=>id(...q));let wq=ss.filter(i=>full[i]),hq=ss.filter(i=>!full[i]);
+  if(wq.length<3){wq=ss.slice(0,3);hq=ss.slice(3)}for(const i of ss)blocked[i]=1;
+  const add=(i,n)=>{for(let r=0;r<n;r++)U.set(i,(U.get(i)||0n)+scale)};wq.forEach(i=>add(i,2));if(hq.length)add(hq[0],1)}
+const cx=i=>[Math.floor(i/(N*N)),Math.floor(i/N)%N,i%N];
+function snap(fired){const dens=[];for(const[i,u]of U){if(u===0n)continue;const v=Number(u*48n/scale);if(v>0)dens.push(i,Math.min(255,v))}frames.push({fired,dens})}
+ignite(molAt.get((C*B+C)*B+C));snap([molAt.get((C*B+C)*B+C)]);
+const D6=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+for(let t=0;t<T;t++){
+  const U2=new Map();
+  for(const[i,u]of U){const q=cx(i);for(const d of D6){const r=[q[0]+d[0],q[1]+d[1],q[2]+d[2]];
+    if(r.some(v=>v<0||v>=N))continue;const j=id(...r);if(blocked[j]){U2.set(i,(U2.get(i)||0n)+u);continue}U2.set(j,(U2.get(j)||0n)+u)}}
+  scale*=6n;for(const[i,v]of seatV)seatV.set(i,v*6n);
+  for(const[i,u]of U2)if(isSeat[i]&&!blocked[i])seatV.set(i,seatV.get(i)+u);
+  U=U2;
+  for(const[i,v]of seatV)if(!full[i]&&v>=scale){full[i]=1;blocked[i]=1}
+  const fire=[];for(let k=0;k<mol.length;k++)if(!state[k]){let n=0;for(const q of seatsOf[k])if(full[id(...q)])n++;if(n>=3)fire.push(k)}
+  for(const k of fire)ignite(k);
+  snap(fire);
+  if(U.size===0)break;
+}
+const firedAt=new Int16Array(mol.length).fill(-1);frames.forEach((f,s)=>f.fired.forEach(k=>firedAt[k]=s));
+const TOTAL_DONE=[...firedAt].filter(x=>x>=0).length;
+window.__rollgas={done:TOTAL_DONE,mols:mol.length,hist:frames.map(f=>f.fired.length)};
+
+// ── 描画
+const cv=document.getElementById('cv'),g=cv.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let ang=0.6,tilt=0.45,drag=null;
+cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY,ang,tilt];cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;ang=drag[2]+(e.clientX-drag[0])*0.01;tilt=Math.max(-1.3,Math.min(1.3,drag[3]+(e.clientY-drag[1])*0.01))});
+cv.addEventListener('pointerup',()=>drag=null);
+function proj(p){const x=p[0]-N/2,y=p[1]-N/2,z=p[2]-N/2,ca=Math.cos(ang),sa=Math.sin(ang),ct=Math.cos(tilt),st=Math.sin(tilt);
+  let X=x*ca-z*sa,Z=x*sa+z*ca;const Y=y*ct-Z*st;const s=cv.width/25;return[cv.width/2+X*s,cv.height/2-Y*s]}
+// 塊の大きな正四面体（奇の角 4 つ：塊の中の O の正四面体をまとめた外形）
+const BIG=[[2,0,0],[0,2,0],[0,0,2],[2,2,2]];
+const EDGES=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+let step=0,acc=0,paused=false,speed=1;
+bp.onclick=()=>{paused=!paused;bp.textContent=paused?'再生':'一時停止'};
+br.onclick=()=>{step=0;acc=0;paused=false;bp.textContent='一時停止'};
+bs.onclick=()=>{speed=speed===1?4:1;bs.textContent=speed===1?'4 倍速にする':'等速にする'};
+function draw(){
+  const col={o:css('--o'),water:css('--water'),el:css('--el'),fire:css('--fire'),edge:css('--edge')};
+  g.clearRect(0,0,cv.width,cv.height);
+  // 枠
+  g.strokeStyle=col.edge;g.globalAlpha=.35;g.lineWidth=1;
+  const cub=[];for(const a of[0,N])for(const b of[0,N])for(const c of[0,N])cub.push([a,b,c]);
+  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){const d=cub[i].map((v,k)=>v!==cub[j][k]).filter(Boolean).length;if(d===1){const p=proj(cub[i]),q=proj(cub[j]);g.beginPath();g.moveTo(...p);g.lineTo(...q);g.stroke()}}
+  g.globalAlpha=1;
+  // 分子
+  mol.forEach((m,k)=>{const f=firedAt[k];let c=col.o,a=.55,w=1;
+    if(f>=0&&f<=step){if(step-f<6){c=col.fire;a=1;w=2.2}else{c=col.water;a=.7}}
+    const P=BIG.map(v=>proj([2*m[0]+v[0],2*m[1]+v[1],2*m[2]+v[2]]));
+    g.strokeStyle=c;g.globalAlpha=a;g.lineWidth=w;g.beginPath();for(const[i,j]of EDGES){g.moveTo(...P[i]);g.lineTo(...P[j])}g.stroke()});
+  g.globalAlpha=1;
+  // 電子の経路
+  const fr=frames[Math.min(step,frames.length-1)];g.fillStyle=col.el;
+  for(let n=0;n<fr.dens.length;n+=2){const q=cx(fr.dens[n]),v=fr.dens[n+1];const p=proj([q[0]+.5,q[1]+.5,q[2]+.5]);
+    g.globalAlpha=Math.min(1,.15+v/60);g.beginPath();g.arc(p[0],p[1],1.6+Math.min(4,v/24),0,7);g.fill()}
+  g.globalAlpha=1;
+  let done=0;for(const f of firedAt)if(f>=0&&f<=step)done++;
+  document.getElementById('st').textContent=`歩 ${step}　反応した O₂ ${done} / ${mol.length}　この歩で反応 ${fr.fired.length}`;
+}
+let last=0;
+function loop(ts){const dt=last?Math.min(50,ts-last):16;last=ts;
+  if(!paused){acc+=dt*speed;while(acc>=120){acc-=120;step++;if(step>=frames.length+20){step=0}}}
+  if(!drag&&!matchMedia('(prefers-reduced-motion: reduce)').matches)ang+=0.0012;
+  draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+})();
+</script>
