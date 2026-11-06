@@ -1,0 +1,156 @@
+<title>正八面体に嵌る星型正八面体</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 題 → 動く図 → 説明 の順に縦に積む。色は連載の図と同じ考え方（A は藍、B・水素は朱、芯は灰緑、フォトンは金） */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --a:#3b5bdb; --b:#d9480f; --core:#5c7c6a; --gold:#c99a06;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--a:#8ea6ff;--b:#ff8a5c;--core:#8fb8a0;--gold:#f2c94c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--a:#8ea6ff;--b:#ff8a5c;--core:#8fb8a0;--gold:#f2c94c;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:18px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.5rem,4vw,2.2rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:100%;aspect-ratio:1/1;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font-family:var(--f-body);font-size:.9rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=range]{width:140px;accent-color:var(--accent)}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:.88rem;font-variant-numeric:tabular-nums}
+.read b{font-weight:600;color:var(--ink)}
+.read span{color:var(--muted)}
+.state{font-family:var(--f-disp);font-weight:800;font-size:1.25rem}
+.note{display:grid;gap:8px;max-width:68ch}
+.note p{margin:0;font-size:.92rem}
+.key{display:flex;flex-wrap:wrap;gap:12px;font-size:.82rem;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:4px">
+    <h1>正八面体に嵌る星型正八面体</h1>
+    <div class="sub">2 の刻みのギャスケットと 3 の刻みの星型正八面体の入れ子</div>
+  </header>
+  <section class="stage">
+    <canvas id="cv" aria-label="正八面体の隙間に嵌る星型正八面体の入れ子"></canvas>
+    <div class="ctrl">
+      <button id="play" type="button">一時停止</button>
+      <button id="step" type="button">次へ</button>
+      <label for="spd">速さ <input id="spd" type="range" min="1" max="8" value="3"></label>
+      <label for="rot"><input id="rot" type="checkbox" checked> 自動で回す</label>
+    </div>
+    <div class="read">
+      <span class="state" id="st">ギャスケットの隙間</span>
+      <span>正八面体 |x|+|y|+|z| ≤ <b id="R">27</b></span><span>星型正八面体の先端 (±<b id="s">9</b>, ±<b id="s2">9</b>, ±<b id="s3">9</b>)</span><span>先端の |x|+|y|+|z| ＝ <b id="tip">27</b></span><span>芯 ≤ <b id="cr">9</b></span>
+    </div>
+    <div class="key"><span><i style="background:var(--a)"></i>A</span><span><i style="background:var(--b)"></i>B</span><span><i style="background:var(--core)"></i>正八面体の隙間</span></div>
+  </section>
+  <section class="note">
+    <p>はじめの藍の 4 個は、正四面体を一度割った 2 段のギャスケットです。真ん中の灰緑の正八面体が、割ったときに抜けた隙間です。</p>
+    <p>その正八面体 |x|＋|y|＋|z| ≤ 27 に、向き合う二つの正四面体（星型正八面体）を嵌めます。先端 (±9, ±9, ±9) は、どれも |x|＋|y|＋|z| ＝ 27 で、正八面体の 8 つの面の真ん中に一つずつ触れます。</p>
+    <p>星型正八面体の芯は、また正八面体 |x|＋|y|＋|z| ≤ 9 で、ちょうど 1/3 の大きさです。そこへまた星型正八面体が嵌り、27 → 9 → 3 → 1 と同じ形が繰り返されます。ギャスケットは 2 の刻み、星型正八面体は 3 の刻みで、二つを一緒に整数で持つ枠は 6 の倍数になります。</p>
+  </section>
+</div>
+<script>
+
+// ── 共通：回して描く（画面に置くための換算だけ浮動小数。観察者側の表示） ──
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let yaw = 0.7, pitch = 0.42, spin = true, drag = null;
+function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function fit(){ const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width*d); cv.height = Math.round(r.height*d); }
+window.addEventListener('resize', fit);
+cv.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY, yaw, pitch]; cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; });
+cv.addEventListener('pointermove', e => { if(!drag) return; yaw = drag[2] + (e.clientX-drag[0])*0.01; pitch = Math.max(-1.4, Math.min(1.4, drag[3] + (e.clientY-drag[1])*0.01)); });
+cv.addEventListener('pointerup', () => { drag = null; cv.style.cursor='grab'; });
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function view(p, s){ // p: 浮動小数の座標（表示のみ）
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  let x = p[0]*cy - p[2]*sy, z = p[0]*sy + p[2]*cy, y = p[1];
+  let y2 = y*cp - z*sp, z2 = y*sp + z*cp;
+  const W = cv.width, H = cv.height, f = 1;
+  return [W/2 + x*s*f, H/2 - y2*s*f, z2];
+}
+function rgba(hex, a){ hex = hex.replace('#',''); if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const n = parseInt(hex,16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function draw3(faces, lines, dots, s){ // faces: {p:[..], c, a}, lines: {p:[p,q], c, w, dash}, dots: {p, c, r}
+  const items = [];
+  for(const f of faces){ const q = f.p.map(p=>view(p,s)); items.push({k:'f', z:q.reduce((t,v)=>t+v[2],0)/q.length, q, f}); }
+  for(const l of lines){ const q = l.p.map(p=>view(p,s)); items.push({k:'l', z:(q[0][2]+q[1][2])/2 - 0.01, q, f:l}); }
+  for(const d of dots){ const q = view(d.p,s); items.push({k:'d', z:q[2]-0.02, q, f:d}); }
+  items.sort((u,v)=>v.z-u.z);
+  const dpr = window.devicePixelRatio || 1;
+  for(const it of items){
+    if(it.k==='f'){ ctx.beginPath(); it.q.forEach((v,i)=> i? ctx.lineTo(v[0],v[1]) : ctx.moveTo(v[0],v[1])); ctx.closePath();
+      ctx.fillStyle = rgba(it.f.c, it.f.a); ctx.fill();
+      if(it.f.e){ ctx.strokeStyle = rgba(it.f.c, Math.min(1,it.f.a+0.35)); ctx.lineWidth = 1*dpr; ctx.stroke(); } }
+    else if(it.k==='l'){ ctx.beginPath(); ctx.moveTo(it.q[0][0],it.q[0][1]); ctx.lineTo(it.q[1][0],it.q[1][1]);
+      ctx.strokeStyle = it.f.c; ctx.lineWidth = (it.f.w||1)*dpr; ctx.setLineDash(it.f.dash ? [4*dpr,4*dpr] : []); ctx.stroke(); ctx.setLineDash([]); }
+    else { ctx.beginPath(); ctx.arc(it.q[0], it.q[1], (it.f.r||3)*dpr, 0, 6.2832); ctx.fillStyle = it.f.c; ctx.fill(); }
+  }
+}
+function tetFaces(t){ return [[t[0],t[1],t[2]],[t[0],t[1],t[3]],[t[0],t[2],t[3]],[t[1],t[2],t[3]]]; }
+function tetEdges(t){ const e=[]; for(let i=0;i<4;i++) for(let j=i+1;j<4;j++) e.push([t[i],t[j]]); return e; }
+
+
+let playing = !reduce, speed = 3;
+const playBtn = document.getElementById('play');
+playBtn.textContent = playing ? '一時停止' : '再生';
+playBtn.onclick = () => { playing = !playing; playBtn.textContent = playing ? '一時停止' : '再生'; };
+document.getElementById('spd').oninput = e => speed = +e.target.value;
+document.getElementById('rot').onchange = e => spin = e.target.checked;
+if(reduce){ spin = false; document.getElementById('rot').checked = false; }
+
+// 整数の座標だけで置く。外側の正四面体 A の角 (±27,±27,±27)（積が正）
+const R0 = 27;
+const Acorn = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(v=>v.map(x=>x*R0));
+const mid = (p,q)=>[0,1,2].map(i=>{ const s=p[i]+q[i]; let h=0; if(s>=0){ while(h+h<s) h++; } else { while(h+h>s) h--; } return h; });
+const sub4 = Acorn.map((c,i)=>[c, ...Acorn.filter((_,j)=>j!==i).map(o=>mid(c,o))]);   // 2 段（四隅の 4 個）
+function octa(r){ return [[r,0,0],[-r,0,0],[0,r,0],[0,-r,0],[0,0,r],[0,0,-r]]; }
+const OF = [[0,2,4],[0,4,3],[0,3,5],[0,5,2],[1,2,4],[1,4,3],[1,3,5],[1,5,2]];
+function stella(s){ // 積の符号で A（正）と B（負）に分ける
+  const a=[],b=[]; for(const x of [s,-s])for(const y of [s,-s])for(const z of [s,-s]){ const sg = (x>0?1:-1)*(y>0?1:-1)*(z>0?1:-1); (sg>0?a:b).push([x,y,z]); } return [a,b]; }
+const absum = p => Math.abs(p[0])+Math.abs(p[1])+Math.abs(p[2]);
+let lv = 0, t = 0;   // lv：何段目の入れ子を見ているか（0: 27, 1: 9, 2: 3）
+document.getElementById('step').onclick = () => { lv = (lv+1)%3; t = 0; };
+function frame(){
+  if(cv.width===0) fit();
+  if(playing){ t += speed*0.0025; if(t>1.6){ t=0; lv=(lv+1)%3; } }
+  if(spin && !drag) yaw += 0.004;
+  let R = R0; for(let i=0;i<lv;i++){ let q=0, r=R; while(r>0){ r-=3; q++; } R=q; }     // 27 → 9 → 3（3 を引いて数える）
+  let sv = 0, r = R; while(r>0){ r-=3; sv++; }                                       // 先端の座標 ＝ R/3
+  const [sa,sb] = stella(sv);
+  document.getElementById('R').textContent = R;
+  ['s','s2','s3'].forEach(id=>document.getElementById(id).textContent = sv);
+  document.getElementById('tip').textContent = absum(sa[0]);
+  document.getElementById('cr').textContent = sv;
+  document.getElementById('st').textContent = lv===0 && t<0.5 ? 'ギャスケットの隙間' : '星型正八面体が嵌る（芯は 1/3）';
+  ctx.fillStyle = tok('--panel'); ctx.fillRect(0,0,cv.width,cv.height);
+  const zoom = Math.pow(3, lv + Math.max(0, t-1.0)/0.6);                            // 表示の拡大だけ
+  const s = Math.min(cv.width,cv.height)/(2.6*R0) * zoom;
+  const ca=tok('--a'), cb=tok('--b'), cc=tok('--core'), mu=tok('--muted');
+  const faces=[], lines=[], dots=[];
+  if(lv===0) for(const T of sub4) for(const f of tetFaces(T)) faces.push({p:f, c:ca, a: 0.22, e:true});
+  const O = octa(R); for(const f of OF) faces.push({p:f.map(i=>O[i]), c:cc, a:0.16, e:true});
+  if(!(lv===0 && t<0.5)){
+    for(const f of tetFaces(sa)) faces.push({p:f, c:ca, a:0.5, e:true});
+    for(const f of tetFaces(sb)) faces.push({p:f, c:cb, a:0.45, e:true});
+    for(const p of sa.concat(sb)) dots.push({p, c:mu, r:2.5});
+    const O2 = octa(sv); for(const f of OF) faces.push({p:f.map(i=>O2[i]), c:cc, a:0.3, e:true});
+  }
+  draw3(faces, lines, dots, s);
+  requestAnimationFrame(frame);
+}
+fit(); requestAnimationFrame(frame);
+
+</script>

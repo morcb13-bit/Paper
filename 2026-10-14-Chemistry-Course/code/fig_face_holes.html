@@ -1,0 +1,190 @@
+<title>面の穴と辺の穴</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 題 → 動く図 → 説明 の順に縦に積む。色は連載の図と同じ考え方（A は藍、B・水素は朱、芯は灰緑、フォトンは金） */
+:root{
+  --bg:#eceff4; --panel:#f8f9fb; --ink:#1b2333; --muted:#5d6779; --line:#cfd5df; --accent:#3b5bdb;
+  --a:#3b5bdb; --b:#d9480f; --core:#5c7c6a; --gold:#c99a06;
+  --f-disp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--a:#8ea6ff;--b:#ff8a5c;--core:#8fb8a0;--gold:#f2c94c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131d;--panel:#151c29;--ink:#e3e8f1;--muted:#97a1b3;--line:#2a3446;--accent:#8ea6ff;--a:#8ea6ff;--b:#ff8a5c;--core:#8fb8a0;--gold:#f2c94c;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.7;margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:18px}
+h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.5rem,4vw,2.2rem);line-height:1.25;margin:0;text-wrap:balance}
+.sub{font-family:var(--f-mono);color:var(--muted);font-size:.9rem}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:10px;min-width:0}
+canvas{width:100%;max-width:100%;aspect-ratio:4/3;display:block;touch-action:none;cursor:grab}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font-family:var(--f-body);font-size:.9rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label{font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=range]{width:140px;accent-color:var(--accent)}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--f-mono);font-size:.88rem;font-variant-numeric:tabular-nums}
+.read b{font-weight:600;color:var(--ink)}
+.read span{color:var(--muted)}
+.state{font-family:var(--f-disp);font-weight:800;font-size:1.25rem}
+.note{display:grid;gap:8px;max-width:68ch}
+.note p{margin:0;font-size:.92rem}
+.key{display:flex;flex-wrap:wrap;gap:12px;font-size:.82rem;color:var(--muted)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:4px">
+    <h1>面の穴と辺の穴</h1>
+    <div class="sub">三重結合の面はどの段にも穴を持ち、二重結合の辺は持たない</div>
+  </header>
+  <section class="stage">
+    <canvas id="cv" aria-label="三重結合の面と二重結合の辺の穴"></canvas>
+    <div class="ctrl">
+      <button id="play" type="button">一時停止</button>
+      <button id="step" type="button">次へ</button>
+      <label for="spd">速さ <input id="spd" type="range" min="1" max="8" value="3"></label>
+    </div>
+    <div class="read">
+      <span class="state" id="st">面の穴を数える</span>
+      <span>段 k <b id="k">0</b></span><span>面の点 <b id="fp">6</b></span><span>面の辺 <b id="fe">9</b></span>
+      <span>面の穴 <b id="fh">1</b></span><span>埋めた穴 <b id="fm">0</b></span><span>辺の穴 <b>0</b></span>
+    </div>
+    <div class="key"><span><i style="background:var(--a)"></i>分け合う面（三重）</span><span><i style="background:var(--gold)"></i>穴に入ったフォトン</span><span><i style="background:var(--b)"></i>分け合う辺（二重）</span></div>
+  </section>
+  <section class="note">
+    <p>左は、二つの原子が三重結合で分け合う面です。原子の 2 段のギャスケットをさらにフォトンの段 k まで分けると、面はどの段にも三角形の穴を持ちます。穴の数は k＝0 から 1、7、37、175、781 と増えていきます。</p>
+    <p>右は、二重結合で分け合う辺です。どの段まで分けても、単位の線分がすき間なく並び、穴は一つもありません。</p>
+    <p>金のフォトンが面の穴を一つずつ埋めていき、最後の一つが埋まった瞬間に、面と面の間に一枚の膜ができて、面ごと浮き上がります。途中で止まれる段はありません。辺には入る場所がないので、この外れ方は起きません。</p>
+  </section>
+</div>
+<script>
+
+// ── 共通：回して描く（画面に置くための換算だけ浮動小数。観察者側の表示） ──
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let yaw = 0.7, pitch = 0.42, spin = true, drag = null;
+function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function fit(){ const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width*d); cv.height = Math.round(r.height*d); }
+window.addEventListener('resize', fit);
+cv.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY, yaw, pitch]; cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; });
+cv.addEventListener('pointermove', e => { if(!drag) return; yaw = drag[2] + (e.clientX-drag[0])*0.01; pitch = Math.max(-1.4, Math.min(1.4, drag[3] + (e.clientY-drag[1])*0.01)); });
+cv.addEventListener('pointerup', () => { drag = null; cv.style.cursor='grab'; });
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function view(p, s){ // p: 浮動小数の座標（表示のみ）
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  let x = p[0]*cy - p[2]*sy, z = p[0]*sy + p[2]*cy, y = p[1];
+  let y2 = y*cp - z*sp, z2 = y*sp + z*cp;
+  const W = cv.width, H = cv.height, f = 1;
+  return [W/2 + x*s*f, H/2 - y2*s*f, z2];
+}
+function rgba(hex, a){ hex = hex.replace('#',''); if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const n = parseInt(hex,16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function draw3(faces, lines, dots, s){ // faces: {p:[..], c, a}, lines: {p:[p,q], c, w, dash}, dots: {p, c, r}
+  const items = [];
+  for(const f of faces){ const q = f.p.map(p=>view(p,s)); items.push({k:'f', z:q.reduce((t,v)=>t+v[2],0)/q.length, q, f}); }
+  for(const l of lines){ const q = l.p.map(p=>view(p,s)); items.push({k:'l', z:(q[0][2]+q[1][2])/2 - 0.01, q, f:l}); }
+  for(const d of dots){ const q = view(d.p,s); items.push({k:'d', z:q[2]-0.02, q, f:d}); }
+  items.sort((u,v)=>v.z-u.z);
+  const dpr = window.devicePixelRatio || 1;
+  for(const it of items){
+    if(it.k==='f'){ ctx.beginPath(); it.q.forEach((v,i)=> i? ctx.lineTo(v[0],v[1]) : ctx.moveTo(v[0],v[1])); ctx.closePath();
+      ctx.fillStyle = rgba(it.f.c, it.f.a); ctx.fill();
+      if(it.f.e){ ctx.strokeStyle = rgba(it.f.c, Math.min(1,it.f.a+0.35)); ctx.lineWidth = 1*dpr; ctx.stroke(); } }
+    else if(it.k==='l'){ ctx.beginPath(); ctx.moveTo(it.q[0][0],it.q[0][1]); ctx.lineTo(it.q[1][0],it.q[1][1]);
+      ctx.strokeStyle = it.f.c; ctx.lineWidth = (it.f.w||1)*dpr; ctx.setLineDash(it.f.dash ? [4*dpr,4*dpr] : []); ctx.stroke(); ctx.setLineDash([]); }
+    else { ctx.beginPath(); ctx.arc(it.q[0], it.q[1], (it.f.r||3)*dpr, 0, 6.2832); ctx.fillStyle = it.f.c; ctx.fill(); }
+  }
+}
+function tetFaces(t){ return [[t[0],t[1],t[2]],[t[0],t[1],t[3]],[t[0],t[2],t[3]],[t[1],t[2],t[3]]]; }
+function tetEdges(t){ const e=[]; for(let i=0;i<4;i++) for(let j=i+1;j<4;j++) e.push([t[i],t[j]]); return e; }
+
+
+let playing = !reduce, speed = 3;
+const playBtn = document.getElementById('play');
+playBtn.textContent = playing ? '一時停止' : '再生';
+playBtn.onclick = () => { playing = !playing; playBtn.textContent = playing ? '一時停止' : '再生'; };
+document.getElementById('spd').oninput = e => speed = +e.target.value;
+const rotBox = document.getElementById('rot');
+if(rotBox) rotBox.onchange = e => spin = e.target.checked;
+if(reduce){ spin = false; if(rotBox) rotBox.checked = false; }
+
+spin = false;
+// 面：一辺 N = 2^(k+1) の正三角形を三角格子の座標 (a,b)（a+b ≤ N）で持つ。
+// 埋まった小三角形は、シェルピンスキーの作り方（四隅を残して真ん中を抜く）で数える（整数のみ）。
+function sier(n){ // n 段 → 上向き小三角形の左下の座標の一覧
+  let tris = [[0,0,1]]; // [a,b,size]
+  let N = 1; for(let i=0;i<n;i++) N += N;
+  tris = [[0,0,N]];
+  for(let i=0;i<n;i++){ const nx=[]; for(const [a,b,s] of tris){ let h=0; while(h+h<s) h++; nx.push([a,b,h],[a+h,b,h],[a,b+h,h]); } tris = nx; }
+  return {tris, N};
+}
+function counts(n){
+  const {tris,N} = sier(n); const P = new Set(), E = new Set();
+  for(const [a,b] of tris){ const v=[[a,b],[a+1,b],[a,b+1]]; v.forEach(q=>P.add(q+''));
+    for(let i=0;i<3;i++) for(let j=i+1;j<3;j++){ const x=v[i]+'', y=v[j]+''; E.add(x<y? x+'|'+y : y+'|'+x); } }
+  // 穴：全体の小三角形（上向き N(N+1)/2 個 ＋ 下向き N(N-1)/2 個 ＝ N²）から埋まった数を引く
+  let all = 0; for(let i=0;i<N;i++) all += N;
+  const filled = new Set(tris.map(t=>t+''));
+  const holes = [];
+  for(let a=0;a<N;a++) for(let b=0;a+b<N;b++){ if(!filled.has([a,b,1]+'')) holes.push([a,b,1]); }       // 上向きの穴
+  for(let a=0;a+2<=N;a++) for(let b=0;a+b+2<=N;b++) holes.push([a,b,-1]);                               // 下向きはすべて穴
+  return {tris, N, p:P.size, e:E.size, holes, all};
+}
+let k = 0, C = counts(1), m = 0, mf = 0, phase = 0, t = 0, lift = 0;
+function setK(nk){ k = nk; C = counts(k+1); m = 0; mf = 0; phase = 0; t = 0; lift = 0;
+  // 穴を埋める順は、外側の大きな穴から（座標の和の小さい順＝表示の都合）
+  C.holes.sort((u,v)=> (u[0]+u[1]) - (v[0]+v[1]) || u[0]-v[0]); }
+setK(0);
+document.getElementById('step').onclick = () => setK((k+1)%5);
+function tri(a,b,dir,N,ox,oy,L){ // 三角格子 → 画面（表示のみ）
+  const u = L/N, h = u*0.8660254;
+  const pt = (x,y)=>[ox + (x + y*0.5)*u, oy - y*h];
+  return dir>0 ? [pt(a,b),pt(a+1,b),pt(a,b+1)] : [pt(a+1,b),pt(a,b+1),pt(a+1,b+1)];
+}
+function poly(q, fill){ ctx.beginPath(); q.forEach((v,i)=> i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1])); ctx.closePath(); ctx.fillStyle=fill; ctx.fill(); }
+function frame(){
+  if(cv.width===0) fit();
+  const H = C.holes.length;
+  if(playing){
+    t += speed*0.006;
+    if(phase===0 && t>1){ phase=1; t=0; }
+    else if(phase===1){ mf += Math.max(1, H/150)*speed/3; m = Math.min(H, Math.floor(mf)); if(m===H){ phase=2; t=0; } }   // 埋める速さは表示の都合
+    else if(phase===2){ lift = Math.min(1, t); if(t>1.6) setK((k+1)%5); }
+  }
+  document.getElementById('k').textContent = k;
+  document.getElementById('fp').textContent = C.p;
+  document.getElementById('fe').textContent = C.e;
+  document.getElementById('fh').textContent = H;
+  document.getElementById('fm').textContent = m;
+  document.getElementById('st').textContent = phase===0 ? '面の穴を数える' : phase===1 ? 'フォトンが穴を埋める' : '面ごと浮き上がる';
+  const W = cv.width, Hh = cv.height, dpr = window.devicePixelRatio||1;
+  ctx.fillStyle = tok('--panel'); ctx.fillRect(0,0,W,Hh);
+  const ca = tok('--a'), cg = tok('--gold'), cb = tok('--b'), ink = tok('--ink'), mu = tok('--muted');
+  const L = Math.min(W*0.56, Hh*0.95), ox = W*0.04, oy = Hh*0.9;
+  // 下の原子の面（固定）
+  for(const [a,b] of C.tris) poly(tri(a,b,1,C.N,ox,oy,L), rgba(ca,0.85));
+  for(let i=0;i<m;i++){ const [a,b,d] = C.holes[i]; poly(tri(a,b,d,C.N,ox,oy,L), rgba(cg,0.9)); }
+  // 浮き上がる上の面（表示のみ）
+  if(lift>0){ const dy = -lift*Hh*0.12, dx = lift*W*0.02;
+    ctx.save(); ctx.translate(dx,dy);
+    for(const [a,b] of C.tris) poly(tri(a,b,1,C.N,ox,oy,L), rgba(ca,0.35));
+    for(const [a,b,d] of C.holes) poly(tri(a,b,d,C.N,ox,oy,L), rgba(cg,0.35));
+    ctx.restore(); }
+  // 外形
+  ctx.strokeStyle = mu; ctx.lineWidth = dpr; ctx.beginPath(); const q = tri(0,0,1,1,ox,oy,L); q.forEach((v,i)=> i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1])); ctx.closePath(); ctx.stroke();
+  // 右：辺（二重）
+  const ex = W*0.78, ey0 = Hh*0.16, ey1 = Hh*0.9, n = C.N;
+  for(let i=0;i<=n;i++){ const y = ey0 + (ey1-ey0)*i/n; ctx.beginPath(); ctx.arc(ex, y, 2.2*dpr, 0, 6.2832); ctx.fillStyle = cb; ctx.fill(); }
+  ctx.strokeStyle = cb; ctx.lineWidth = 3*dpr; ctx.beginPath(); ctx.moveTo(ex,ey0); ctx.lineTo(ex,ey1); ctx.stroke();
+  ctx.fillStyle = ink; ctx.font = `${13*dpr}px ${tok('--f-mono')||'monospace'}`;
+  ctx.textAlign='center'; ctx.fillText('辺：穴 0', ex, ey0 - 14*dpr); ctx.textAlign='left';
+  ctx.fillText('面：穴 '+H, ox, 18*dpr);
+  requestAnimationFrame(frame);
+}
+fit(); requestAnimationFrame(frame);
+
+</script>
