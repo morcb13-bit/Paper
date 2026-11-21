@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!-- morc_b13 / B13-Library — MIT License -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The μ dial: torus → disc → turned over, in integer steps</title>
+<style>
+:root{--paper:#f6f7f9;--card:#fff;--hair:#dfe3ea;
+--c-pos:#3a6ea5;--c-zero:#c0392b;--c-neg:#c79a2e}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);padding:16px;
+font-family:ui-monospace,Menlo,monospace;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:14px;
+padding:10px 10px 16px;position:relative;overflow:hidden}
+canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:none}
+canvas:active{cursor:grabbing}
+.dial{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:#e2e6ec;transition:transform .12s}
+.dot.on{transform:scale(1.55)}
+h1{font-size:19px;margin:0 0 10px;font-weight:700}
+p{font-size:13.5px;line-height:1.6;margin:10px 2px}
+.num{position:absolute;left:20px;top:16px;font-size:34px;font-weight:600;
+letter-spacing:-.02em;font-variant-numeric:tabular-nums;transition:color .12s}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>The μ dial: a torus closes into a disc and comes out turned over</h1>
+<div class="card">
+  <div class="num" id="num">-4</div>
+  <canvas id="cv"></canvas>
+  <div class="dial" id="dial"></div>
+</div>
+<p>The dial μ moves only through whole numbers, from −4 to +4 and back; nothing is interpolated between them. Below zero (gold) the surface is a torus whose hole has radius √(−μ). At μ = 0 (red) the hole closes into a disc. Above zero (blue) the centre opens the other way, to a thickness of 2√μ. One surface formula covers all nine steps, and nothing is cut anywhere along the way. Drag to turn it.</p>
+<p>Read in the radius r, the passage through zero is an end that would need one surgery. Read in μ = ±r², it is one more integer step.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+var W=900,H=600,SC=40,th=0.6,ph=0.40,drag=false,lx=0,ly=0;
+
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var SPIN=reduce?0:0.006;              // 元 0.004 の 1.5 倍
+var STEP=reduce?1400:520, ZERO=reduce?1900:820;
+
+/* μ の往復列（-4→4→-4）。補間しない */
+var SEQ=[],i;
+for(i=-4;i<=4;i++)SEQ.push(i);
+for(i=3;i>=-3;i--)SEQ.push(i);
+var idx=0,MU=SEQ[0],acc=0,last=0,since=0;
+
+var R=4.2;
+
+function resize(){
+  var w=cv.clientWidth||900,dpr=Math.min(devicePixelRatio||1,2);
+  W=w;H=Math.round(w*0.62);
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  SC=Math.min(W*0.72,H)*0.46/4.6;
+}
+
+function pr(x,y,z){
+  var ct=Math.cos(th),st=Math.sin(th),ca=Math.cos(ph),sa=Math.sin(ph);
+  var a=x*ct-y*st,b=x*st+y*ct,e=b*ca-z*sa,f=b*sa+z*ca;
+  return [W/2+SC*a,H/2-SC*f,e];
+}
+
+/* 穴の半径 √(-μ) と中心の厚み 2√μ を、同じ一本の面で出す */
+function surf(mu,u,v){
+  var a=Math.sqrt(Math.max(0,-mu));        // 穴の半径
+  var h=Math.sqrt(Math.max(0, mu));        // 厚みの半分
+  var t=(R-a)/2, c=a+t;
+  var rr=c+t*Math.cos(u), zz=t*0.52*Math.sin(u);
+  if(mu>0){
+    var w=Math.max(0,Math.min(1,1-rr/c));
+    var sg=Math.sin(u)>=0?1:-1;
+    var dome=h*(1-(rr/c)*(rr/c));
+    zz=zz*(1-w)+sg*dome*w;                 // 軸上で ±h に割れる = 厚み 2√μ
+  }
+  return [rr*Math.cos(v),rr*Math.sin(v),zz];
+}
+
+function col(){return MU>0?'#3a6ea5':(MU===0?'#c0392b':'#c79a2e');}
+
+function poly(p,c,a,lw){
+  ctx.lineWidth=lw;ctx.strokeStyle=c;
+  for(var k=1;k<p.length;k++){
+    var d=(p[k-1][2]+p[k][2])/2;
+    ctx.globalAlpha=a*(0.30+0.70*(d+R)/(2*R));   // 奥行きで濃淡
+    ctx.beginPath();ctx.moveTo(p[k-1][0],p[k-1][1]);ctx.lineTo(p[k][0],p[k][1]);ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#edf0f4';ctx.lineWidth=1;ctx.globalAlpha=1;
+  [[[-5.4,0,0],[5.4,0,0]],[[0,-5.4,0],[0,5.4,0]],[[0,0,-3.2],[0,0,3.2]]].forEach(function(s){
+    var a=pr(s[0][0],s[0][1],s[0][2]),b=pr(s[1][0],s[1][1],s[1][2]);
+    ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  });
+
+  var c=col(),NU=32,NV=36,p,j,k,u,v;
+  var flash=(MU===0&&since<260)?1-since/260:0;      // 塞がる瞬間だけ光る
+  var lw=1+flash*1.3, boost=1+flash*0.9;
+
+  for(j=0;j<NV;j++){                                 // 経線
+    v=2*Math.PI*j/NV;p=[];
+    for(k=0;k<=NU;k++){u=2*Math.PI*k/NU;var s=surf(MU,u,v);p.push(pr(s[0],s[1],s[2]));}
+    poly(p,c,0.50*boost,lw);
+  }
+  for(k=0;k<NU;k+=2){                                // 緯線
+    u=2*Math.PI*k/NU;p=[];
+    for(j=0;j<=NV;j++){v=2*Math.PI*j/NV;var s2=surf(MU,u,v);p.push(pr(s2[0],s2[1],s2[2]));}
+    poly(p,c,0.30*boost,lw);
+  }
+}
+
+function buildDial(){
+  var d=document.getElementById('dial');
+  for(var n=-4;n<=4;n++){var e=document.createElement('div');e.className='dot';d.appendChild(e);}
+}
+function sync(){
+  var n=document.getElementById('num'),c=col();
+  n.textContent=MU;n.style.color=c;
+  var ds=document.getElementById('dial').children;
+  for(var k=0;k<9;k++){ds[k].className='dot'+(k===MU+4?' on':'');
+    ds[k].style.background=(k===MU+4)?c:'#e2e6ec';}
+}
+
+cv.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',function(e){if(!drag)return;
+  th+=(e.clientX-lx)*0.010;ph+=(e.clientY-ly)*0.006;ph=Math.max(-1.3,Math.min(1.3,ph));
+  lx=e.clientX;ly=e.clientY;});
+cv.addEventListener('pointerup',function(){drag=false;});
+window.addEventListener('resize',function(){resize();draw();});
+
+
+/* frame hook for recording: same sequence, fixed timing */
+var FR=[];SEQ.forEach(function(m){var n=(m===0)?9:6;for(var q=0;q<n;q++)FR.push([m,q]);});
+window.FRAME_DUR=FR.map(function(){return 90;});
+window.renderFrame=function(k){MU=FR[k][0];since=FR[k][1]*90;th=0.6+0.032*k;sync();draw();};
+var snapq=(location.search.match(/snap=(\d+)/)||[])[1];
+if(snapq!==undefined){resize();buildDial();window.renderFrame(+snapq);return;}
+resize();buildDial();sync();
+requestAnimationFrame(function loop(ts){
+  var dt=last?Math.min(ts-last,100):16;last=ts;
+  acc+=dt;since+=dt;
+  var dwell=(MU===0)?ZERO:STEP;
+  if(acc>=dwell){acc=0;since=0;idx=(idx+1)%SEQ.length;MU=SEQ[idx];sync();}
+  if(!drag)th+=SPIN;
+  draw();requestAnimationFrame(loop);
+});
+})();
+</script>
+</body>
+</html>

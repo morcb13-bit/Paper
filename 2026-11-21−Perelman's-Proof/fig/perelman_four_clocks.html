@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!-- morc_b13 / B13-Library — MIT License -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Same integers, four clocks: the firing count belongs to the clock</title>
+<style>
+:root{--paper:#f6f7f9;--card:#fff;--hair:#dfe3ea;--ink:#2a2d34}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);padding:16px;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:900px;margin:0 auto}h1{font-size:19px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:8px}
+canvas{display:block;width:100%;height:auto}p{font-size:13.5px;line-height:1.6;margin:10px 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Same integers, four different clocks</h1>
+<div class="card"><canvas id="cv" width="900" height="520"></canvas></div>
+<p>The Fibonacci integers 1, 1, 2, 3, 5, 8, 13, … are the same whatever clock you read them on. Read on clocks of 11, 13, 23 and 29 hours, they produce four different ledger staircases. The ticks on the bottom axis mark where each clock completes a period. In every case m × F = S holds exactly, where F is the number of firings per period and S the sum of residues.</p>
+<p>So the number of firings is not a property of the sequence. It belongs to the clock you read it on.</p>
+</div>
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=900,H=520;
+var C={ink:'#2a2d34',mute:'#8a9099',grid:'#e4e8ee'},MS=[11,13,23,29],COL=['#3a6ea5','#c0392b','#2e8b57','#7d4fa8'],T=48;
+function ledger(m){var r=[1,1],f=[];while(true){var s=r[r.length-1]+r[r.length-2],fi=0;if(s>=m){s-=m;fi=1;}f.push(fi);r.push(s);
+  if(r[r.length-2]===1&&r[r.length-1]===1)break;}r=r.slice(0,-2);var S=0,F=0;for(var i=0;i<r.length;i++){S+=r[i];F+=f[i];}return {P:r.length,f:f,F:F,S:S};}
+var D=MS.map(ledger);
+function txt(s,x,y,size,col,bold,align){ctx.font=(bold?'bold ':'')+size+'px ui-monospace,Menlo,Consolas,monospace';ctx.fillStyle=col;ctx.textAlign=align||'left';ctx.textBaseline='middle';ctx.fillText(s,x,y);}
+function drawFrame(fi){
+  var k=Math.min(T,2*fi);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  txt('Same integers, four different clocks',24,28,20,C.ink,true);
+  txt('1, 1, 2, 3, 5, 8, 13, 21, 34, 55, …   (this row never changes)',24,56,14,C.mute);
+  var x0=80,y0=110,x1=620,y1=440,Lmax=24;
+  ctx.strokeStyle=C.grid;ctx.lineWidth=1;ctx.strokeRect(x0,y0,x1-x0,y1-y0);
+  for(var j=0;j<=Lmax;j+=6){var yy=y1-(y1-y0)*j/Lmax;ctx.beginPath();ctx.moveTo(x0,yy);ctx.lineTo(x1,yy);ctx.stroke();txt(String(j),x0-8,yy,13,C.mute,false,'right');}
+  for(var j=0;j<=T;j+=12)txt(String(j),x0+(x1-x0)*j/T,y1+14,13,C.mute,false,'center');
+  txt('steps',(x0+x1)/2,y1+34,13,C.mute,false,'center');txt('ledger (firings so far)',x0,y0-14,13,C.mute);
+  var ly=120;
+  D.forEach(function(d,q){var L=0,py=y1;ctx.strokeStyle=COL[q];ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0,y1);
+    for(var n=0;n<k;n++){L+=d.f[n%d.P];var xx=x0+(x1-x0)*(n+1)/T;ctx.lineTo(xx,py);py=y1-(y1-y0)*L/Lmax;ctx.lineTo(xx,py);}ctx.stroke();
+    ctx.lineWidth=2;for(var n=d.P;n<=k;n+=d.P){var xx=x0+(x1-x0)*n/T;ctx.beginPath();ctx.moveTo(xx,y1);ctx.lineTo(xx,y1-7);ctx.stroke();}
+    ctx.fillStyle=COL[q];ctx.fillRect(650,ly-10,18,18);
+    txt('mod '+MS[q],678,ly,18,C.ink,true);txt('period '+d.P+', '+d.F+' firings',678,ly+22,14,C.ink);
+    txt(MS[q]+' × '+d.F+' = '+(MS[q]*d.F)+'  (S = '+d.S+')',678,ly+42,14,COL[q]);ly+=76;});
+  txt('The count belongs to',650,ly+8,15,C.ink,true);txt('the clock, not to the',650,ly+28,15,C.ink,true);txt('sequence.',650,ly+48,15,C.ink,true);
+}
+var durs=[];for(var i=0;i<=T/2;i++)durs.push(i===T/2?4000:260);
+window.FRAME_DUR=durs;window.renderFrame=drawFrame;
+var q=(location.search.match(/snap=(\d+)/)||[])[1];
+if(q!==undefined)drawFrame(Math.min(+q,durs.length-1));else{var i=0;(function loop(){drawFrame(i);var d=durs[i];i=(i+1)%durs.length;setTimeout(loop,d);})();}
+})();
+</script>
+</body>
+</html>

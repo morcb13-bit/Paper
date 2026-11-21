@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- morc_b13 / B13-Library — MIT License -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ricci flow on a dumbbell: neck pinch and one surgery</title>
+<style>
+:root{--paper:#f6f7f9;--card:#fff;--hair:#dfe3ea;--ink:#2a2d34;--mute:#8a9099;--blue:#3a6ea5;--red:#c0392b;--gold:#c79a2e}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);padding:16px;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:19px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:8px;position:relative}
+canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:none}
+p{font-size:13.5px;line-height:1.6;margin:10px 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Ricci flow on a dumbbell: the neck pinches, then one surgery</h1>
+<div class="card"><canvas id="cv" width="900" height="540"></canvas></div>
+<p>The page computes the flow itself when it loads. A 3-manifold whose cross-sections are round 2-spheres of radius &psi;, with length element &phi;&nbsp;dx, follows
+&psi;<sub>t</sub> = &psi;<sub>ss</sub> &minus; (1 &minus; &psi;<sub>s</sub><sup>2</sup>)/&psi; and &phi;<sub>t</sub> = 2(&psi;<sub>ss</sub>/&psi;)&phi;, with d/ds = (1/&phi;)d/dx
+(1601 grid points, explicit steps; the two ends are bulb equators with reflecting boundaries and are closed with round caps in the drawing; each 2-sphere is drawn as a circle).</p>
+<p>The frames are spaced evenly in log h, where h is the neck radius, from 0.26 down to 0.01. The zoom (bottom left) always shows &plusmn;15h along the axis and &plusmn;4h across it, so it shows the neck's <em>shape</em>: it gets straighter as it thins, but slowly. The numbers on the right are the curvature of the neck, the largest slope |&psi;<sub>s</sub>| within &plusmn;4h, and the length of the part thinner than 2h.</p>
+<p>At h = 0.01 the neck is cut at its thinnest cross-section and each side gets a small cap of radius h. The cap is drawn as a hemisphere; Perelman glues a fixed standard cap, whose exact shape is not reproduced here. The pieces are drawn slightly apart. Each piece is a large bulb carrying a thin horn. The drawing stops there: the later flow of the pieces is not computed.</p>
+</div>
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=900,H=540;
+var C={ink:'#2a2d34',mute:'#8a9099',blue:'#3a6ea5',red:'#c0392b',gold:'#c79a2e',ax:'#edf0f4'};
+/* ---------- the flow ---------- */
+var N=1601,dx=1/(N-1),psi=new Float64Array(N),phi=new Float64Array(N),ps=new Float64Array(N),pss=new Float64Array(N);
+for(var i=0;i<N;i++){var x=i*dx,c=Math.cos(Math.PI*(x-0.5));psi[i]=1-0.74*c*c*c*c;phi[i]=4;}
+function deriv(){
+  for(var i=0;i<N;i++){
+    var l=i>0?psi[i-1]:psi[1],r=i<N-1?psi[i+1]:psi[N-2];
+    var fl=i>0?phi[i-1]:phi[1],fr=i<N-1?phi[i+1]:phi[N-2];
+    var px=(r-l)/(2*dx),fx=(fr-fl)/(2*dx),f=phi[i];
+    ps[i]=px/f; pss[i]=(r-2*psi[i]+l)/(dx*dx)/(f*f)-px*fx/(f*f*f);
+  }
+}
+function hmin(){var m=1e9,k=0;for(var i=0;i<N;i++)if(psi[i]<m){m=psi[i];k=i;}return [m,k];}
+var H0=0.26,H1=0.01,NS=48,targets=[];
+for(var k=1;k<NS;k++)targets.push(H0*Math.pow(H1/H0,k/(NS-1)));
+var snaps=[],t=0;
+function snap(){
+  deriv();var hm=hmin(),h=hm[0],i0=hm[1];
+  var ds=[],s=[],acc=0;for(var i=0;i<N;i++){ds.push(phi[i]*dx);}
+  for(var i=0;i<N;i++){s.push(acc);acc+=ds[i];}var s0=s[i0];
+  var slope=0,len2=0;
+  for(var i=0;i<N;i++){if(Math.abs(s[i]-s0)<=4*h)slope=Math.max(slope,Math.abs(ps[i]));if(psi[i]<2*h)len2+=ds[i];}
+  snaps.push({t:t,h:h,i0:i0,K:(1-ps[i0]*ps[i0])/(h*h),slope:slope,len2:len2/h,psi:Float64Array.from(psi),phi:Float64Array.from(phi)});
+}
+snap();
+while(targets.length){
+  deriv();var h=hmin()[0];
+  if(h<=targets[0]){targets.shift();snap();continue;}
+  var fmin=1e9;for(var i=0;i<N;i++)if(phi[i]<fmin)fmin=phi[i];
+  var dt=Math.min(0.2*fmin*fmin*dx*dx,0.01*h*h);
+  for(var i=0;i<N;i++){var p=psi[i],q=pss[i];psi[i]=p+dt*(q-(1-ps[i]*ps[i])/p);phi[i]=phi[i]+dt*2*(q/p)*phi[i];}
+  t+=dt;
+}
+/* ---------- geometry for drawing ---------- */
+function profile(S){ // axial coordinate a (isometric where |psi_s|<=1), centred at the neck
+  var a=new Float64Array(N);a[0]=0;
+  for(var i=1;i<N;i++){var d=0.5*(S.phi[i]+S.phi[i-1])*dx,dp=S.psi[i]-S.psi[i-1];a[i]=a[i-1]+Math.sqrt(Math.max(0,d*d-dp*dp));}
+  var a0=a[S.i0];for(var i=0;i<N;i++)a[i]-=a0;return a;
+}
+function thin(a,r,from,to){var out=[[a[from],r[from]]];var la=a[from],lr=r[from];
+  for(var i=from+1;i<=to;i++){if(Math.abs(a[i]-la)>0.025||Math.abs(r[i]-lr)>0.02||i===to){out.push([a[i],r[i]]);la=a[i];lr=r[i];}}return out;}
+function capPts(a0,r0,sg){var o=[];for(var j=1;j<=8;j++){var q=Math.PI/2*j/8;o.push([a0+sg*r0*Math.sin(q),r0*Math.cos(q)]);}return o;}
+var TH=0.2,PH=0.38,SC=95,th=TH;
+function pr(x,y,z){var ct=Math.cos(th),st=Math.sin(th),ca=Math.cos(PH),sa=Math.sin(PH);
+  var a=x*ct-y*st,b=x*st+y*ct,e=b*ca-z*sa,f=b*sa+z*ca;return [W/2+SC*a,H/2-30-SC*f,e];}
+function rgba(hex,al){var n=parseInt(hex.slice(1),16);return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+Math.min(1,al).toFixed(3)+')';}
+function wire(prof,col,lw,al){
+  var NV=28;ctx.lineWidth=lw;
+  for(var j=0;j<NV;j++){var v=2*Math.PI*j/NV,P=prof.map(function(p){return pr(p[0],p[1]*Math.cos(v),p[1]*Math.sin(v));});
+    for(var k=1;k<P.length;k++){var d=(P[k-1][2]+P[k][2])/2;ctx.strokeStyle=rgba(col,al*0.62*(0.35+0.65*(d+2.5)/5));
+      ctx.beginPath();ctx.moveTo(P[k-1][0],P[k-1][1]);ctx.lineTo(P[k][0],P[k][1]);ctx.stroke();}}
+  var last=-1e9;
+  for(var k=0;k<prof.length;k++){var A=prof[k][0],R=prof[k][1];if(A-last<0.14||R<0.02)continue;last=A;
+    var Q=[];for(var j=0;j<=36;j++){var v=2*Math.PI*j/36;Q.push(pr(A,R*Math.cos(v),R*Math.sin(v)));}
+    for(var q=1;q<Q.length;q++){var d=(Q[q-1][2]+Q[q][2])/2;ctx.strokeStyle=rgba(col,al*0.42*(0.35+0.65*(d+2.5)/5));
+      ctx.beginPath();ctx.moveTo(Q[q-1][0],Q[q-1][1]);ctx.lineTo(Q[q][0],Q[q][1]);ctx.stroke();}}
+}
+function axes(){ctx.lineWidth=1;ctx.strokeStyle=C.ax;[[[-4.4,0,0],[4.4,0,0]],[[0,-2,0],[0,2,0]],[[0,0,-1.6],[0,0,1.6]]].forEach(function(s){
+  var a=pr.apply(null,s[0]),b=pr.apply(null,s[1]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();});}
+function txt(s,x,y,size,col,bold,align){ctx.font=(bold?'bold ':'')+size+'px ui-monospace,Menlo,Consolas,monospace';ctx.fillStyle=col;ctx.textAlign=align||'left';ctx.fillText(s,x,y);}
+/* zoom panel: ±15h axial, ±4h radial */
+function zoom(S,a,cut,gap){
+  var x0=24,y0=H-150,w=270,h0=118,cx=x0+w/2,cy=y0+h0/2,h=S.h,sx=w/(30*h),sy=(h0/2)/(4*h);
+  ctx.strokeStyle='#e4e8ee';ctx.lineWidth=1;ctx.strokeRect(x0,y0,w,h0);
+  ctx.beginPath();ctx.moveTo(x0,cy);ctx.lineTo(x0+w,cy);ctx.stroke();
+  function side(sg,from,to,off,col){ctx.strokeStyle=col;ctx.lineWidth=1.6;
+    [1,-1].forEach(function(m){ctx.beginPath();var st=false;
+      for(var i=from;i<=to;i++){var X=a[i]/h;if(Math.abs(X)>15+gap)continue;var px=cx+(a[i]+off)*sx,py=cy-m*S.psi[i]*sy;
+        if(py<y0-2||py>y0+h0+2){st=false;continue;}if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);}ctx.stroke();});}
+  if(!cut){side(0,0,N-1,0,C.blue);}
+  else{var off=gap*h;side(-1,0,S.i0,-off,C.red);side(1,S.i0,N-1,off,C.red);
+    ctx.strokeStyle=C.red;ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.ellipse(cx-off*sx,cy,h*sx,h*sy,0,-Math.PI/2,Math.PI/2);ctx.stroke(); // hemisphere of radius h, drawn at the panel's scales
+    ctx.beginPath();ctx.ellipse(cx+off*sx,cy,h*sx,h*sy,0,Math.PI/2,3*Math.PI/2);ctx.stroke();}
+  txt('zoom: ±15h × ±4h',x0+6,y0+14,11,C.mute);
+  txt('h = '+S.h.toFixed(4),x0+6,y0+h0-6,11,C.mute);
+}
+function uInset(k){
+  var x0=W-260,y0=H-150,w=230,h0=96,T=snaps[snaps.length-1].t,U=snaps[0].h*snaps[0].h;
+  ctx.strokeStyle='#e4e8ee';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0+h0);ctx.lineTo(x0+w,y0+h0);ctx.stroke();
+  ctx.strokeStyle=C.blue;ctx.lineWidth=2;ctx.beginPath();
+  for(var j=0;j<=k;j++){var S=snaps[j],px=x0+w*S.t/T,py=y0+h0*(1-S.h*S.h/U);if(j)ctx.lineTo(px,py);else ctx.moveTo(px,py);}ctx.stroke();
+  txt('u = h²  (neck)',x0,y0-6,11,C.mute);txt('0',x0-6,y0+h0+4,11,C.mute,false,'right');txt('t',x0+w+4,y0+h0+4,11,C.mute);
+}
+/* ---------- frames ---------- */
+var NP=snaps.length,NC=16,frames=[],durs=[];
+for(var k=0;k<NP;k++){frames.push(['pinch',k]);durs.push(k===NP-1?900:120);}
+for(var k=0;k<NC;k++){frames.push(['cut',k]);durs.push(k===NC-1?3200:120);}
+function drawFrame(f){
+  var F=frames[f];th=TH+0.006*f;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);axes();
+  var S=snaps[F[0]==='pinch'?F[1]:NP-1],a=profile(S);
+  if(F[0]==='pinch'){
+    var prof=thin(a,S.psi,0,N-1),full=capPts(prof[0][0],prof[0][1],-1).reverse().concat(prof,capPts(prof[prof.length-1][0],prof[prof.length-1][1],1));
+    wire(full,C.blue,1.4,1);
+    txt('Neck pinch (computed)',24,30,20,C.blue,true);
+    txt('t = '+S.t.toFixed(5)+'   neck radius h = '+S.h.toFixed(4),24,52,13,C.mute);
+    zoom(S,a,false,0);
+  }else{
+    var k=F[1],gap=Math.min(1,k/8),fl=Math.max(0,1-k/8),sep=0.18*gap;
+    var L=thin(a,S.psi,0,S.i0),R=thin(a,S.psi,S.i0,N-1);
+    L=L.map(function(p){return [p[0]-sep,p[1]];});R=R.map(function(p){return [p[0]+sep,p[1]];});
+    var Lf=capPts(L[0][0],L[0][1],-1).reverse().concat(L,capPts(L[L.length-1][0],S.h,1));
+    var Rf=capPts(R[0][0],S.h,-1).reverse().concat(R,capPts(R[R.length-1][0],R[R.length-1][1],1));
+    var col=fl>0.02?C.red:C.blue;wire(Lf,col,1.4+1.2*fl,1+0.5*fl);wire(Rf,col,1.4+1.2*fl,1+0.5*fl);
+    txt('Surgery: cut at the thinnest cross-section, cap each side',24,30,20,C.red,true);
+    txt('1 cut. Caps of radius h = '+S.h.toFixed(4)+' (pieces drawn slightly apart)',24,52,13,C.mute);
+    zoom(S,a,true,3*gap);
+  }
+  // numbers
+  var x=W-260,y=96;
+  txt('curvature at neck (S²)  '+Math.round(S.K),x,y,12,C.ink);
+  txt('max |ψ_s| in ±4h  '+S.slope.toFixed(3),x,y+18,12,C.ink);
+  txt('length of ψ<2h  '+S.len2.toFixed(1)+' h',x,y+36,12,C.ink);
+  uInset(F[0]==='pinch'?F[1]:NP-1);
+}
+window.FRAME_DUR=durs;window.renderFrame=drawFrame;window.SNAPS=snaps.map(function(S){return {t:S.t,h:S.h,K:S.K,slope:S.slope,len2:S.len2};});
+var snapq=(location.search.match(/snap=(\d+)/)||[])[1];
+if(snapq!==undefined){drawFrame(Math.min(+snapq,frames.length-1));}
+else{var f=0;(function loop(){drawFrame(f);var d=durs[f];f=(f+1)%frames.length;setTimeout(loop,d);})();}
+})();
+</script>
+</body>
+</html>
